@@ -1,28 +1,31 @@
-# AI Web Agency
+# Velocity — AI Web Design Agency
 
 Fully autonomous AI-powered website design agency — from lead generation to site delivery.
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        PIPELINE ORCHESTRATOR                        │
-│                    (runs on schedule or manual)                      │
-├─────────┬──────────┬──────────┬─────────┬──────────┬───────────────┤
-│  Agent 1 │  Agent 2  │ Agent 3  │ Agent 4 │ Agent 5  │   Agent 6     │
-│  Lead    │  Outreach │ Design   │  Sales  │  Web     │   Client      │
-│ Research │  (Email)  │ Preview  │ Pipeline│ Designer │   Success     │
-├─────────┼──────────┼──────────┼─────────┼──────────┼───────────────┤
-│ Google   │ SendGrid │ Claude   │ Stripe  │ Claude   │ WhatsApp      │
-│ Places   │ SMTP     │ Playwright│ LLM    │ GitHub   │ Telegram      │
-│ PageSpeed│ Claude   │ Pillow   │         │ Vercel   │ Email         │
-│ Scraper  │          │          │         │          │               │
-└─────────┴──────────┴──────────┴─────────┴──────────┴───────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         PIPELINE ORCHESTRATOR                                │
+│                     (runs on schedule or manual)                             │
+├─────────┬──────────┬──────────┬─────────┬──────────┬───────────────────────┤
+│ Agent 1  │ Agent 2   │ Agent 3  │ Agent 4 │ Agent 5  │ Agent 6               │
+│ Lead     │ Outreach  │ Design   │ Sales   │ Web      │ Client                │
+│ Research │ (Email)   │ Preview  │ Pipeline│ Designer │ Success               │
+├─────────┼──────────┼──────────┼─────────┼──────────┼───────────────────────┤
+│ Google   │ SendGrid  │ Claude   │ Stripe  │ Claude   │ WhatsApp/Telegram     │
+│ Places   │ SMTP      │Playwright│ LLM     │ GitHub   │ Email                 │
+│ PageSpeed│ Claude    │ Pillow   │         │ Vercel   │                       │
+│ Scraper  │           │          │         │          │                       │
+└─────────┴──────────┴──────────┴─────────┴──────────┴───────────────────────┘
                               │
-                     ┌────────┴────────┐
-                     │   SQLite / DB   │
-                     │  (shared state) │
-                     └─────────────────┘
+                    ┌─────────┴──────────┐
+                    │  FastAPI Web Server │
+                    │  (webhooks + API)   │
+                    ├────────────────────┤
+                    │   SQLite / DB      │
+                    │   (shared state)   │
+                    └────────────────────┘
 ```
 
 ## The Pipeline
@@ -62,9 +65,9 @@ Handles replies and closes deals.
 
 - Monitors incoming replies via webhook
 - Classifies intent with LLM (positive, negative, question, unsubscribe)
-- **Positive reply →** sends the full (unblurred) demo
-- **Wants to buy →** creates and sends Stripe invoice
-- **Payment received →** moves lead to build queue
+- **Positive reply** → sends the full (unblurred) demo
+- **Wants to buy** → creates and sends Stripe invoice
+- **Payment received** → moves lead to build queue
 - Handles the full deal lifecycle: proposal → demo → invoice → paid
 
 ### Stage 5: Web Design Agent
@@ -74,7 +77,8 @@ Builds complete, multi-page websites.
 - Plans site architecture (pages, navigation, content)
 - Builds each page as clean HTML/CSS using Claude
 - Creates shared stylesheet
-- Deploys to GitHub + Vercel
+- Pushes code to GitHub via API
+- Deploys live to Vercel
 - Handles: home, about, services, gallery, contact, blog pages
 
 ### Stage 6: Client Success Agent
@@ -86,6 +90,17 @@ Manages ongoing client communication.
 - Generates human-sounding responses using LLM
 - Sends welcome messages when projects kick off
 - Tracks all communications in the message log
+
+## Web Server
+
+The FastAPI web server provides the HTTP layer that ties everything together:
+
+- **Agency website** — Served at `/` (the Velocity marketing site)
+- **Preview hosting** — `/preview/{lead_id}` serves blurred mockup images
+- **Demo hosting** — `/demo/{lead_id}` serves full HTML mockups
+- **Webhook endpoints** — Stripe, SendGrid, WhatsApp, Telegram
+- **Admin API** — Pipeline stats, lead management, project tracking
+- **Redesign request API** — Handles form submissions from the agency website
 
 ## Data Flow
 
@@ -114,7 +129,10 @@ cp .env.example .env
 # 5. Install Playwright browsers
 playwright install chromium
 
-# 6. Run the full pipeline
+# 6. Start the web server (serves agency website + API + webhooks)
+agency serve
+
+# 7. Run the full pipeline
 agency run
 
 # Or run individual stages
@@ -136,13 +154,19 @@ agency status
 
 ```
 AIWEBagency/
+├── website/                 # The agency's own website (Velocity)
+│   ├── index.html           # Landing page
+│   ├── styles.css           # Full stylesheet
+│   └── main.js              # Interactions + animations
+├── server/                  # FastAPI web server
+│   └── app.py               # Routes, webhooks, API, static serving
 ├── agents/                  # The 6 autonomous agents
 │   ├── base.py              # Shared agent scaffolding
 │   ├── lead_researcher.py   # Agent 1: Find businesses with bad websites
 │   ├── outreach.py          # Agent 2: Cold email cadence
 │   ├── design_preview.py    # Agent 3: Blurred mockup generation
 │   ├── sales.py             # Agent 4: Deal closing + invoicing
-│   ├── web_designer.py      # Agent 5: Full site builds
+│   ├── web_designer.py      # Agent 5: Full site builds + GitHub/Vercel deploy
 │   └── client_success.py    # Agent 6: Multi-channel client comms
 ├── config/
 │   └── settings.py          # Centralized env-based configuration
@@ -158,12 +182,13 @@ AIWEBagency/
 │   ├── website_auditor.py   # PageSpeed + screenshots + scoring
 │   ├── email_sender.py      # SendGrid / SMTP
 │   ├── payments.py          # Stripe invoicing
-│   └── messaging.py         # WhatsApp + Telegram
+│   ├── messaging.py         # WhatsApp + Telegram
+│   └── deployment.py        # GitHub repo creation + Vercel deployment
 ├── templates/
 │   └── emails.py            # Cold email templates (4 stages)
 ├── pipeline/
 │   ├── orchestrator.py      # Connects all agents in sequence
-│   ├── cli.py               # CLI interface
+│   ├── cli.py               # CLI interface (run, stage, serve, status)
 │   └── webhooks.py          # Inbound webhook handlers
 ├── tests/
 │   ├── test_models.py
@@ -182,7 +207,7 @@ AIWEBagency/
 | **Google Places** | Finding businesses | $200/mo credit |
 | **Google PageSpeed** | Website auditing | 25K req/day |
 | **SendGrid** | Email sending | 100 emails/day |
-| **Stripe** | Payment processing | 2.9% + 30¢/txn |
+| **Stripe** | Payment processing | 2.9% + 30c/txn |
 | **WhatsApp Business** | Client messaging | 1K free/mo |
 | **Telegram Bot** | Client messaging | Free |
 | **Vercel** | Site hosting/deployment | Free tier |
@@ -198,3 +223,11 @@ All outreach follows CAN-SPAM requirements:
 - Email identified as commercial/promotional
 - Max 50 emails/day per sending identity
 - 3-day minimum between touches to same lead
+
+## Pricing Packages
+
+| Package | Price | Includes |
+|---------|-------|----------|
+| **Starter** | $997 | 5-page site, SSL, basic SEO, 30 days support |
+| **Professional** | $1,997 | Multi-page site, blog, advanced SEO, 60 days support |
+| **Premium** | $3,497 | Full custom build, booking system, 90 days VIP support |

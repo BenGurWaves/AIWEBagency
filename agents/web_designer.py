@@ -23,6 +23,7 @@ from models.lead import Lead, LeadStatus
 from models.deal import Deal
 from models.project import Project, ProjectStatus
 from config.settings import settings
+from services.deployment import create_github_repo, push_files_to_github, deploy_to_vercel
 
 
 BUILD_DIR = Path("builds")
@@ -244,14 +245,40 @@ Brand colors: {json.dumps(brand_colors) if brand_colors else 'Extract from the b
 
     async def _create_github_repo(self, project: Project, site_dir: Path) -> str | None:
         """Create a GitHub repo and push the site files."""
-        # This would use the GitHub API via httpx
-        # For now, return a placeholder
-        self.log.info("github_repo_created", project=project.id)
-        return f"https://github.com/{settings.github_org}/site-{project.id}"
+        try:
+            repo_name = f"site-{project.id[:12]}"
+            repo_info = await create_github_repo(
+                repo_name=repo_name,
+                description=f"Website for {project.site_type} business — built by Velocity",
+            )
+
+            # Push all site files
+            await push_files_to_github(
+                repo_full_name=repo_info["full_name"],
+                site_dir=site_dir,
+                commit_message="Deploy website via Velocity AI",
+            )
+
+            self.log.info("github_repo_created", project=project.id, repo=repo_info["repo_url"])
+            return repo_info["repo_url"]
+
+        except Exception as exc:
+            self.log.error("github_deploy_failed", project=project.id, error=str(exc))
+            return None
 
     async def _deploy_to_vercel(self, project: Project, site_dir: Path) -> str | None:
         """Deploy the site to Vercel."""
-        # This would use the Vercel API
-        # For now, return a placeholder
-        self.log.info("vercel_deployed", project=project.id)
-        return f"https://site-{project.id[:8]}.vercel.app"
+        try:
+            project_name = f"site-{project.id[:12]}"
+            result = await deploy_to_vercel(
+                project_name=project_name,
+                site_dir=site_dir,
+            )
+
+            project.vercel_project_id = result.get("deployment_id")
+            self.log.info("vercel_deployed", project=project.id, url=result["url"])
+            return result["url"]
+
+        except Exception as exc:
+            self.log.error("vercel_deploy_failed", project=project.id, error=str(exc))
+            return None

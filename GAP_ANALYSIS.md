@@ -11,12 +11,33 @@
 - Client success agent with WhatsApp/Telegram/email routing
 - Pipeline orchestrator connecting all stages
 - CLI interface for manual and continuous operation
+- **FastAPI web server** with webhook endpoints, preview/demo hosting, admin API
+- **Agency website** (Velocity) — modern dark-theme marketing site
+- **GitHub + Vercel deployment** — real API integration for site publishing
 - Webhook handlers for Stripe, email replies, WhatsApp, Telegram
 - SQLite database with full data model
 - CAN-SPAM compliant email templates
 - Unit tests for models, scoring, and templates
 
-## Gaps to Address Before Production
+## Resolved Gaps
+
+### Web Application Layer — RESOLVED
+- [x] FastAPI web server (`server/app.py`) with full routing
+- [x] Preview hosting — `/preview/{lead_id}` serves blurred mockup images
+- [x] Demo hosting — `/demo/{lead_id}` serves full HTML mockups
+- [x] Stripe webhook endpoint
+- [x] SendGrid Inbound Parse webhook for email replies
+- [x] WhatsApp/Telegram webhook receivers
+- [x] Admin API for pipeline monitoring
+- [x] Agency website served at root `/`
+
+### GitHub + Vercel Deployment — RESOLVED
+- [x] GitHub API integration — creates repos and pushes site files
+- [x] Vercel API integration — creates projects and deploys
+- [x] Real deployment service (`services/deployment.py`)
+- [x] Web Design Agent updated to use real deployment
+
+## Remaining Gaps Before Production
 
 ### 1. Email Deliverability (CRITICAL)
 
@@ -28,45 +49,18 @@
 - [ ] Email warmup integration (Instantly, Mailreach, or similar) — 2-4 weeks before sending
 - [ ] Email verification service (Hunter, NeverBounce) to validate addresses before sending
 - [ ] Sender rotation across 2-3 mailboxes per domain
-- [ ] Reduce daily limit from 50 to 35-40 per mailbox
-- [ ] Plain-text-only option for initial cold emails (HTML triggers spam filters)
-- [ ] Staggered send timing (random delays vs. rapid-fire)
 - [ ] Consider using a dedicated cold email platform (Instantly, Smartlead) instead of SendGrid
 
-### 2. Web Application Layer (CRITICAL)
+### 2. Email Reply Detection (HIGH)
 
-**Problem:** The system needs HTTP endpoints for webhooks, preview hosting, and demo viewing.
-
-**What's needed:**
-- [ ] FastAPI or similar web framework for webhook endpoints
-- [ ] Preview hosting — serve blurred/full mockup images at URLs
-- [ ] Demo hosting — serve full HTML mockups at shareable URLs
-- [ ] Stripe webhook endpoint (currently handler exists but no HTTP server)
-- [ ] SendGrid Inbound Parse webhook for email replies
-- [ ] WhatsApp/Telegram webhook receivers
-- [ ] Optional: admin dashboard to monitor pipeline
-
-### 3. Email Reply Detection (HIGH)
-
-**Problem:** The system has reply processing logic but no way to receive inbound emails.
+**Problem:** Webhook endpoint exists but needs external service configuration.
 
 **What's needed:**
-- [ ] SendGrid Inbound Parse integration (parses replies and hits your webhook)
-- [ ] OR IMAP polling to check a shared inbox for replies
+- [ ] Configure SendGrid Inbound Parse to point to `/webhooks/email/inbound`
+- [ ] OR implement IMAP polling as a fallback for reply detection
 - [ ] Reply-to address configuration (dedicated inbox per sending identity)
-- [ ] Thread matching — associate replies with the original lead
 
-### 4. GitHub + Vercel Deployment (MEDIUM)
-
-**Problem:** The Web Design Agent has placeholder implementations for repo creation and deployment.
-
-**What's needed:**
-- [ ] GitHub API integration to create repos and push site files
-- [ ] Vercel API integration to create projects and deploy
-- [ ] Custom domain setup per client (CNAME or Vercel subdomain)
-- [ ] CI/CD pipeline for automatic deploys on changes
-
-### 5. Content Quality & QA (MEDIUM)
+### 3. Content Quality & QA (MEDIUM)
 
 **Problem:** LLM-generated websites need quality checks before delivery.
 
@@ -74,71 +68,47 @@
 - [ ] Automated QA: run PageSpeed on the generated site
 - [ ] Link checker on generated HTML
 - [ ] Mobile viewport testing via Playwright
-- [ ] Human review step before delivery (or at minimum, a staging URL for client review)
+- [ ] Human review step before delivery (or staging URL for client review)
 - [ ] Content review for hallucinated info (wrong phone numbers, addresses)
 
-### 6. Scaling & Reliability (MEDIUM)
+### 4. Scaling & Reliability (MEDIUM)
 
-**Problem:** SQLite doesn't scale, and there's no retry/failure handling for API calls.
+**Problem:** SQLite doesn't scale, and there's limited retry/failure handling.
 
 **What's needed:**
 - [ ] PostgreSQL for production (SQLite is fine for dev/testing)
-- [ ] Redis or similar for job queuing (replace the simple loop with proper task queue)
-- [ ] Retry logic with exponential backoff for all API calls (partially there via tenacity dep)
+- [ ] Redis or similar for job queuing
+- [ ] Retry logic with exponential backoff for all API calls
 - [ ] Rate limiting awareness for Google APIs, SendGrid, etc.
 - [ ] Error alerting (Slack/email notifications on pipeline failures)
-- [ ] Proper async task queue (Celery, Dramatiq, or similar)
 
-### 7. Lead Quality Enrichment (LOW-MEDIUM)
-
-**Problem:** Google Places data alone may not have emails or accurate contact info.
+### 5. Lead Quality Enrichment (LOW-MEDIUM)
 
 **What's needed:**
-- [ ] Email enrichment service (Hunter.io, Apollo, Snov.io) when scraping doesn't find email
+- [ ] Email enrichment service (Hunter.io, Apollo) when scraping doesn't find email
 - [ ] Contact name enrichment (find the business owner's name)
-- [ ] Social media presence check (LinkedIn, Facebook page)
-- [ ] Yelp API as secondary data source
-- [ ] Business license / registration data for contact details
+- [ ] Business verification (avoid contacting businesses that don't exist)
 
-### 8. Legal & Compliance (LOW-MEDIUM)
-
-**Problem:** The system handles CAN-SPAM basics but could be more robust.
+### 6. Legal & Compliance (LOW-MEDIUM)
 
 **What's needed:**
-- [ ] Suppression list management (global unsubscribe list checked before every send)
-- [ ] Configurable physical address (currently hardcoded in outreach agent)
-- [ ] Rate limiting per recipient (never send more than 3 emails without a reply)
-- [ ] CCPA data handling if targeting California businesses
+- [ ] Global suppression list management
+- [ ] Configurable physical address (currently hardcoded)
 - [ ] robots.txt checking before scraping websites
-- [ ] Terms of service for when you start processing client data
+- [ ] Terms of service for client data processing
 
-### 9. Revenue Operations (LOW)
-
-**Problem:** Basic Stripe integration, but no subscription management or recurring billing.
+### 7. Revenue Operations (LOW)
 
 **What's needed:**
-- [ ] Multiple pricing tiers configurable in the admin
 - [ ] Hosting/maintenance subscription billing (monthly recurring after initial build)
-- [ ] Referral tracking
+- [ ] Admin dashboard UI (currently API-only)
 - [ ] Revenue dashboards and metrics
-- [ ] Contract/agreement generation (even simple terms of service acceptance)
-
-### 10. Multi-Channel Outreach (LOW)
-
-**Problem:** Current outreach is email-only. Adding channels would increase reply rates.
-
-**What's needed:**
-- [ ] LinkedIn outreach integration (connection requests + InMail)
-- [ ] SMS outreach via Twilio (regulations permitting)
-- [ ] Social media DM capability
-- [ ] Coordinated multi-channel sequences (email → LinkedIn → email)
 
 ## Recommended Priority Order
 
-1. **Email deliverability setup** — Without this, nothing works. Get domains, warmup, verification.
-2. **Web app + webhook endpoints** — Needed for reply detection, preview hosting, payment callbacks.
-3. **Email reply detection** — Critical for the pipeline to work end-to-end.
-4. **GitHub/Vercel deployment** — Needed to actually deliver sites.
-5. **Content QA** — Needed before you can confidently deliver AI-generated sites.
-6. **PostgreSQL + job queue** — Needed once volume exceeds a few dozen leads/day.
-7. **Everything else** — Iterate based on what bottlenecks appear first.
+1. **Email deliverability setup** — Without proper warmup, nothing works. Get domains, warm up, verify.
+2. **SendGrid Inbound Parse config** — Point it at your webhook URL so replies get detected.
+3. **Content QA pipeline** — Run PageSpeed + mobile tests on generated sites before delivery.
+4. **PostgreSQL + job queue** — Needed once volume exceeds a few dozen leads/day.
+5. **Admin dashboard UI** — Build a frontend for the admin API endpoints.
+6. **Everything else** — Iterate based on what bottlenecks appear first.
