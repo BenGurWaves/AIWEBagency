@@ -133,7 +133,7 @@
       btn.textContent = 'Creating account...';
       btn.disabled = true;
 
-      // Store user data in localStorage (client-side until backend is connected)
+      // Store user data in localStorage
       var user = {
         email: email,
         website_url: website,
@@ -145,10 +145,31 @@
       localStorage.setItem('velocity_user', JSON.stringify(user));
       localStorage.setItem('velocity_auth', 'true');
 
+      // Call backend API to create account + send welcome email
+      // (fires in background — don't block redirect)
+      try {
+        fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: pass, website_url: website }),
+        }).catch(function() {});
+      } catch (_) {}
+
+      // Also trigger redesign request email if website provided
+      if (website) {
+        try {
+          fetch('/api/request-redesign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ website_url: website, email: email }),
+          }).catch(function() {});
+        } catch (_) {}
+      }
+
       // Redirect to dashboard
       setTimeout(function() {
         window.location.href = '/dashboard.html';
-      }, 600);
+      }, 800);
     });
 
     // Sign In handler

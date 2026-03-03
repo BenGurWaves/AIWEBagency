@@ -17,6 +17,7 @@
     <div class="nav-inner">
       <a href="/" class="logo">Velocity<span class="logo-dot">.</span></a>
       <div class="nav-links" id="navLinks">
+        <a href="/">Home</a>
         <a href="#" id="navUser" class="dash-user-nav"></a>
         <a href="#" id="signOut" class="nav-cta">Sign out</a>
       </div>
@@ -34,180 +35,239 @@
         </div>
       </div>
 
-      <!-- ── Progress Card ── -->
-      <div class="dash-grid">
-        <div class="dash-card dash-card--progress">
+      <!-- ═══ STEP 1: Questionnaire ═══ -->
+      <div id="stepQuestionnaire" class="dash-section">
+        <div class="dash-card dash-card--wide">
           <div class="dash-card-head">
-            <h3>Your Redesign</h3>
-            <span class="dash-status" id="dashStatus">Processing</span>
+            <h3>Tell us about your business</h3>
+            <span class="dash-status">Step 1 of 2</span>
           </div>
-          <div class="dash-website" id="dashWebsite"></div>
+          <p class="dash-card-desc">We pulled some info from your website. Review it, edit anything that's wrong, and fill in the blanks so we can build something perfect for you.</p>
+
+          <form id="questionnaireForm" class="q-form">
+            <div class="q-row">
+              <div class="input-wrap">
+                <label for="qName">Business name</label>
+                <input type="text" id="qName" placeholder="e.g. Thompson & Sons Roofing" required>
+              </div>
+              <div class="input-wrap">
+                <label for="qNiche">Industry / niche</label>
+                <select id="qNiche" required>
+                  <option value="">Select your industry</option>
+                  <option value="roofing">Roofing</option>
+                  <option value="plumbing">Plumbing</option>
+                  <option value="hvac">HVAC</option>
+                  <option value="electrical">Electrical</option>
+                  <option value="landscaping">Landscaping</option>
+                  <option value="painting">Painting</option>
+                  <option value="cleaning">Cleaning</option>
+                  <option value="pest-control">Pest Control</option>
+                  <option value="auto-repair">Auto Repair</option>
+                  <option value="construction">General Construction</option>
+                  <option value="handyman">Handyman</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-wrap">
+              <label for="qServices">Services you offer <span class="label-hint">(comma-separated)</span></label>
+              <input type="text" id="qServices" placeholder="e.g. Roof repair, Full replacement, Tile roofing, Inspections">
+            </div>
+
+            <div class="input-wrap">
+              <label for="qLocation">Service area</label>
+              <input type="text" id="qLocation" placeholder="e.g. Phoenix, AZ metro area">
+            </div>
+
+            <div class="q-row">
+              <div class="input-wrap">
+                <label for="qPhone">Phone number</label>
+                <input type="tel" id="qPhone" placeholder="(602) 555-0187">
+              </div>
+              <div class="input-wrap">
+                <label for="qYears">Years in business</label>
+                <input type="text" id="qYears" placeholder="e.g. 35+">
+              </div>
+            </div>
+
+            <div class="q-row">
+              <div class="input-wrap">
+                <label for="qStyle">Design style</label>
+                <select id="qStyle">
+                  <option value="modern-clean">Modern &amp; Clean</option>
+                  <option value="bold-dark">Bold &amp; Dark</option>
+                  <option value="warm-friendly">Warm &amp; Friendly</option>
+                  <option value="professional">Professional / Corporate</option>
+                  <option value="rustic">Rustic / Organic</option>
+                  <option value="surprise">Surprise me</option>
+                </select>
+              </div>
+              <div class="input-wrap">
+                <label for="qSiteType">What type of site do you need?</label>
+                <select id="qSiteType">
+                  <option value="service-business">Service business (lead gen)</option>
+                  <option value="portfolio">Portfolio / gallery</option>
+                  <option value="ecommerce">Online store (Shopify-style)</option>
+                  <option value="booking">Booking / appointments</option>
+                  <option value="blog">Blog / content site</option>
+                  <option value="not-sure">Not sure yet</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-wrap">
+              <label for="qNotes">Anything else we should know?</label>
+              <textarea id="qNotes" rows="3" placeholder="Special requests, competitor sites you like, features you need..."></textarea>
+            </div>
+
+            <div class="q-actions">
+              <button type="submit" class="btn btn-primary">Generate my preview</button>
+              <p class="q-hint">This may take a few minutes. We're building a real, personalized mockup just for you.</p>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ═══ STEP 2: Generating ═══ -->
+      <div id="stepGenerating" class="dash-section" style="display:none;">
+        <div class="dash-card dash-card--wide">
+          <div class="dash-card-head">
+            <h3>Building your preview</h3>
+            <span class="dash-status" id="genStatus">Analyzing</span>
+          </div>
+          <p class="dash-card-desc" id="genBusinessName"></p>
+
           <div class="dash-progress-wrap">
             <div class="dash-progress-bar">
-              <div class="dash-progress-fill" id="dashProgressFill" style="width:0%"></div>
+              <div class="dash-progress-fill" id="genProgressFill" style="width:0%"></div>
             </div>
-            <span class="dash-progress-text" id="dashProgressText">0%</span>
+            <span class="dash-progress-text" id="genProgressText">0%</span>
           </div>
+
           <div class="dash-progress-steps">
-            <div class="dash-step" id="step1">
+            <div class="dash-step" id="genStep1">
               <span class="dash-step-dot"></span>
-              <span>Scraping website</span>
+              <span>Analyzing your current website</span>
             </div>
-            <div class="dash-step" id="step2">
+            <div class="dash-step" id="genStep2">
               <span class="dash-step-dot"></span>
-              <span>Analyzing content</span>
+              <span>Extracting content &amp; brand info</span>
             </div>
-            <div class="dash-step" id="step3">
+            <div class="dash-step" id="genStep3">
               <span class="dash-step-dot"></span>
-              <span>Generating design</span>
+              <span>Designing layout &amp; color palette</span>
             </div>
-            <div class="dash-step" id="step4">
+            <div class="dash-step" id="genStep4">
               <span class="dash-step-dot"></span>
-              <span>Building preview</span>
+              <span>Building pages &amp; components</span>
             </div>
-            <div class="dash-step" id="step5">
+            <div class="dash-step" id="genStep5">
               <span class="dash-step-dot"></span>
-              <span>Ready for review</span>
+              <span>Rendering final preview</span>
             </div>
+          </div>
+
+          <div class="gen-detail" id="genDetail">
+            <p>Scraping your website for content, images, and brand elements...</p>
           </div>
         </div>
+      </div>
 
-        <!-- ── Preview Card ── -->
-        <div class="dash-card dash-card--preview">
-          <div class="dash-card-head">
-            <h3>Preview</h3>
-          </div>
-          <div class="dash-preview-area" id="dashPreview">
-            <div class="dash-preview-placeholder" id="previewPlaceholder">
-              <span class="dash-preview-icon">&#128640;</span>
-              <p>Your preview is being built.<br>We'll show it here when it's ready.</p>
+      <!-- ═══ STEP 3: Preview Ready ═══ -->
+      <div id="stepPreview" class="dash-section" style="display:none;">
+        <div class="dash-grid">
+          <!-- Preview card -->
+          <div class="dash-card dash-card--preview">
+            <div class="dash-card-head">
+              <h3>Your Preview</h3>
+              <span class="dash-status dash-status--live">Ready</span>
             </div>
-            <div class="dash-preview-ready" id="previewReady" style="display:none;">
-              <div class="svg-browser" style="max-width:100%;border-radius:12px;overflow:hidden;border:1px solid var(--border);">
-                <svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Your website preview" style="width:100%;height:auto;display:block;">
-                  <!-- Browser chrome — light -->
-                  <rect width="420" height="280" rx="10" fill="#e8e6e1"/>
-                  <rect x="0" y="0" width="420" height="32" rx="10" fill="#e0dedb"/>
-                  <rect x="0" y="22" width="420" height="10" fill="#e0dedb"/>
-                  <circle cx="16" cy="16" r="5" fill="#e85d4a"/>
-                  <circle cx="32" cy="16" r="5" fill="#e8b73a"/>
-                  <circle cx="48" cy="16" r="5" fill="#4dba52"/>
-                  <rect x="68" y="10" width="200" height="14" rx="4" fill="#fff"/>
-                  <text x="96" y="21" font-size="7" fill="#888" font-family="sans-serif">yourbusiness.com</text>
-                  <rect x="354" y="7" width="52" height="18" rx="4" fill="#4dba52"/>
-                  <text x="367" y="20" font-size="9" fill="#fff" font-weight="bold" font-family="sans-serif">Preview</text>
-
-                  <!-- Page background — light -->
-                  <rect x="0" y="32" width="420" height="248" fill="#f8f7f4"/>
-
-                  <!-- Top utility bar -->
-                  <rect x="0" y="32" width="420" height="16" fill="#1b5e3b"/>
-                  <text x="24" y="43" font-size="6.5" fill="#d4ece0" font-family="sans-serif">&#9742; Your phone number</text>
-                  <text x="340" y="43" font-size="6.5" fill="#d4ece0" font-family="sans-serif">Mon-Sat 7AM-6PM</text>
-
-                  <!-- Nav — white -->
-                  <rect x="0" y="48" width="420" height="26" fill="#fff"/>
-                  <line x1="0" y1="74" x2="420" y2="74" stroke="#e5e2dc" stroke-width="1"/>
-                  <text x="24" y="65" font-size="10" fill="#1a2e28" font-weight="bold" font-family="sans-serif" id="previewSvgLogo">YOUR BUSINESS</text>
-                  <text x="260" y="64" font-size="7.5" fill="#5c6b65" font-family="sans-serif">Services</text>
-                  <text x="305" y="64" font-size="7.5" fill="#5c6b65" font-family="sans-serif">About</text>
-                  <rect x="350" y="56" width="50" height="14" rx="3" fill="#1b5e3b"/>
-                  <text x="375" y="66" text-anchor="middle" font-size="6.5" fill="#fff" font-weight="bold" font-family="sans-serif">Free Quote</text>
-
-                  <!-- Review badge -->
-                  <rect x="24" y="84" width="100" height="14" rx="7" fill="#fdf6e3" stroke="#f0e2b6" stroke-width="0.5"/>
-                  <text x="32" y="94" font-size="6.5" fill="#b8860b" font-weight="bold" font-family="sans-serif">&#9733; 5-star rated</text>
-
-                  <!-- Hero heading -->
-                  <text x="24" y="122" font-size="22" fill="#1a2e28" font-weight="bold" font-family="sans-serif">A modern site for</text>
-                  <text x="24" y="148" font-size="22" fill="#1a2e28" font-weight="bold" font-family="sans-serif">your business.</text>
-                  <text x="24" y="166" font-size="8" fill="#5c6b65" font-family="sans-serif">Fast, mobile-friendly, and designed to convert visitors into customers.</text>
-
-                  <!-- CTA buttons -->
-                  <rect x="24" y="178" width="90" height="22" rx="5" fill="#1b5e3b"/>
-                  <text x="69" y="193" text-anchor="middle" font-size="8" fill="#fff" font-weight="bold" font-family="sans-serif">Get a Quote</text>
-                  <rect x="124" y="178" width="72" height="22" rx="5" fill="none" stroke="#c8d5cf" stroke-width="1"/>
-                  <text x="160" y="193" text-anchor="middle" font-size="8" fill="#1b5e3b" font-weight="600" font-family="sans-serif">Learn More</text>
-
-                  <!-- Hero image placeholder -->
-                  <rect x="280" y="82" width="120" height="120" rx="8" fill="#c8d8cf"/>
-                  <text x="340" y="148" text-anchor="middle" font-size="22" fill="rgba(255,255,255,0.45)" font-family="sans-serif">&#8962;</text>
-
-                  <!-- Trust bar -->
-                  <rect x="0" y="214" width="420" height="30" fill="#1b5e3b"/>
-                  <text x="70" y="232" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold" font-family="sans-serif">Fast</text>
-                  <text x="70" y="242" text-anchor="middle" font-size="6" fill="#a8d5bc" font-family="sans-serif">SUB-2S LOADS</text>
-                  <text x="210" y="232" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold" font-family="sans-serif">Mobile</text>
-                  <text x="210" y="242" text-anchor="middle" font-size="6" fill="#a8d5bc" font-family="sans-serif">RESPONSIVE</text>
-                  <text x="350" y="232" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold" font-family="sans-serif">SEO</text>
-                  <text x="350" y="242" text-anchor="middle" font-size="6" fill="#a8d5bc" font-family="sans-serif">OPTIMIZED</text>
-
-                  <!-- Services hint -->
-                  <rect x="0" y="244" width="420" height="36" fill="#fff"/>
-                  <text x="24" y="266" font-size="12" fill="#1a2e28" font-weight="bold" font-family="sans-serif">Everything your customers need.</text>
-                </svg>
-              </div>
+            <div class="dash-preview-area">
+              <div id="previewContainer"></div>
               <div class="dash-preview-actions" id="previewActions">
-                <button class="btn btn-primary" id="approveBtn">I love it &mdash; build it!</button>
+                <button class="btn btn-primary" id="approveBtn">I love it &mdash; let's build it!</button>
                 <button class="btn btn-ghost" id="revisionsBtn">Request changes</button>
               </div>
+              <!-- Revision form (hidden) -->
+              <div class="revision-form" id="revisionForm" style="display:none;">
+                <div class="input-wrap">
+                  <label for="revisionNotes">What would you like changed?</label>
+                  <textarea id="revisionNotes" rows="4" placeholder="Tell us what you'd like different — colors, layout, wording, anything..."></textarea>
+                </div>
+                <div class="q-actions">
+                  <button class="btn btn-primary" id="submitRevision">Submit revision request</button>
+                  <button class="btn btn-ghost" id="cancelRevision">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Plan card -->
+          <div class="dash-card dash-card--plan">
+            <div class="dash-card-head">
+              <h3>Choose a Plan</h3>
+            </div>
+            <p class="dash-plan-desc">Select a plan to get your site built and deployed live.</p>
+            <div class="dash-plan-picker" id="planPicker">
+              <div class="dash-plan-option" data-plan="starter" data-price="$997">
+                <div>
+                  <strong>Starter</strong>
+                  <span>5-page custom website</span>
+                </div>
+                <div class="dash-plan-option-price">$997</div>
+              </div>
+              <div class="dash-plan-option dash-plan-option--featured" data-plan="professional" data-price="$1,997">
+                <div>
+                  <strong>Professional</strong>
+                  <span>Multi-page + CMS + Blog</span>
+                </div>
+                <div class="dash-plan-option-price">$1,997</div>
+              </div>
+              <div class="dash-plan-option" data-plan="premium" data-price="$3,497">
+                <div>
+                  <strong>Premium</strong>
+                  <span>Full custom + booking system</span>
+                </div>
+                <div class="dash-plan-option-price">$3,497</div>
+              </div>
+            </div>
+            <div class="dash-plan-selected" id="planSelected" style="display:none;">
+              <div class="dash-plan-name" id="planName"></div>
+              <div class="dash-plan-price" id="planPrice"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ── Live Site Card (shown after build) ── -->
-      <div class="dash-card dash-card--live" id="liveCard" style="display:none;">
-        <div class="dash-card-head">
-          <h3>Your New Website</h3>
-          <span class="dash-status dash-status--live">Live</span>
+      <!-- ═══ Building / Live ═══ -->
+      <div id="stepBuilding" class="dash-section" style="display:none;">
+        <div class="dash-card dash-card--wide">
+          <div class="dash-card-head">
+            <h3>Building Your Website</h3>
+            <span class="dash-status" id="buildStatus">In progress</span>
+          </div>
+          <p class="dash-card-desc">We're building your full website based on your approved preview. This usually takes 5-7 business days.</p>
+          <div class="dash-progress-wrap">
+            <div class="dash-progress-bar">
+              <div class="dash-progress-fill" id="buildProgressFill" style="width:30%"></div>
+            </div>
+            <span class="dash-progress-text">In progress</span>
+          </div>
+          <p class="build-note">We'll email you when it's ready for review. You can check back here anytime.</p>
         </div>
-        <p class="dash-live-url">
-          <a href="#" id="liveUrl" target="_blank" rel="noopener"></a>
-        </p>
-        <p class="dash-live-name" id="liveName"></p>
       </div>
 
-      <!-- ── Plan Card ── -->
-      <div class="dash-card dash-card--plan">
-        <div class="dash-card-head">
-          <h3>Your Plan</h3>
-          <a href="#" class="dash-change-plan" id="changePlanBtn">Change plan</a>
-        </div>
-        <div class="dash-plan-current" id="planCurrent">
-          <div class="dash-plan-none" id="planNone">
-            <p>No plan selected yet. Choose a plan to get your site built.</p>
+      <div id="stepLive" class="dash-section" style="display:none;">
+        <div class="dash-card dash-card--live">
+          <div class="dash-card-head">
+            <h3>Your Website is Live</h3>
+            <span class="dash-status dash-status--live">Live</span>
           </div>
-          <div class="dash-plan-active" id="planActive" style="display:none;">
-            <div class="dash-plan-name" id="planName"></div>
-            <div class="dash-plan-price" id="planPrice"></div>
-            <div class="dash-plan-features" id="planFeatures"></div>
-          </div>
-        </div>
-
-        <!-- Plan selector (hidden until "Change plan" clicked) -->
-        <div class="dash-plan-picker" id="planPicker" style="display:none;">
-          <div class="dash-plan-option" data-plan="starter" data-price="$997">
-            <div>
-              <strong>Starter</strong>
-              <span>5-page custom website</span>
-            </div>
-            <div class="dash-plan-option-price">$997</div>
-          </div>
-          <div class="dash-plan-option dash-plan-option--featured" data-plan="professional" data-price="$1,997">
-            <div>
-              <strong>Professional</strong>
-              <span>Multi-page + CMS + Blog</span>
-            </div>
-            <div class="dash-plan-option-price">$1,997</div>
-          </div>
-          <div class="dash-plan-option" data-plan="premium" data-price="$3,497">
-            <div>
-              <strong>Premium</strong>
-              <span>Full custom + booking system</span>
-            </div>
-            <div class="dash-plan-option-price">$3,497</div>
-          </div>
+          <p class="dash-live-msg">Your new website has been deployed and is ready to bring in customers.</p>
+          <p class="dash-live-url">
+            <a href="#" id="liveUrl" target="_blank" rel="noopener"></a>
+          </p>
         </div>
       </div>
 
@@ -240,173 +300,377 @@
     // Populate header
     document.getElementById('dashEmail').textContent = email;
     document.getElementById('navUser').textContent = email;
-    document.getElementById('dashWebsite').textContent = website || 'No website submitted';
 
     // Sign out
     document.getElementById('signOut').addEventListener('click', function(e) {
       e.preventDefault();
       localStorage.removeItem('velocity_auth');
+      localStorage.removeItem('velocity_user');
       window.location.href = '/';
     });
 
-    // ── Simulated progress ──
-    // In production this would poll the backend API
-    var progress = user.progress || 0;
-    var status = user.status || 'preview_pending';
+    // ── Determine current step ──
+    var step = user.dashboard_step || 'questionnaire';
 
-    function updateProgress(pct) {
-      var fill = document.getElementById('dashProgressFill');
-      var text = document.getElementById('dashProgressText');
-      fill.style.width = pct + '%';
-      text.textContent = pct + '%';
-
-      // Update step dots
-      var steps = [
-        { id: 'step1', threshold: 10 },
-        { id: 'step2', threshold: 30 },
-        { id: 'step3', threshold: 55 },
-        { id: 'step4', threshold: 80 },
-        { id: 'step5', threshold: 100 }
-      ];
-      steps.forEach(function(s) {
-        var el = document.getElementById(s.id);
-        if (pct >= s.threshold) {
-          el.classList.add('dash-step--done');
-        } else if (pct >= s.threshold - 20) {
-          el.classList.add('dash-step--active');
-        }
+    function showStep(s) {
+      ['stepQuestionnaire', 'stepGenerating', 'stepPreview', 'stepBuilding', 'stepLive'].forEach(function(id) {
+        document.getElementById(id).style.display = 'none';
       });
-
-      // Update status text
-      var statusEl = document.getElementById('dashStatus');
-      if (pct >= 100) {
-        statusEl.textContent = 'Ready';
-        statusEl.classList.add('dash-status--live');
-        showPreview();
-      } else if (pct >= 55) {
-        statusEl.textContent = 'Generating';
-      } else if (pct >= 10) {
-        statusEl.textContent = 'Analyzing';
-      } else {
-        statusEl.textContent = 'Processing';
-      }
+      var el = document.getElementById('step' + s.charAt(0).toUpperCase() + s.slice(1));
+      if (el) el.style.display = 'block';
+      step = s;
+      user.dashboard_step = s;
+      localStorage.setItem('velocity_user', JSON.stringify(user));
     }
 
-    function showPreview() {
-      document.getElementById('previewPlaceholder').style.display = 'none';
-      document.getElementById('previewReady').style.display = 'block';
-
-      // Set business name from URL
-      if (website) {
-        try {
-          var host = new URL(website).hostname.replace('www.', '');
-          var name = host.split('.')[0];
-          name = name.charAt(0).toUpperCase() + name.slice(1);
-          var logoEl = document.getElementById('previewSvgLogo');
-          if (logoEl) logoEl.textContent = name.toUpperCase();
-        } catch(_) {}
-      }
+    // ── Pre-fill questionnaire from website URL ──
+    if (website && !user.questionnaire_filled) {
+      prefillFromUrl(website);
     }
 
-    // Simulate progress incrementing (in production, poll /api/status)
-    if (progress < 100) {
-      var interval = setInterval(function() {
-        progress += Math.floor(Math.random() * 8) + 3;
-        if (progress > 100) progress = 100;
-        user.progress = progress;
-        localStorage.setItem('velocity_user', JSON.stringify(user));
-        updateProgress(progress);
-        if (progress >= 100) clearInterval(interval);
-      }, 2000);
-    }
-    updateProgress(progress);
+    function prefillFromUrl(url) {
+      try {
+        var host = new URL(url).hostname.replace('www.', '');
+        var name = host.split('.')[0];
+        // Capitalize and guess a name
+        name = name.replace(/[-_]/g, ' ');
+        name = name.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+        document.getElementById('qName').value = name;
 
-    // ── Approve / Build ──
-    document.getElementById('approveBtn').addEventListener('click', function() {
-      user.status = 'building';
+        // Try to guess niche from URL keywords
+        var lower = url.toLowerCase();
+        var niches = {
+          'roof': 'roofing', 'plumb': 'plumbing', 'hvac': 'hvac', 'heat': 'hvac',
+          'electric': 'electrical', 'landscap': 'landscaping', 'paint': 'painting',
+          'clean': 'cleaning', 'pest': 'pest-control', 'auto': 'auto-repair',
+          'construct': 'construction', 'handy': 'handyman'
+        };
+        for (var key in niches) {
+          if (lower.indexOf(key) !== -1) {
+            document.getElementById('qNiche').value = niches[key];
+            break;
+          }
+        }
+      } catch(_) {}
+    }
+
+    // ── Questionnaire submission ──
+    document.getElementById('questionnaireForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      user.business_name = document.getElementById('qName').value.trim();
+      user.niche = document.getElementById('qNiche').value;
+      user.services = document.getElementById('qServices').value.trim();
+      user.location = document.getElementById('qLocation').value.trim();
+      user.phone = document.getElementById('qPhone').value.trim();
+      user.years = document.getElementById('qYears').value.trim();
+      user.style = document.getElementById('qStyle').value;
+      user.site_type = document.getElementById('qSiteType').value;
+      user.notes = document.getElementById('qNotes').value.trim();
+      user.questionnaire_filled = true;
       localStorage.setItem('velocity_user', JSON.stringify(user));
 
-      this.textContent = 'Building your site...';
-      this.disabled = true;
+      // Fire to backend
+      try {
+        fetch('/api/request-redesign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            website_url: website,
+            email: email,
+            business_name: user.business_name,
+            niche: user.niche,
+            services: user.services,
+            location: user.location,
+            style: user.style,
+            site_type: user.site_type
+          }),
+        }).catch(function() {});
+      } catch (_) {}
 
-      // Simulate build completion
-      setTimeout(function() {
-        user.status = 'live';
-        var domain = '';
-        if (website) {
-          try {
-            domain = new URL(website).hostname.replace('www.', '').split('.')[0];
-          } catch(_) { domain = 'mybusiness'; }
-        } else {
-          domain = 'mybusiness';
+      showStep('generating');
+      startGenerating();
+    });
+
+    // ── Generating preview simulation ──
+    function startGenerating() {
+      document.getElementById('genBusinessName').textContent = user.business_name + ' — ' + (website || '');
+      var progress = 0;
+      var messages = [
+        'Scraping your website for content, images, and brand elements...',
+        'Extracting service descriptions and contact information...',
+        'Analyzing your brand colors and typography...',
+        'Designing a custom layout based on your preferences...',
+        'Building hero section and service pages...',
+        'Adding call-to-action elements and contact forms...',
+        'Optimizing for mobile and loading speed...',
+        'Rendering final preview screenshot...'
+      ];
+      var msgIndex = 0;
+      var steps = [
+        { id: 'genStep1', threshold: 15 },
+        { id: 'genStep2', threshold: 30 },
+        { id: 'genStep3', threshold: 50 },
+        { id: 'genStep4', threshold: 75 },
+        { id: 'genStep5', threshold: 95 }
+      ];
+
+      var interval = setInterval(function() {
+        progress += Math.floor(Math.random() * 4) + 1;
+        if (progress > 100) progress = 100;
+
+        document.getElementById('genProgressFill').style.width = progress + '%';
+        document.getElementById('genProgressText').textContent = progress + '%';
+
+        // Update step dots
+        steps.forEach(function(s) {
+          var el = document.getElementById(s.id);
+          if (progress >= s.threshold) {
+            el.classList.add('dash-step--done');
+            el.classList.remove('dash-step--active');
+          } else if (progress >= s.threshold - 15) {
+            el.classList.add('dash-step--active');
+          }
+        });
+
+        // Update status label
+        var statusEl = document.getElementById('genStatus');
+        if (progress >= 90) statusEl.textContent = 'Finalizing';
+        else if (progress >= 60) statusEl.textContent = 'Building';
+        else if (progress >= 30) statusEl.textContent = 'Designing';
+        else statusEl.textContent = 'Analyzing';
+
+        // Update detail message
+        var newIndex = Math.min(Math.floor(progress / 13), messages.length - 1);
+        if (newIndex !== msgIndex) {
+          msgIndex = newIndex;
+          document.getElementById('genDetail').innerHTML = '<p>' + messages[msgIndex] + '</p>';
         }
-        user.live_url = 'https://' + domain + '-2-0.pages.dev';
-        user.project_name = domain.charAt(0).toUpperCase() + domain.slice(1) + ' 2.0';
-        localStorage.setItem('velocity_user', JSON.stringify(user));
 
-        // Show live card
-        document.getElementById('liveCard').style.display = 'block';
-        document.getElementById('liveUrl').href = user.live_url;
-        document.getElementById('liveUrl').textContent = user.live_url;
-        document.getElementById('liveName').textContent = user.project_name;
-        document.getElementById('previewActions').innerHTML = '<p style="color:var(--green);font-weight:600;">Your site is live!</p>';
-      }, 3000);
+        if (progress >= 100) {
+          clearInterval(interval);
+          user.preview_ready = true;
+          localStorage.setItem('velocity_user', JSON.stringify(user));
+          setTimeout(function() {
+            showStep('preview');
+            renderPreview();
+          }, 800);
+        }
+      }, 1200);
+    }
+
+    // ── Render personalized preview ──
+    function renderPreview() {
+      var biz = user.business_name || 'Your Business';
+      var services = (user.services || 'Service 1, Service 2, Service 3, Service 4').split(',').map(function(s) { return s.trim(); });
+      var location = user.location || 'Your Area';
+      var phone = user.phone || '(555) 000-0000';
+      var years = user.years || '10+';
+      var niche = user.niche || 'service';
+      var style = user.style || 'modern-clean';
+
+      // Pick colors based on style
+      var colors = {
+        'modern-clean': { bg: '#f8f7f4', nav: '#fff', accent: '#1b5e3b', trust: '#1b5e3b', text: '#1a2e28', muted: '#5c6b65', card: '#f3f6f4' },
+        'bold-dark': { bg: '#0f0d0b', nav: '#1a1815', accent: '#c8956a', trust: '#1a1815', text: '#e8ddd3', muted: '#a89f94', card: '#1a1815' },
+        'warm-friendly': { bg: '#faf6f1', nav: '#fff', accent: '#d4763c', trust: '#d4763c', text: '#3b2c1e', muted: '#8a7560', card: '#f5efe8' },
+        'professional': { bg: '#f5f6f8', nav: '#fff', accent: '#2955a3', trust: '#1e3a6e', text: '#1a2030', muted: '#6b7280', card: '#eef1f6' },
+        'rustic': { bg: '#f4f0e8', nav: '#fff', accent: '#7a6040', trust: '#5a4530', text: '#2e2418', muted: '#8a7c6a', card: '#ede8de' },
+        'surprise': { bg: '#fdf8f0', nav: '#fff', accent: '#8b5cf6', trust: '#6d28d9', text: '#1e1b2e', muted: '#6b6580', card: '#f3f0fa' }
+      };
+      var c = colors[style] || colors['modern-clean'];
+
+      // Truncate services to 4
+      while (services.length < 4) services.push('Service');
+      services = services.slice(0, 4);
+
+      // Niche tagline
+      var taglines = {
+        'roofing': 'Protecting your home from the top down.',
+        'plumbing': 'Reliable plumbing for your home and business.',
+        'hvac': 'Keeping you comfortable, year-round.',
+        'electrical': 'Safe, reliable electrical for every project.',
+        'landscaping': 'Transforming outdoor spaces, one yard at a time.',
+        'painting': 'Color and craft for every surface.',
+        'cleaning': 'Spotless spaces. Every time.',
+        'pest-control': 'Protecting your home from unwanted guests.',
+        'auto-repair': 'Honest auto care you can trust.',
+        'construction': 'Building quality that lasts generations.',
+        'handyman': 'No job too big, no fix too small.'
+      };
+      var tagline = taglines[niche] || 'Quality service you can count on.';
+
+      var svg = '<svg viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;border-radius:10px;">'
+        // Page bg
+        + '<rect width="420" height="340" rx="10" fill="' + c.bg + '"/>'
+        // Top utility bar
+        + '<rect x="0" y="0" width="420" height="16" rx="10" fill="' + c.trust + '"/>'
+        + '<rect x="0" y="8" width="420" height="8" fill="' + c.trust + '"/>'
+        + '<text x="24" y="12" font-size="6.5" fill="rgba(255,255,255,0.8)" font-family="sans-serif">' + escHtml(phone) + '</text>'
+        + '<text x="396" y="12" text-anchor="end" font-size="6.5" fill="rgba(255,255,255,0.8)" font-family="sans-serif">' + escHtml(location) + '</text>'
+        // Nav
+        + '<rect x="0" y="16" width="420" height="26" fill="' + c.nav + '"/>'
+        + '<line x1="0" y1="42" x2="420" y2="42" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>'
+        + '<text x="24" y="34" font-size="11" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(biz) + '</text>'
+        + '<text x="280" y="33" font-size="7.5" fill="' + c.muted + '" font-family="sans-serif">Services</text>'
+        + '<text x="325" y="33" font-size="7.5" fill="' + c.muted + '" font-family="sans-serif">About</text>'
+        + '<rect x="360" y="25" width="44" height="14" rx="3" fill="' + c.accent + '"/>'
+        + '<text x="382" y="35" text-anchor="middle" font-size="6.5" fill="#fff" font-weight="bold" font-family="sans-serif">Contact</text>'
+        // Hero
+        + '<text x="24" y="74" font-size="24" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(biz) + '</text>'
+        + '<text x="24" y="96" font-size="9" fill="' + c.muted + '" font-family="sans-serif">' + escHtml(tagline) + '</text>'
+        + '<text x="24" y="112" font-size="8" fill="' + c.muted + '" font-family="sans-serif">Serving ' + escHtml(location) + ' for ' + escHtml(years) + ' years.</text>'
+        // CTA
+        + '<rect x="24" y="124" width="100" height="22" rx="5" fill="' + c.accent + '"/>'
+        + '<text x="74" y="139" text-anchor="middle" font-size="8" fill="#fff" font-weight="bold" font-family="sans-serif">Get Free Quote</text>'
+        + '<rect x="134" y="124" width="72" height="22" rx="5" fill="none" stroke="' + c.accent + '" stroke-width="1"/>'
+        + '<text x="170" y="139" text-anchor="middle" font-size="8" fill="' + c.accent + '" font-family="sans-serif">Our Work</text>'
+        // Hero image placeholder
+        + '<rect x="280" y="56" width="120" height="96" rx="8" fill="' + c.card + '"/>'
+        + '<text x="340" y="112" text-anchor="middle" font-size="28" fill="' + c.accent + '" opacity="0.25" font-family="sans-serif">&#8962;</text>'
+        // Trust bar
+        + '<rect x="0" y="164" width="420" height="36" fill="' + c.trust + '"/>'
+        + '<text x="55" y="182" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold" font-family="sans-serif">' + escHtml(years) + '</text>'
+        + '<text x="55" y="194" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.65)" font-family="sans-serif">YEARS</text>'
+        + '<line x1="110" y1="170" x2="110" y2="194" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
+        + '<text x="165" y="182" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold" font-family="sans-serif">4.9</text>'
+        + '<text x="165" y="194" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.65)" font-family="sans-serif">RATING</text>'
+        + '<line x1="220" y1="170" x2="220" y2="194" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
+        + '<text x="270" y="182" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold" font-family="sans-serif">A+</text>'
+        + '<text x="270" y="194" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.65)" font-family="sans-serif">BBB</text>'
+        + '<line x1="320" y1="170" x2="320" y2="194" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
+        + '<text x="370" y="182" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold" font-family="sans-serif">100%</text>'
+        + '<text x="370" y="194" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.65)" font-family="sans-serif">LICENSED</text>'
+        // Services section
+        + '<rect x="0" y="200" width="420" height="140" fill="' + c.bg + '"/>'
+        + '<text x="24" y="222" font-size="7" fill="' + c.accent + '" font-weight="bold" font-family="sans-serif">WHAT WE DO</text>'
+        + '<text x="24" y="238" font-size="14" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">Our Services</text>';
+
+      // Service cards
+      for (var i = 0; i < 4; i++) {
+        var cx = 16 + i * 100;
+        svg += '<rect x="' + cx + '" y="252" width="92" height="44" rx="5" fill="' + c.card + '" stroke="rgba(0,0,0,0.04)" stroke-width="0.5"/>'
+          + '<text x="' + (cx + 46) + '" y="272" text-anchor="middle" font-size="8" fill="' + c.accent + '" font-family="sans-serif">&#9656;</text>'
+          + '<text x="' + (cx + 46) + '" y="288" text-anchor="middle" font-size="7" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(services[i]) + '</text>';
+      }
+
+      // Footer
+      svg += '<rect x="0" y="310" width="420" height="30" rx="0" fill="' + c.trust + '"/>'
+        + '<text x="210" y="328" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.6)" font-family="sans-serif">&copy; 2026 ' + escHtml(biz) + ' &middot; All rights reserved</text>'
+        + '</svg>';
+
+      document.getElementById('previewContainer').innerHTML = svg;
+    }
+
+    function escHtml(str) {
+      var d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    // ── Preview actions ──
+    document.getElementById('approveBtn').addEventListener('click', function() {
+      if (!user.plan) {
+        // Scroll to plan picker and highlight
+        var picker = document.getElementById('planPicker');
+        picker.style.animation = 'none';
+        picker.offsetHeight; // reflow
+        picker.style.animation = 'pulse-border 0.6s ease 2';
+        picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      user.dashboard_step = 'building';
+      localStorage.setItem('velocity_user', JSON.stringify(user));
+      showStep('building');
     });
 
     document.getElementById('revisionsBtn').addEventListener('click', function() {
-      this.textContent = 'Revision requested!';
-      this.disabled = true;
+      document.getElementById('revisionForm').style.display = 'block';
+      document.getElementById('previewActions').style.display = 'none';
     });
 
-    // Show live card if already built
-    if (user.status === 'live' && user.live_url) {
-      document.getElementById('liveCard').style.display = 'block';
-      document.getElementById('liveUrl').href = user.live_url;
-      document.getElementById('liveUrl').textContent = user.live_url;
-      document.getElementById('liveName').textContent = user.project_name || '';
-      if (progress >= 100) {
-        showPreview();
-        document.getElementById('previewActions').innerHTML = '<p style="color:var(--green);font-weight:600;">Your site is live!</p>';
-      }
-    }
-
-    // ── Plan Management ──
-    var changePlanBtn = document.getElementById('changePlanBtn');
-    var planPicker = document.getElementById('planPicker');
-    var planNone = document.getElementById('planNone');
-    var planActive = document.getElementById('planActive');
-
-    changePlanBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      planPicker.style.display = planPicker.style.display === 'none' ? 'block' : 'none';
+    document.getElementById('cancelRevision').addEventListener('click', function() {
+      document.getElementById('revisionForm').style.display = 'none';
+      document.getElementById('previewActions').style.display = 'flex';
     });
 
-    // Show existing plan
-    if (user.plan) {
-      showPlan(user.plan, user.plan_price);
-    }
+    document.getElementById('submitRevision').addEventListener('click', function() {
+      var notes = document.getElementById('revisionNotes').value.trim();
+      if (!notes) return;
 
-    function showPlan(plan, price) {
-      planNone.style.display = 'none';
-      planActive.style.display = 'block';
-      document.getElementById('planName').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
-      document.getElementById('planPrice').textContent = price || '';
-      changePlanBtn.textContent = 'Change plan';
-      planPicker.style.display = 'none';
-    }
+      user.revision_notes = notes;
+      user.revision_count = (user.revision_count || 0) + 1;
+      localStorage.setItem('velocity_user', JSON.stringify(user));
 
-    // Plan selection
-    var options = document.querySelectorAll('.dash-plan-option');
-    options.forEach(function(opt) {
+      document.getElementById('revisionForm').innerHTML = '<p style="color:var(--green);font-weight:600;padding:1rem 0;">Revision request submitted! We\'ll update your preview within 24-48 hours.</p>';
+
+      // Fire to backend
+      try {
+        fetch('/api/request-redesign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ website_url: website, email: email, revision: notes }),
+        }).catch(function() {});
+      } catch (_) {}
+    });
+
+    // ── Plan selection ──
+    document.querySelectorAll('.dash-plan-option').forEach(function(opt) {
       opt.addEventListener('click', function() {
-        var plan = this.getAttribute('data-plan');
-        var price = this.getAttribute('data-price');
-        user.plan = plan;
-        user.plan_price = price;
+        // Remove previous selection
+        document.querySelectorAll('.dash-plan-option').forEach(function(o) {
+          o.classList.remove('dash-plan-option--selected');
+        });
+        this.classList.add('dash-plan-option--selected');
+
+        user.plan = this.getAttribute('data-plan');
+        user.plan_price = this.getAttribute('data-price');
         localStorage.setItem('velocity_user', JSON.stringify(user));
-        showPlan(plan, price);
+
+        document.getElementById('planSelected').style.display = 'block';
+        document.getElementById('planName').textContent = user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' Plan';
+        document.getElementById('planPrice').textContent = user.plan_price + ' one-time';
       });
     });
+
+    // ── Route to correct step on load ──
+    if (user.dashboard_step === 'live' && user.live_url) {
+      showStep('live');
+      document.getElementById('liveUrl').href = user.live_url;
+      document.getElementById('liveUrl').textContent = user.live_url;
+    } else if (user.dashboard_step === 'building') {
+      showStep('building');
+    } else if (user.preview_ready && user.questionnaire_filled) {
+      showStep('preview');
+      renderPreview();
+      // Restore plan selection
+      if (user.plan) {
+        var opts = document.querySelectorAll('.dash-plan-option');
+        opts.forEach(function(o) {
+          if (o.getAttribute('data-plan') === user.plan) {
+            o.classList.add('dash-plan-option--selected');
+          }
+        });
+        document.getElementById('planSelected').style.display = 'block';
+        document.getElementById('planName').textContent = user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' Plan';
+        document.getElementById('planPrice').textContent = user.plan_price + ' one-time';
+      }
+    } else if (user.questionnaire_filled && !user.preview_ready) {
+      showStep('generating');
+      startGenerating();
+    } else {
+      showStep('questionnaire');
+      // Re-fill saved answers
+      if (user.business_name) document.getElementById('qName').value = user.business_name;
+      if (user.niche) document.getElementById('qNiche').value = user.niche;
+      if (user.services) document.getElementById('qServices').value = user.services;
+      if (user.location) document.getElementById('qLocation').value = user.location;
+      if (user.phone) document.getElementById('qPhone').value = user.phone;
+      if (user.years) document.getElementById('qYears').value = user.years;
+      if (user.style) document.getElementById('qStyle').value = user.style;
+      if (user.site_type) document.getElementById('qSiteType').value = user.site_type;
+    }
 
   })();
   </script>

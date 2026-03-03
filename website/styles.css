@@ -1455,3 +1455,122 @@ h2 {
   .dash-grid { grid-template-columns: 1fr; }
   .dash-preview-actions { flex-direction: column; }
 }
+
+/* Dashboard section flow */
+.dash-section { margin-bottom: 2rem; }
+.dash-card--wide { max-width: 700px; }
+.dash-card-desc {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+.dash-plan-desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+/* Questionnaire form */
+.q-form { display: flex; flex-direction: column; gap: 1rem; }
+.q-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 600px) { .q-row { grid-template-columns: 1fr; } }
+.q-form select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.q-form textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  resize: vertical;
+}
+.label-hint {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+.q-actions { margin-top: 0.5rem; }
+.q-hint {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+/* Generating detail message */
+.gen-detail {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+}
+.gen-detail p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Building note */
+.build-note {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+}
+
+/* Live message */
+.dash-live-msg {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+/* Revision form */
+.revision-form {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+}
+.revision-form .q-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Plan selected state */
+.dash-plan-option--selected {
+  border-color: var(--green) !important;
+  box-shadow: 0 0 20px rgba(77, 186, 82, 0.15);
+}
+.dash-plan-selected {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+}
+.dash-plan-selected .dash-plan-name {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+}
+.dash-plan-selected .dash-plan-price {
+  color: var(--green);
+  font-weight: 600;
+}
+
+/* Pulse animation for plan picker hint */
+@keyframes pulse-border {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 20px var(--accent-glow); }
+}
