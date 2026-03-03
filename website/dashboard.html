@@ -176,8 +176,8 @@
             </div>
 
             <div class="q-actions">
-              <button type="submit" class="btn btn-primary">Generate my preview</button>
-              <p class="q-hint">This may take a few minutes. We're building a real, personalized mockup just for you.</p>
+              <button type="submit" class="btn btn-primary" id="qSubmitBtn">Generate my preview</button>
+              <p class="q-hint">Takes about 10-15 seconds. We scrape your site and build a real, personalized preview.</p>
             </div>
           </form>
         </div>
@@ -238,7 +238,11 @@
               <span class="dash-status dash-status--live">Ready</span>
             </div>
             <div class="dash-preview-area">
-              <div id="previewContainer"></div>
+              <div id="previewContainer">
+                <iframe id="previewIframe" style="width:100%;height:500px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg);display:none;" title="Your website preview"></iframe>
+                <div id="previewFallback"></div>
+              </div>
+              <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;text-align:center;" id="previewLink"></p>
               <div class="dash-preview-actions" id="previewActions">
                 <button class="btn btn-primary" id="approveBtn">I love it &mdash; let's build it!</button>
                 <button class="btn btn-ghost" id="revisionsBtn">Request changes</button>
@@ -351,6 +355,21 @@
     var email = user.email || '';
     var website = user.website_url || '';
 
+    // Handle Stripe payment return
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('payment') === 'success') {
+      var paidPlan = urlParams.get('plan') || user.plan || 'starter';
+      user.plan = paidPlan;
+      user.paid = true;
+      user.paid_at = new Date().toISOString();
+      user.dashboard_step = 'building';
+      localStorage.setItem('velocity_user', JSON.stringify(user));
+      // Clean URL
+      window.history.replaceState({}, '', '/dashboard.html');
+    } else if (urlParams.get('payment') === 'cancelled') {
+      window.history.replaceState({}, '', '/dashboard.html');
+    }
+
     // Populate header
     document.getElementById('dashEmail').textContent = email;
     document.getElementById('navUser').textContent = email;
@@ -433,7 +452,7 @@
       } catch(_) {}
     }
 
-    // ── Questionnaire submission ──
+    // ── Questionnaire submission — calls real generate API ──
     document.getElementById('questionnaireForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
@@ -463,36 +482,23 @@
       user.inspo_urls = document.getElementById('qInspo').value.trim();
       user.notes = document.getElementById('qNotes').value.trim();
       user.questionnaire_filled = true;
-      localStorage.setItem('velocity_user', JSON.stringify(user));
 
-      // Fire to backend
-      try {
-        fetch('/api/request-redesign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            website_url: website,
-            email: email,
-            business_name: user.business_name,
-            niche: user.niche === 'other' ? (user.niche_other || 'other') : user.niche,
-            services: user.services,
-            location: user.location,
-            phone: user.phone,
-            style: user.style,
-            site_type: user.site_type,
-            inspo_urls: user.inspo_urls
-          }),
-        }).catch(function() {});
-      } catch (_) {}
+      var submitBtn = document.getElementById('qSubmitBtn');
+      submitBtn.textContent = 'Generating...';
+      submitBtn.disabled = true;
+
+      localStorage.setItem('velocity_user', JSON.stringify(user));
 
       showStep('generating');
       startGenerating();
     });
 
-    // ── Generating preview simulation ──
+    // ── Generating — calls real API with progress simulation ──
     function startGenerating() {
       document.getElementById('genBusinessName').textContent = user.business_name + ' — ' + (website || '');
       var progress = 0;
+      var apiDone = false;
+      var apiResult = null;
       var messages = [
         'Scraping your website for content, images, and brand elements...',
         'Extracting service descriptions and contact information...',
@@ -501,7 +507,7 @@
         'Building hero section and service pages...',
         'Adding call-to-action elements and contact forms...',
         'Optimizing for mobile and loading speed...',
-        'Rendering final preview screenshot...'
+        'Rendering final preview...'
       ];
       var msgIndex = 0;
       var steps = [
@@ -512,14 +518,66 @@
         { id: 'genStep5', threshold: 95 }
       ];
 
+      // Call the real generate API
+      var genPayload = {
+        email: email,
+        website_url: website,
+        business_name: user.business_name,
+        niche: user.niche === 'other' ? (user.niche_other || 'other') : user.niche,
+        services: user.services,
+        location: user.location,
+        phone: user.phone,
+        contact_email: user.contact_email,
+        years: user.years,
+        style: user.style,
+        site_type: user.site_type,
+        inspo_urls: user.inspo_urls,
+        notes: user.notes,
+      };
+
+      fetch('/api/pipeline/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(genPayload),
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        apiDone = true;
+        apiResult = data;
+        if (data.preview_id) {
+          user.preview_id = data.preview_id;
+          user.preview_url = data.preview_url;
+        }
+      })
+      .catch(function() {
+        apiDone = true;
+        apiResult = { success: false };
+      });
+
+      // Also fire the redesign request for email notifications
+      fetch('/api/request-redesign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(genPayload),
+      }).catch(function() {});
+
+      // Progress animation
       var interval = setInterval(function() {
-        progress += Math.floor(Math.random() * 4) + 1;
+        // Advance faster when API is done, slower otherwise
+        if (apiDone && progress < 90) {
+          progress = 90;
+        } else if (apiDone) {
+          progress += 5;
+        } else {
+          progress += Math.floor(Math.random() * 3) + 1;
+          if (progress > 85) progress = 85; // Cap until API finishes
+        }
         if (progress > 100) progress = 100;
 
         document.getElementById('genProgressFill').style.width = progress + '%';
         document.getElementById('genProgressText').textContent = progress + '%';
 
-        // Update step dots
         steps.forEach(function(s) {
           var el = document.getElementById(s.id);
           if (progress >= s.threshold) {
@@ -530,14 +588,12 @@
           }
         });
 
-        // Update status label
         var statusEl = document.getElementById('genStatus');
         if (progress >= 90) statusEl.textContent = 'Finalizing';
         else if (progress >= 60) statusEl.textContent = 'Building';
         else if (progress >= 30) statusEl.textContent = 'Designing';
         else statusEl.textContent = 'Analyzing';
 
-        // Update detail message
         var newIndex = Math.min(Math.floor(progress / 13), messages.length - 1);
         if (newIndex !== msgIndex) {
           msgIndex = newIndex;
@@ -551,112 +607,81 @@
           setTimeout(function() {
             showStep('preview');
             renderPreview();
-          }, 800);
+          }, 600);
         }
-      }, 1200);
+      }, 800);
     }
 
-    // ── Render personalized preview ──
+    // ── Render preview — use iframe if API returned a preview_url, else fallback to SVG ──
     function renderPreview() {
+      var iframe = document.getElementById('previewIframe');
+      var fallback = document.getElementById('previewFallback');
+      var link = document.getElementById('previewLink');
+
+      if (user.preview_url) {
+        // Show real generated preview in iframe
+        iframe.src = user.preview_url;
+        iframe.style.display = 'block';
+        fallback.innerHTML = '';
+        link.innerHTML = '<a href="' + user.preview_url + '" target="_blank" style="color:var(--accent);">Open full preview in new tab &rarr;</a>';
+      } else {
+        // Fallback: render SVG mockup
+        iframe.style.display = 'none';
+        link.innerHTML = '';
+        renderSvgPreview();
+      }
+    }
+
+    function renderSvgPreview() {
       var biz = user.business_name || 'Your Business';
       var services = (user.services || 'Service 1, Service 2, Service 3, Service 4').split(',').map(function(s) { return s.trim(); });
-      var location = user.location || 'Your Area';
-      var phone = user.phone || '(555) 000-0000';
-      var years = user.years || '10+';
-      var niche = user.niche || 'service';
+      var loc = user.location || 'Your Area';
+      var ph = user.phone || '(555) 000-0000';
+      var yrs = user.years || '10+';
       var style = user.style || 'modern-clean';
-
-      // Pick colors based on style
       var colors = {
-        'modern-clean': { bg: '#f8f7f4', nav: '#fff', accent: '#1b5e3b', trust: '#1b5e3b', text: '#1a2e28', muted: '#5c6b65', card: '#f3f6f4' },
-        'bold-dark': { bg: '#0f0d0b', nav: '#1a1815', accent: '#c8956a', trust: '#1a1815', text: '#e8ddd3', muted: '#a89f94', card: '#1a1815' },
-        'warm-friendly': { bg: '#faf6f1', nav: '#fff', accent: '#d4763c', trust: '#d4763c', text: '#3b2c1e', muted: '#8a7560', card: '#f5efe8' },
-        'professional': { bg: '#f5f6f8', nav: '#fff', accent: '#2955a3', trust: '#1e3a6e', text: '#1a2030', muted: '#6b7280', card: '#eef1f6' },
-        'rustic': { bg: '#f4f0e8', nav: '#fff', accent: '#7a6040', trust: '#5a4530', text: '#2e2418', muted: '#8a7c6a', card: '#ede8de' },
-        'surprise': { bg: '#fdf8f0', nav: '#fff', accent: '#8b5cf6', trust: '#6d28d9', text: '#1e1b2e', muted: '#6b6580', card: '#f3f0fa' }
+        'modern-clean': { bg: '#f8f7f4', nav: '#fff', accent: '#1a6b44', trust: '#1a3a2a', text: '#1a2e22', muted: '#5c6b65', card: '#f3f6f4' },
+        'bold-dark': { bg: '#0e0c0a', nav: '#121010', accent: '#c8956a', trust: '#1a1614', text: '#e8ddd3', muted: '#a89f94', card: '#1a1815' },
+        'warm-friendly': { bg: '#faf6f1', nav: '#fff', accent: '#c66b2e', trust: '#3b2a18', text: '#2e2218', muted: '#7a6a56', card: '#f5efe8' },
+        'professional': { bg: '#f5f6f8', nav: '#fff', accent: '#2955a3', trust: '#1a2a4a', text: '#1a2030', muted: '#6b7280', card: '#eef1f6' },
+        'rustic': { bg: '#f4f0e8', nav: '#fff', accent: '#7a6040', trust: '#3a3020', text: '#2e2418', muted: '#8a7c6a', card: '#ede8de' },
+        'surprise': { bg: '#faf8ff', nav: '#fff', accent: '#7c3aed', trust: '#2a1a4a', text: '#1e1b2e', muted: '#6b6580', card: '#f2f0fa' }
       };
       var c = colors[style] || colors['modern-clean'];
-
-      // Truncate services to 4
       while (services.length < 4) services.push('Service');
       services = services.slice(0, 4);
-
-      // Niche tagline
-      var taglines = {
-        'roofing': 'Protecting your home from the top down.',
-        'plumbing': 'Reliable plumbing for your home and business.',
-        'hvac': 'Keeping you comfortable, year-round.',
-        'electrical': 'Safe, reliable electrical for every project.',
-        'landscaping': 'Transforming outdoor spaces, one yard at a time.',
-        'painting': 'Color and craft for every surface.',
-        'cleaning': 'Spotless spaces. Every time.',
-        'pest-control': 'Protecting your home from unwanted guests.',
-        'auto-repair': 'Honest auto care you can trust.',
-        'construction': 'Building quality that lasts generations.',
-        'handyman': 'No job too big, no fix too small.'
-      };
-      var tagline = taglines[niche] || 'Quality service you can count on.';
-
-      var svg = '<svg viewBox="0 0 420 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;border-radius:10px;">'
-        // Page bg
-        + '<rect width="420" height="340" rx="10" fill="' + c.bg + '"/>'
-        // Top utility bar
-        + '<rect x="0" y="0" width="420" height="16" rx="10" fill="' + c.trust + '"/>'
-        + '<rect x="0" y="8" width="420" height="8" fill="' + c.trust + '"/>'
-        + '<text x="24" y="12" font-size="6.5" fill="rgba(255,255,255,0.8)" font-family="sans-serif">' + escHtml(phone) + '</text>'
-        + '<text x="396" y="12" text-anchor="end" font-size="6.5" fill="rgba(255,255,255,0.8)" font-family="sans-serif">' + escHtml(location) + '</text>'
-        // Nav
-        + '<rect x="0" y="16" width="420" height="26" fill="' + c.nav + '"/>'
-        + '<line x1="0" y1="42" x2="420" y2="42" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>'
-        + '<text x="24" y="34" font-size="11" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(biz) + '</text>'
-        + '<text x="280" y="33" font-size="7.5" fill="' + c.muted + '" font-family="sans-serif">Services</text>'
-        + '<text x="325" y="33" font-size="7.5" fill="' + c.muted + '" font-family="sans-serif">About</text>'
-        + '<rect x="360" y="25" width="44" height="14" rx="3" fill="' + c.accent + '"/>'
-        + '<text x="382" y="35" text-anchor="middle" font-size="6.5" fill="#fff" font-weight="bold" font-family="sans-serif">Contact</text>'
-        // Hero
-        + '<text x="24" y="74" font-size="24" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(biz) + '</text>'
-        + '<text x="24" y="96" font-size="9" fill="' + c.muted + '" font-family="sans-serif">' + escHtml(tagline) + '</text>'
-        + '<text x="24" y="112" font-size="8" fill="' + c.muted + '" font-family="sans-serif">Serving ' + escHtml(location) + ' for ' + escHtml(years) + ' years.</text>'
-        // CTA
-        + '<rect x="24" y="124" width="100" height="22" rx="5" fill="' + c.accent + '"/>'
-        + '<text x="74" y="139" text-anchor="middle" font-size="8" fill="#fff" font-weight="bold" font-family="sans-serif">Get Free Quote</text>'
-        + '<rect x="134" y="124" width="72" height="22" rx="5" fill="none" stroke="' + c.accent + '" stroke-width="1"/>'
-        + '<text x="170" y="139" text-anchor="middle" font-size="8" fill="' + c.accent + '" font-family="sans-serif">Our Work</text>'
-        // Hero image placeholder
-        + '<rect x="280" y="56" width="120" height="96" rx="8" fill="' + c.card + '"/>'
-        + '<text x="340" y="112" text-anchor="middle" font-size="28" fill="' + c.accent + '" opacity="0.25" font-family="sans-serif">&#8962;</text>'
-        // Trust bar
-        + '<rect x="0" y="164" width="420" height="36" fill="' + c.trust + '"/>'
-        + '<text x="55" y="182" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold" font-family="sans-serif">' + escHtml(years) + '</text>'
-        + '<text x="55" y="194" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.65)" font-family="sans-serif">YEARS</text>'
-        + '<line x1="110" y1="170" x2="110" y2="194" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
-        + '<text x="165" y="182" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold" font-family="sans-serif">4.9</text>'
-        + '<text x="165" y="194" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.65)" font-family="sans-serif">RATING</text>'
-        + '<line x1="220" y1="170" x2="220" y2="194" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
-        + '<text x="270" y="182" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold" font-family="sans-serif">A+</text>'
-        + '<text x="270" y="194" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.65)" font-family="sans-serif">BBB</text>'
-        + '<line x1="320" y1="170" x2="320" y2="194" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
-        + '<text x="370" y="182" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold" font-family="sans-serif">100%</text>'
-        + '<text x="370" y="194" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.65)" font-family="sans-serif">LICENSED</text>'
-        // Services section
-        + '<rect x="0" y="200" width="420" height="140" fill="' + c.bg + '"/>'
-        + '<text x="24" y="222" font-size="7" fill="' + c.accent + '" font-weight="bold" font-family="sans-serif">WHAT WE DO</text>'
-        + '<text x="24" y="238" font-size="14" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">Our Services</text>';
-
-      // Service cards
+      var svg = '<svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;border-radius:10px;">'
+        + '<rect width="420" height="280" rx="10" fill="' + c.bg + '"/>'
+        + '<rect x="0" y="0" width="420" height="14" rx="10" fill="' + c.trust + '"/><rect x="0" y="7" width="420" height="7" fill="' + c.trust + '"/>'
+        + '<text x="24" y="10" font-size="6" fill="rgba(255,255,255,.8)" font-family="sans-serif">' + escHtml(ph) + '</text>'
+        + '<rect x="0" y="14" width="420" height="24" fill="' + c.nav + '"/><line x1="0" y1="38" x2="420" y2="38" stroke="rgba(0,0,0,.06)"/>'
+        + '<text x="24" y="30" font-size="10" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(biz) + '</text>'
+        + '<rect x="356" y="22" width="44" height="13" rx="3" fill="' + c.accent + '"/>'
+        + '<text x="378" y="32" text-anchor="middle" font-size="6" fill="#fff" font-weight="bold" font-family="sans-serif">Contact</text>'
+        + '<text x="24" y="66" font-size="20" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(biz) + '</text>'
+        + '<text x="24" y="84" font-size="8" fill="' + c.muted + '" font-family="sans-serif">Serving ' + escHtml(loc) + ' for ' + escHtml(yrs) + ' years</text>'
+        + '<rect x="24" y="96" width="80" height="18" rx="4" fill="' + c.accent + '"/>'
+        + '<text x="64" y="109" text-anchor="middle" font-size="7" fill="#fff" font-weight="bold" font-family="sans-serif">Get Free Quote</text>'
+        + '<rect x="0" y="128" width="420" height="30" fill="' + c.trust + '"/>'
+        + '<text x="70" y="147" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">' + escHtml(yrs) + '</text>'
+        + '<text x="70" y="155" text-anchor="middle" font-size="5" fill="rgba(255,255,255,.5)">YEARS</text>'
+        + '<text x="175" y="147" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">4.9</text>'
+        + '<text x="175" y="155" text-anchor="middle" font-size="5" fill="rgba(255,255,255,.5)">RATING</text>'
+        + '<text x="280" y="147" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">A+</text>'
+        + '<text x="280" y="155" text-anchor="middle" font-size="5" fill="rgba(255,255,255,.5)">BBB</text>'
+        + '<text x="370" y="147" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">100%</text>'
+        + '<text x="370" y="155" text-anchor="middle" font-size="5" fill="rgba(255,255,255,.5)">LICENSED</text>'
+        + '<text x="24" y="178" font-size="6" fill="' + c.accent + '" font-weight="bold" font-family="sans-serif">WHAT WE DO</text>'
+        + '<text x="24" y="192" font-size="12" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">Our Services</text>';
       for (var i = 0; i < 4; i++) {
         var cx = 16 + i * 100;
-        svg += '<rect x="' + cx + '" y="252" width="92" height="44" rx="5" fill="' + c.card + '" stroke="rgba(0,0,0,0.04)" stroke-width="0.5"/>'
-          + '<text x="' + (cx + 46) + '" y="272" text-anchor="middle" font-size="8" fill="' + c.accent + '" font-family="sans-serif">&#9656;</text>'
-          + '<text x="' + (cx + 46) + '" y="288" text-anchor="middle" font-size="7" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(services[i]) + '</text>';
+        svg += '<rect x="' + cx + '" y="202" width="92" height="36" rx="5" fill="' + c.card + '" stroke="rgba(0,0,0,.04)"/>'
+          + '<text x="' + (cx + 46) + '" y="225" text-anchor="middle" font-size="7" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(services[i]) + '</text>';
       }
-
-      // Footer
-      svg += '<rect x="0" y="310" width="420" height="30" rx="0" fill="' + c.trust + '"/>'
-        + '<text x="210" y="328" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.6)" font-family="sans-serif">&copy; 2026 ' + escHtml(biz) + ' &middot; All rights reserved</text>'
+      svg += '<rect x="0" y="252" width="420" height="28" fill="' + c.trust + '"/>'
+        + '<text x="210" y="269" text-anchor="middle" font-size="6" fill="rgba(255,255,255,.5)" font-family="sans-serif">&copy; 2026 ' + escHtml(biz) + '</text>'
         + '</svg>';
-
-      document.getElementById('previewContainer').innerHTML = svg;
+      document.getElementById('previewFallback').innerHTML = svg;
     }
 
     function escHtml(str) {
@@ -665,21 +690,46 @@
       return d.innerHTML;
     }
 
-    // ── Preview actions ──
+    // ── Preview actions — Stripe checkout integration ──
     document.getElementById('approveBtn').addEventListener('click', function() {
       if (!user.plan) {
-        // Scroll to plan picker and highlight
         var picker = document.getElementById('planPicker');
         picker.style.animation = 'none';
-        picker.offsetHeight; // reflow
+        picker.offsetHeight;
         picker.style.animation = 'pulse-border 0.6s ease 2';
         picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
-      user.dashboard_step = 'building';
-      localStorage.setItem('velocity_user', JSON.stringify(user));
-      showStep('building');
+      var approveBtn = document.getElementById('approveBtn');
+      approveBtn.textContent = 'Redirecting to checkout...';
+      approveBtn.disabled = true;
+
+      // Try Stripe checkout
+      fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ plan: user.plan, email: email }),
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.url) {
+          // Redirect to Stripe Checkout
+          window.location.href = data.url;
+        } else {
+          // Stripe not configured — go straight to building step
+          user.dashboard_step = 'building';
+          localStorage.setItem('velocity_user', JSON.stringify(user));
+          showStep('building');
+        }
+      })
+      .catch(function() {
+        // Stripe not available — proceed without payment
+        user.dashboard_step = 'building';
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        showStep('building');
+      });
     });
 
     document.getElementById('revisionsBtn').addEventListener('click', function() {

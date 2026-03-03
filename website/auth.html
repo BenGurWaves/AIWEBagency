@@ -143,7 +143,7 @@
       showSignUp();
     }
 
-    // Sign Up handler
+    // Sign Up handler — awaits API response so session cookie is set
     formSU.addEventListener('submit', function (e) {
       e.preventDefault();
       var errorEl = document.getElementById('suError');
@@ -169,96 +169,136 @@
       btn.textContent = 'Creating account...';
       btn.disabled = true;
 
-      // Store user data in localStorage
-      var user = {
-        email: email,
-        website_url: website,
-        created_at: new Date().toISOString(),
-        plan: null,
-        status: 'preview_pending',
-        progress: 0
-      };
-      localStorage.setItem('velocity_user', JSON.stringify(user));
-      localStorage.setItem('velocity_auth', 'true');
+      // Call backend API — wait for response so session cookie is set
+      fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ email: email, password: pass, website_url: website }),
+      })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(res) {
+        if (!res.ok && res.data.error) {
+          errorEl.textContent = res.data.error;
+          errorEl.style.display = 'block';
+          btn.textContent = 'Create account';
+          btn.disabled = false;
+          return;
+        }
 
-      // Call backend API to create account + send welcome email
-      try {
-        fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email, password: pass, website_url: website }),
-        }).catch(function() {});
-      } catch (_) {}
+        // Store user data in localStorage
+        var user = {
+          email: email,
+          website_url: website,
+          created_at: new Date().toISOString(),
+          plan: null,
+          status: 'preview_pending',
+          progress: 0,
+          project_id: res.data.project_id || null,
+        };
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        localStorage.setItem('velocity_auth', 'true');
 
-      // Also trigger redesign request email if website provided
-      if (website) {
-        try {
+        // Also trigger redesign request (background — don't block)
+        if (website) {
           fetch('/api/request-redesign', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ website_url: website, email: email }),
           }).catch(function() {});
-        } catch (_) {}
-      }
+        }
 
-      // Redirect to dashboard
-      setTimeout(function() {
         window.location.href = '/dashboard.html';
-      }, 800);
+      })
+      .catch(function() {
+        // Fallback: save to localStorage and redirect anyway
+        var user = {
+          email: email,
+          website_url: website,
+          created_at: new Date().toISOString(),
+          plan: null,
+          status: 'preview_pending',
+          progress: 0,
+        };
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        localStorage.setItem('velocity_auth', 'true');
+        window.location.href = '/dashboard.html';
+      });
     });
 
-    // Sign In handler — also fetches any saved lead data from backend
+    // Sign In handler — awaits API response so session cookie is set
     formSI.addEventListener('submit', function (e) {
       e.preventDefault();
+      var errorEl = document.getElementById('suError');
       var btn = document.getElementById('siBtn');
       btn.textContent = 'Signing in...';
       btn.disabled = true;
 
       var email = document.getElementById('siEmail').value.trim();
+      var password = document.getElementById('siPassword').value;
 
-      // Check localStorage for existing user
-      var stored = localStorage.getItem('velocity_user');
-      if (stored) {
-        var existing = JSON.parse(stored);
-        if (existing.email === email) {
-          localStorage.setItem('velocity_auth', 'true');
-          window.location.href = '/dashboard.html';
+      // Call login API — wait for session cookie
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ email: email, password: password }),
+      })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(res) {
+        if (!res.ok) {
+          // Show error
+          if (!errorEl) {
+            errorEl = document.createElement('div');
+            errorEl.className = 'auth-error';
+            formSI.appendChild(errorEl);
+          }
+          errorEl.textContent = res.data.error || 'Invalid email or password.';
+          errorEl.style.display = 'block';
+          btn.textContent = 'Sign in';
+          btn.disabled = false;
           return;
         }
-      }
 
-      // Create session and try to load any saved lead data from backend
-      var user = {
-        email: email,
-        website_url: '',
-        created_at: new Date().toISOString(),
-        plan: null,
-        status: 'active',
-        progress: 0
-      };
+        // Build user object from API response
+        var user = {
+          email: res.data.email || email,
+          plan: res.data.plan || null,
+          created_at: new Date().toISOString(),
+          status: 'active',
+        };
 
-      // Try to fetch saved redesign data for this email
-      fetch('/api/lead-data?email=' + encodeURIComponent(email))
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data && data.data) {
-            var d = data.data;
-            if (d.website_url) user.website_url = d.website_url;
-            if (d.business_name) user.business_name = d.business_name;
-            if (d.niche) user.niche = d.niche;
-            if (d.services) user.services = d.services;
-            if (d.location) user.location = d.location;
-            if (d.style) user.style = d.style;
-            if (d.site_type) user.site_type = d.site_type;
-            if (d.phone) user.phone = d.phone;
-          }
-        })
-        .catch(function() {})
-        .finally(function() {
-          localStorage.setItem('velocity_user', JSON.stringify(user));
-          localStorage.setItem('velocity_auth', 'true');
-          window.location.href = '/dashboard.html';
-        });
+        // Try to load saved lead/questionnaire data
+        return fetch('/api/lead-data?email=' + encodeURIComponent(email))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data && data.data) {
+              var d = data.data;
+              if (d.website_url) user.website_url = d.website_url;
+              if (d.business_name) user.business_name = d.business_name;
+              if (d.niche) user.niche = d.niche;
+              if (d.services) user.services = d.services;
+              if (d.location) user.location = d.location;
+              if (d.style) user.style = d.style;
+              if (d.site_type) user.site_type = d.site_type;
+              if (d.phone) user.phone = d.phone;
+              if (d.preview_id) user.preview_id = d.preview_id;
+              if (d.preview_url) user.preview_url = d.preview_url;
+              if (d.questionnaire_filled) user.questionnaire_filled = true;
+              if (d.preview_id) user.preview_ready = true;
+            }
+          })
+          .catch(function() {})
+          .finally(function() {
+            localStorage.setItem('velocity_user', JSON.stringify(user));
+            localStorage.setItem('velocity_auth', 'true');
+            window.location.href = '/dashboard.html';
+          });
+      })
+      .catch(function() {
+        btn.textContent = 'Sign in';
+        btn.disabled = false;
+      });
     });
   })();
   </script>
