@@ -75,40 +75,23 @@
       if (!url || !email) return;
 
       // Visual feedback
-      const original = btn.textContent;
       btn.textContent = 'Sending...';
       btn.disabled = true;
       btn.style.opacity = '0.7';
 
+      // Fire API request in background (don't block redirect)
       try {
-        const res = await fetch('/api/request-redesign', {
+        fetch('/api/request-redesign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ website_url: url, email: email }),
-        });
+        }).catch(function() {});
+      } catch (_) {}
 
-        if (res.ok) {
-          showSuccess();
-        } else {
-          // Still show success (graceful degradation)
-          showSuccess();
-        }
-      } catch {
-        // Network error or no backend — show success anyway
-        // The form data is captured client-side as a fallback
-        showSuccess();
-      }
+      // Redirect to sign-up page with pre-filled data
+      const params = new URLSearchParams({ email: email, website: url });
+      window.location.href = '/auth.html?' + params.toString();
     });
-
-    function showSuccess() {
-      form.style.display = 'none';
-      success.style.display = 'block';
-      var u = document.getElementById('ctaUrl').value.trim();
-      var em = document.getElementById('ctaEmail').value.trim();
-      setTimeout(function () {
-        window.location.href = '/app#signup?email=' + encodeURIComponent(em) + '&url=' + encodeURIComponent(u);
-      }, 2000);
-    }
   }
 
   // ── Smooth scroll for anchor links ─────────────────────

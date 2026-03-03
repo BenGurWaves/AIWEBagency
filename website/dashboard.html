@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Velocity — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>V</text></svg>">
+</head>
+<body>
+
+  <!-- ── Dashboard Nav ── -->
+  <nav class="nav nav--scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="/" class="logo">Velocity<span class="logo-dot">.</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="#" id="navUser" class="dash-user-nav"></a>
+        <a href="#" id="signOut" class="nav-cta">Sign out</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="dash">
+    <div class="container">
+      <!-- ── Header ── -->
+      <div class="dash-header">
+        <div>
+          <p class="hero-eyebrow">Dashboard</p>
+          <h1 class="dash-title">Welcome back.</h1>
+          <p class="dash-subtitle" id="dashEmail"></p>
+        </div>
+      </div>
+
+      <!-- ── Progress Card ── -->
+      <div class="dash-grid">
+        <div class="dash-card dash-card--progress">
+          <div class="dash-card-head">
+            <h3>Your Redesign</h3>
+            <span class="dash-status" id="dashStatus">Processing</span>
+          </div>
+          <div class="dash-website" id="dashWebsite"></div>
+          <div class="dash-progress-wrap">
+            <div class="dash-progress-bar">
+              <div class="dash-progress-fill" id="dashProgressFill" style="width:0%"></div>
+            </div>
+            <span class="dash-progress-text" id="dashProgressText">0%</span>
+          </div>
+          <div class="dash-progress-steps">
+            <div class="dash-step" id="step1">
+              <span class="dash-step-dot"></span>
+              <span>Scraping website</span>
+            </div>
+            <div class="dash-step" id="step2">
+              <span class="dash-step-dot"></span>
+              <span>Analyzing content</span>
+            </div>
+            <div class="dash-step" id="step3">
+              <span class="dash-step-dot"></span>
+              <span>Generating design</span>
+            </div>
+            <div class="dash-step" id="step4">
+              <span class="dash-step-dot"></span>
+              <span>Building preview</span>
+            </div>
+            <div class="dash-step" id="step5">
+              <span class="dash-step-dot"></span>
+              <span>Ready for review</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Preview Card ── -->
+        <div class="dash-card dash-card--preview">
+          <div class="dash-card-head">
+            <h3>Preview</h3>
+          </div>
+          <div class="dash-preview-area" id="dashPreview">
+            <div class="dash-preview-placeholder" id="previewPlaceholder">
+              <span class="dash-preview-icon">&#128640;</span>
+              <p>Your preview is being built.<br>We'll show it here when it's ready.</p>
+            </div>
+            <div class="dash-preview-ready" id="previewReady" style="display:none;">
+              <div class="browser-window browser-window--new" style="transform:none;">
+                <div class="browser-bar browser-bar--new">
+                  <div class="browser-dots"><span></span><span></span><span></span></div>
+                  <span class="browser-tag browser-tag--new">Preview</span>
+                </div>
+                <div class="browser-viewport mock-new" id="previewContent" style="height:300px;">
+                  <div class="mock-new-nav">
+                    <span class="mock-new-logo" id="previewLogo">Your Business<em>.</em></span>
+                    <div class="mock-new-links"><span>Services</span><span>About</span><span>Contact</span></div>
+                  </div>
+                  <div class="mock-new-hero">
+                    <span class="mock-new-label">Your new website</span>
+                    <div class="mock-new-h1">A modern site for <em>your business.</em></div>
+                    <p>Fast, mobile-friendly, and designed to convert visitors into customers.</p>
+                    <div class="mock-new-btns">
+                      <span class="mock-new-cta">Get a quote</span>
+                      <span class="mock-new-ghost">Learn more</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="dash-preview-actions" id="previewActions">
+                <button class="btn btn-primary" id="approveBtn">I love it &mdash; build it!</button>
+                <button class="btn btn-ghost" id="revisionsBtn">Request changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Live Site Card (shown after build) ── -->
+      <div class="dash-card dash-card--live" id="liveCard" style="display:none;">
+        <div class="dash-card-head">
+          <h3>Your New Website</h3>
+          <span class="dash-status dash-status--live">Live</span>
+        </div>
+        <p class="dash-live-url">
+          <a href="#" id="liveUrl" target="_blank" rel="noopener"></a>
+        </p>
+        <p class="dash-live-name" id="liveName"></p>
+      </div>
+
+      <!-- ── Plan Card ── -->
+      <div class="dash-card dash-card--plan">
+        <div class="dash-card-head">
+          <h3>Your Plan</h3>
+          <a href="#" class="dash-change-plan" id="changePlanBtn">Change plan</a>
+        </div>
+        <div class="dash-plan-current" id="planCurrent">
+          <div class="dash-plan-none" id="planNone">
+            <p>No plan selected yet. Choose a plan to get your site built.</p>
+          </div>
+          <div class="dash-plan-active" id="planActive" style="display:none;">
+            <div class="dash-plan-name" id="planName"></div>
+            <div class="dash-plan-price" id="planPrice"></div>
+            <div class="dash-plan-features" id="planFeatures"></div>
+          </div>
+        </div>
+
+        <!-- Plan selector (hidden until "Change plan" clicked) -->
+        <div class="dash-plan-picker" id="planPicker" style="display:none;">
+          <div class="dash-plan-option" data-plan="starter" data-price="$997">
+            <div>
+              <strong>Starter</strong>
+              <span>5-page custom website</span>
+            </div>
+            <div class="dash-plan-option-price">$997</div>
+          </div>
+          <div class="dash-plan-option dash-plan-option--featured" data-plan="professional" data-price="$1,997">
+            <div>
+              <strong>Professional</strong>
+              <span>Multi-page + CMS + Blog</span>
+            </div>
+            <div class="dash-plan-option-price">$1,997</div>
+          </div>
+          <div class="dash-plan-option" data-plan="premium" data-price="$3,497">
+            <div>
+              <strong>Premium</strong>
+              <span>Full custom + booking system</span>
+            </div>
+            <div class="dash-plan-option-price">$3,497</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2026 Velocity. All rights reserved.</p>
+        <p class="footer-note">Websites that work as hard as you do.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Auth check ──
+    if (localStorage.getItem('velocity_auth') !== 'true') {
+      window.location.href = '/auth.html';
+      return;
+    }
+
+    var user = JSON.parse(localStorage.getItem('velocity_user') || '{}');
+    var email = user.email || '';
+    var website = user.website_url || '';
+
+    // Populate header
+    document.getElementById('dashEmail').textContent = email;
+    document.getElementById('navUser').textContent = email;
+    document.getElementById('dashWebsite').textContent = website || 'No website submitted';
+
+    // Sign out
+    document.getElementById('signOut').addEventListener('click', function(e) {
+      e.preventDefault();
+      localStorage.removeItem('velocity_auth');
+      window.location.href = '/';
+    });
+
+    // ── Simulated progress ──
+    // In production this would poll the backend API
+    var progress = user.progress || 0;
+    var status = user.status || 'preview_pending';
+
+    function updateProgress(pct) {
+      var fill = document.getElementById('dashProgressFill');
+      var text = document.getElementById('dashProgressText');
+      fill.style.width = pct + '%';
+      text.textContent = pct + '%';
+
+      // Update step dots
+      var steps = [
+        { id: 'step1', threshold: 10 },
+        { id: 'step2', threshold: 30 },
+        { id: 'step3', threshold: 55 },
+        { id: 'step4', threshold: 80 },
+        { id: 'step5', threshold: 100 }
+      ];
+      steps.forEach(function(s) {
+        var el = document.getElementById(s.id);
+        if (pct >= s.threshold) {
+          el.classList.add('dash-step--done');
+        } else if (pct >= s.threshold - 20) {
+          el.classList.add('dash-step--active');
+        }
+      });
+
+      // Update status text
+      var statusEl = document.getElementById('dashStatus');
+      if (pct >= 100) {
+        statusEl.textContent = 'Ready';
+        statusEl.classList.add('dash-status--live');
+        showPreview();
+      } else if (pct >= 55) {
+        statusEl.textContent = 'Generating';
+      } else if (pct >= 10) {
+        statusEl.textContent = 'Analyzing';
+      } else {
+        statusEl.textContent = 'Processing';
+      }
+    }
+
+    function showPreview() {
+      document.getElementById('previewPlaceholder').style.display = 'none';
+      document.getElementById('previewReady').style.display = 'block';
+
+      // Set business name from URL
+      if (website) {
+        try {
+          var host = new URL(website).hostname.replace('www.', '');
+          var name = host.split('.')[0];
+          name = name.charAt(0).toUpperCase() + name.slice(1);
+          document.getElementById('previewLogo').innerHTML = name + '<em>.</em>';
+        } catch(_) {}
+      }
+    }
+
+    // Simulate progress incrementing (in production, poll /api/status)
+    if (progress < 100) {
+      var interval = setInterval(function() {
+        progress += Math.floor(Math.random() * 8) + 3;
+        if (progress > 100) progress = 100;
+        user.progress = progress;
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        updateProgress(progress);
+        if (progress >= 100) clearInterval(interval);
+      }, 2000);
+    }
+    updateProgress(progress);
+
+    // ── Approve / Build ──
+    document.getElementById('approveBtn').addEventListener('click', function() {
+      user.status = 'building';
+      localStorage.setItem('velocity_user', JSON.stringify(user));
+
+      this.textContent = 'Building your site...';
+      this.disabled = true;
+
+      // Simulate build completion
+      setTimeout(function() {
+        user.status = 'live';
+        var domain = '';
+        if (website) {
+          try {
+            domain = new URL(website).hostname.replace('www.', '').split('.')[0];
+          } catch(_) { domain = 'mybusiness'; }
+        } else {
+          domain = 'mybusiness';
+        }
+        user.live_url = 'https://' + domain + '-2-0.pages.dev';
+        user.project_name = domain.charAt(0).toUpperCase() + domain.slice(1) + ' 2.0';
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+
+        // Show live card
+        document.getElementById('liveCard').style.display = 'block';
+        document.getElementById('liveUrl').href = user.live_url;
+        document.getElementById('liveUrl').textContent = user.live_url;
+        document.getElementById('liveName').textContent = user.project_name;
+        document.getElementById('previewActions').innerHTML = '<p style="color:var(--green);font-weight:600;">Your site is live!</p>';
+      }, 3000);
+    });
+
+    document.getElementById('revisionsBtn').addEventListener('click', function() {
+      this.textContent = 'Revision requested!';
+      this.disabled = true;
+    });
+
+    // Show live card if already built
+    if (user.status === 'live' && user.live_url) {
+      document.getElementById('liveCard').style.display = 'block';
+      document.getElementById('liveUrl').href = user.live_url;
+      document.getElementById('liveUrl').textContent = user.live_url;
+      document.getElementById('liveName').textContent = user.project_name || '';
+      if (progress >= 100) {
+        showPreview();
+        document.getElementById('previewActions').innerHTML = '<p style="color:var(--green);font-weight:600;">Your site is live!</p>';
+      }
+    }
+
+    // ── Plan Management ──
+    var changePlanBtn = document.getElementById('changePlanBtn');
+    var planPicker = document.getElementById('planPicker');
+    var planNone = document.getElementById('planNone');
+    var planActive = document.getElementById('planActive');
+
+    changePlanBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      planPicker.style.display = planPicker.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Show existing plan
+    if (user.plan) {
+      showPlan(user.plan, user.plan_price);
+    }
+
+    function showPlan(plan, price) {
+      planNone.style.display = 'none';
+      planActive.style.display = 'block';
+      document.getElementById('planName').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+      document.getElementById('planPrice').textContent = price || '';
+      changePlanBtn.textContent = 'Change plan';
+      planPicker.style.display = 'none';
+    }
+
+    // Plan selection
+    var options = document.querySelectorAll('.dash-plan-option');
+    options.forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        var plan = this.getAttribute('data-plan');
+        var price = this.getAttribute('data-price');
+        user.plan = plan;
+        user.plan_price = price;
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        showPlan(plan, price);
+      });
+    });
+
+  })();
+  </script>
+</body>
+</html>

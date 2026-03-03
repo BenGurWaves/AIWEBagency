@@ -12,7 +12,9 @@
  * Environment variables (set in Cloudflare Pages > Settings > Environment variables):
  *   RESEND_API_KEY  — Free at resend.com (3,000 emails/month)
  *   NOTIFY_EMAIL    — Your email to receive lead notifications
- *   FROM_EMAIL      — Send-from address (default: onboarding@resend.dev)
+ *   FROM_EMAIL      — Send-from address using YOUR verified domain (e.g. hello@velocity.delivery)
+ *                     NOTE: onboarding@resend.dev only works for testing to your own email.
+ *                     You MUST verify a domain at resend.com/domains for production use.
  *
  * KV Namespace bindings (optional):
  *   LEADS           — For storing lead data
@@ -78,7 +80,7 @@ export async function onRequestPost(context) {
     // ── Send emails via Resend (if API key is set) ──────────
     const resendKey = context.env && context.env.RESEND_API_KEY;
     if (resendKey) {
-      const fromEmail = (context.env.FROM_EMAIL || 'onboarding@resend.dev');
+      const fromEmail = (context.env.FROM_EMAIL || 'hello@velocity.delivery');
       const notifyEmail = context.env.NOTIFY_EMAIL || null;
 
       // 1. Confirmation email to the lead
@@ -92,7 +94,7 @@ export async function onRequestPost(context) {
           body: JSON.stringify({
             from: 'Velocity <' + fromEmail + '>',
             to: [email],
-            subject: 'Your free redesign is on the way',
+            subject: 'Working on your preview',
             html: buildConfirmationEmail(websiteUrl),
           }),
         });
@@ -161,7 +163,7 @@ function buildConfirmationEmail(websiteUrl) {
   <div style="max-width:520px;margin:0 auto;padding:40px 24px;">
     <div style="font-size:20px;color:#e8ddd3;margin-bottom:24px;">Velocity<span style="color:#c8956a;">.</span></div>
     <h1 style="font-size:26px;color:#e8ddd3;font-weight:400;line-height:1.3;margin:0 0 16px;">
-      We&rsquo;re working on your redesign.
+      Working on your preview&hellip;
     </h1>
     <p style="font-size:15px;color:#a89f94;line-height:1.7;margin:0 0 20px;font-family:-apple-system,system-ui,sans-serif;">
       Thanks for submitting <strong style="color:#e8ddd3;">${escapeHtml(websiteUrl)}</strong>. Our team is reviewing your site right now and building a free preview of what it could look like.

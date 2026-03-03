@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Velocity — Sign In</title>
+  <meta name="description" content="Sign in or create your Velocity account to manage your website redesign.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>V</text></svg>">
+</head>
+<body>
+
+  <nav class="nav nav--scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="/" class="logo">Velocity<span class="logo-dot">.</span></a>
+    </div>
+  </nav>
+
+  <section class="auth-page">
+    <div class="container container--narrow">
+      <div class="auth-card">
+        <!-- Tab toggle -->
+        <div class="auth-tabs">
+          <button class="auth-tab auth-tab--active" id="tabSignIn" type="button">Sign in</button>
+          <button class="auth-tab" id="tabSignUp" type="button">Create account</button>
+        </div>
+
+        <!-- ── SIGN IN FORM ── -->
+        <form class="auth-form" id="signInForm">
+          <div class="input-wrap">
+            <label for="siEmail">Email</label>
+            <input type="email" id="siEmail" name="email" placeholder="you@yourbusiness.com" required autocomplete="email">
+          </div>
+          <div class="input-wrap">
+            <label for="siPassword">Password</label>
+            <input type="password" id="siPassword" name="password" placeholder="Your password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="siBtn">Sign in</button>
+          <p class="auth-fine">Don't have an account? <a href="#" id="switchToSignUp">Create one</a></p>
+        </form>
+
+        <!-- ── SIGN UP FORM ── -->
+        <form class="auth-form" id="signUpForm" style="display:none;">
+          <div class="input-wrap">
+            <label for="suEmail">Email</label>
+            <input type="email" id="suEmail" name="email" placeholder="you@yourbusiness.com" required autocomplete="email">
+          </div>
+          <div class="input-wrap">
+            <label for="suPassword">Password</label>
+            <input type="password" id="suPassword" name="password" placeholder="Create a password" required autocomplete="new-password" minlength="8">
+          </div>
+          <div class="input-wrap">
+            <label for="suPasswordConfirm">Confirm password</label>
+            <input type="password" id="suPasswordConfirm" name="password_confirm" placeholder="Type it again" required autocomplete="new-password" minlength="8">
+          </div>
+          <div class="input-wrap">
+            <label for="suWebsite">Your website URL</label>
+            <input type="url" id="suWebsite" name="website_url" placeholder="https://yourbusiness.com" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="suBtn">Create account</button>
+          <p class="auth-fine">Already have an account? <a href="#" id="switchToSignIn">Sign in</a></p>
+          <div class="auth-error" id="suError" style="display:none;"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var tabSI = document.getElementById('tabSignIn');
+    var tabSU = document.getElementById('tabSignUp');
+    var formSI = document.getElementById('signInForm');
+    var formSU = document.getElementById('signUpForm');
+    var switchToSignUp = document.getElementById('switchToSignUp');
+    var switchToSignIn = document.getElementById('switchToSignIn');
+
+    function showSignIn() {
+      tabSI.classList.add('auth-tab--active');
+      tabSU.classList.remove('auth-tab--active');
+      formSI.style.display = 'block';
+      formSU.style.display = 'none';
+    }
+    function showSignUp() {
+      tabSU.classList.add('auth-tab--active');
+      tabSI.classList.remove('auth-tab--active');
+      formSU.style.display = 'block';
+      formSI.style.display = 'none';
+    }
+
+    tabSI.addEventListener('click', showSignIn);
+    tabSU.addEventListener('click', showSignUp);
+    switchToSignUp.addEventListener('click', function(e) { e.preventDefault(); showSignUp(); });
+    switchToSignIn.addEventListener('click', function(e) { e.preventDefault(); showSignIn(); });
+
+    // Pre-fill from URL params (coming from main form)
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('email')) {
+      document.getElementById('suEmail').value = params.get('email');
+    }
+    if (params.get('website')) {
+      document.getElementById('suWebsite').value = params.get('website');
+    }
+    // If we have pre-fill params, default to sign-up tab
+    if (params.get('email') || params.get('website')) {
+      showSignUp();
+    }
+
+    // Sign Up handler
+    formSU.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var errorEl = document.getElementById('suError');
+      errorEl.style.display = 'none';
+
+      var email = document.getElementById('suEmail').value.trim();
+      var pass = document.getElementById('suPassword').value;
+      var passConfirm = document.getElementById('suPasswordConfirm').value;
+      var website = document.getElementById('suWebsite').value.trim();
+
+      if (pass !== passConfirm) {
+        errorEl.textContent = 'Passwords do not match. Try again.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (pass.length < 8) {
+        errorEl.textContent = 'Password must be at least 8 characters.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      var btn = document.getElementById('suBtn');
+      btn.textContent = 'Creating account...';
+      btn.disabled = true;
+
+      // Store user data in localStorage (client-side until backend is connected)
+      var user = {
+        email: email,
+        website_url: website,
+        created_at: new Date().toISOString(),
+        plan: null,
+        status: 'preview_pending',
+        progress: 0
+      };
+      localStorage.setItem('velocity_user', JSON.stringify(user));
+      localStorage.setItem('velocity_auth', 'true');
+
+      // Redirect to dashboard
+      setTimeout(function() {
+        window.location.href = '/dashboard.html';
+      }, 600);
+    });
+
+    // Sign In handler
+    formSI.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('siBtn');
+      btn.textContent = 'Signing in...';
+      btn.disabled = true;
+
+      var email = document.getElementById('siEmail').value.trim();
+
+      // Check localStorage for existing user
+      var stored = localStorage.getItem('velocity_user');
+      if (stored) {
+        var user = JSON.parse(stored);
+        if (user.email === email) {
+          localStorage.setItem('velocity_auth', 'true');
+          window.location.href = '/dashboard.html';
+          return;
+        }
+      }
+
+      // For now, create a basic session (backend auth coming later)
+      localStorage.setItem('velocity_user', JSON.stringify({
+        email: email,
+        website_url: '',
+        created_at: new Date().toISOString(),
+        plan: null,
+        status: 'active',
+        progress: 0
+      }));
+      localStorage.setItem('velocity_auth', 'true');
+      window.location.href = '/dashboard.html';
+    });
+  })();
+  </script>
+</body>
+</html>
