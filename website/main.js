@@ -103,6 +103,11 @@
     function showSuccess() {
       form.style.display = 'none';
       success.style.display = 'block';
+      var u = document.getElementById('ctaUrl').value.trim();
+      var em = document.getElementById('ctaEmail').value.trim();
+      setTimeout(function () {
+        window.location.href = '/app#signup?email=' + encodeURIComponent(em) + '&url=' + encodeURIComponent(u);
+      }, 2000);
     }
   }
 
