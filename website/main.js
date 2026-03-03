@@ -27,6 +27,50 @@
     animated.forEach((el) => el.classList.add('is-visible'));
   }
 
+  // ── Counter animation for stat numbers ────────────────
+  function animateCounter(el, target, suffix) {
+    var start = 0;
+    var duration = 1800;
+    var startTime = null;
+
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = Math.floor(eased * target);
+      el.textContent = current + suffix;
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = target + suffix;
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  var statNumbers = document.querySelectorAll('.stat-number');
+  if (statNumbers.length && 'IntersectionObserver' in window) {
+    var statObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var el = entry.target;
+            var text = el.textContent.trim();
+            var numMatch = text.match(/(\d+)/);
+            if (numMatch) {
+              var num = parseInt(numMatch[1], 10);
+              var suffix = text.replace(numMatch[1], '');
+              animateCounter(el, num, suffix);
+            }
+            statObserver.unobserve(el);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    statNumbers.forEach(function (el) { statObserver.observe(el); });
+  }
+
   // ── Sticky nav on scroll ───────────────────────────────
   const nav = document.getElementById('nav');
 
