@@ -4,15 +4,11 @@
  * POST /api/request-redesign
  * Body: { website_url: string, email: string }
  *
- * Uses Cloudflare KV (LEADS namespace) if bound, otherwise returns
- * success with an in-memory log. This lets the form work on the free
- * tier with zero config — KV is a bonus when available.
+ * Stores leads in Cloudflare KV if the LEADS binding exists.
+ * Works fine without KV — just returns success.
  */
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
-
-  // CORS headers
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -21,18 +17,26 @@ export async function onRequestPost(context) {
   };
 
   try {
-    const body = await request.json();
-    const { website_url, email } = body;
+    let body;
+    try {
+      body = await context.request.json();
+    } catch (_) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers }
+      );
+    }
 
-    // Basic validation
-    if (!website_url || !email) {
+    const websiteUrl = (body.website_url || '').trim();
+    const email = (body.email || '').trim().toLowerCase();
+
+    if (!websiteUrl || !email) {
       return new Response(
         JSON.stringify({ error: 'website_url and email are required' }),
         { status: 400, headers }
       );
     }
 
-    // Simple email format check
     if (!email.includes('@') || !email.includes('.')) {
       return new Response(
         JSON.stringify({ error: 'Invalid email address' }),
@@ -41,37 +45,40 @@ export async function onRequestPost(context) {
     }
 
     const lead = {
-      website_url: website_url.trim(),
-      email: email.trim().toLowerCase(),
+      website_url: websiteUrl,
+      email: email,
       submitted_at: new Date().toISOString(),
       source: 'website_form',
       status: 'new',
     };
 
-    // Store in KV if the LEADS namespace is bound
-    if (env && env.LEADS) {
-      const key = `lead:${Date.now()}:${email.replace(/[^a-z0-9]/gi, '_')}`;
-      await env.LEADS.put(key, JSON.stringify(lead), {
-        expirationTtl: 60 * 60 * 24 * 90, // 90 days
-      });
+    // Try KV storage if the binding exists — never let it crash the request
+    try {
+      if (context.env && context.env.LEADS) {
+        const key = 'lead_' + Date.now() + '_' + email.replace(/[^a-z0-9]/gi, '_');
+        await context.env.LEADS.put(key, JSON.stringify(lead), {
+          expirationTtl: 7776000, // 90 days
+        });
+      }
+    } catch (_) {
+      // KV not configured or write failed — that's fine, continue
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Redesign request received. We\'ll be in touch within 24-48 hours.',
+        message: 'Redesign request received.',
       }),
       { status: 200, headers }
     );
-  } catch (err) {
+  } catch (_) {
     return new Response(
-      JSON.stringify({ error: 'Invalid request body' }),
-      { status: 400, headers }
+      JSON.stringify({ error: 'Something went wrong' }),
+      { status: 500, headers }
     );
   }
 }
 
-// Handle CORS preflight
 export async function onRequestOptions() {
   return new Response(null, {
     status: 204,

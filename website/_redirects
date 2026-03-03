@@ -1,5 +1,6 @@
 # Cloudflare Pages redirects
 # https://developers.cloudflare.com/pages/configuration/redirects/
 
-# SPA-style: serve index.html for any unmatched route
-/*  /index.html  200
+# No catch-all rewrite needed — this is a static site, not an SPA.
+# Cloudflare Pages serves index.html at / automatically.
+# The /* /index.html 200 rule was causing an infinite loop.
