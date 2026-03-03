@@ -9,6 +9,82 @@
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>V</text></svg>">
+  <style>
+    /* ── Dashboard-specific enhancements ── */
+    .dash-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+    .dash-hero-actions { display: flex; gap: 0.75rem; padding-bottom: 0.25rem; }
+
+    /* Step indicator */
+    .dash-stepper { display: flex; align-items: center; gap: 0; margin-bottom: 2.5rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 0.75rem 1.25rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+    .dash-stepper-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); white-space: nowrap; }
+    .dash-stepper-item--active { color: var(--accent); font-weight: 600; }
+    .dash-stepper-item--done { color: var(--green); }
+    .dash-stepper-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6875rem; font-weight: 700; border: 1.5px solid var(--border); color: var(--text-muted); flex-shrink: 0; }
+    .dash-stepper-item--active .dash-stepper-num { border-color: var(--accent); background: var(--accent); color: #12100e; }
+    .dash-stepper-item--done .dash-stepper-num { border-color: var(--green); background: var(--green); color: #fff; }
+    .dash-stepper-line { flex: 1; height: 1px; background: var(--border-subtle); margin: 0 0.75rem; min-width: 20px; }
+
+    /* Generating step visual upgrade */
+    .gen-card { position: relative; overflow: hidden; }
+    .gen-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--green), var(--accent)); background-size: 200% 100%; animation: gen-shimmer 2s ease infinite; }
+    @keyframes gen-shimmer { 0%{background-position: 200% 0} 100%{background-position: -200% 0} }
+    .gen-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .gen-spinner { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--border-subtle); border-top-color: var(--accent); animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .gen-header-text h3 { font-size: 1.25rem; margin-bottom: 0.1rem; }
+    .gen-header-text p { font-size: 0.8125rem; color: var(--text-muted); }
+    .gen-progress-outer { background: var(--bg); border: 1px solid var(--border-subtle); border-radius: 100px; padding: 3px; margin-bottom: 1.5rem; }
+    .gen-progress-inner { height: 8px; border-radius: 100px; background: linear-gradient(90deg, var(--accent), var(--green)); transition: width 0.6s var(--ease); position: relative; }
+    .gen-progress-inner::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 100px; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%); background-size: 200% 100%; animation: gen-shimmer 1.5s ease infinite; }
+    .gen-steps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+    @media(max-width:700px) { .gen-steps-grid { grid-template-columns: repeat(2, 1fr); } }
+    .gen-step-card { padding: 1rem; background: var(--bg); border: 1px solid var(--border-subtle); border-radius: var(--radius); text-align: center; transition: all 0.3s; }
+    .gen-step-card--active { border-color: var(--accent); background: var(--accent-glow); }
+    .gen-step-card--done { border-color: var(--green); }
+    .gen-step-card--done .gen-step-icon { color: var(--green); }
+    .gen-step-icon { font-size: 1.25rem; margin-bottom: 0.35rem; color: var(--text-muted); transition: color 0.3s; }
+    .gen-step-card--active .gen-step-icon { color: var(--accent); }
+    .gen-step-label { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+    .gen-step-card--active .gen-step-label { color: var(--accent); }
+    .gen-step-card--done .gen-step-label { color: var(--green); }
+    .gen-msg { text-align: center; padding: 1rem 1.25rem; background: var(--bg); border: 1px solid var(--border-subtle); border-radius: var(--radius); }
+    .gen-msg p { font-size: 0.875rem; color: var(--text-secondary); }
+    .gen-pct { text-align: center; font-family: var(--font-serif); font-size: 2rem; color: var(--accent); margin-bottom: 0.25rem; }
+
+    /* Preview step upgrade */
+    .preview-layout { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 1.5rem; }
+    @media(max-width:900px) { .preview-layout { grid-template-columns: 1fr; } }
+    .preview-frame-wrap { position: relative; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); background: var(--bg); }
+    .preview-frame-bar { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--bg-card); border-bottom: 1px solid var(--border-subtle); }
+    .preview-frame-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .preview-frame-bar-url { flex: 1; margin-left: 8px; font-size: 0.6875rem; color: var(--text-muted); background: var(--bg); padding: 3px 8px; border-radius: 4px; }
+    .preview-iframe { width: 100%; height: 520px; border: none; display: block; }
+    .preview-link { text-align: center; padding: 0.5rem 0; font-size: 0.75rem; }
+    .preview-link a { color: var(--accent); }
+
+    /* Right panel on preview step */
+    .preview-panel { display: flex; flex-direction: column; gap: 1rem; }
+    .preview-action-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; }
+    .preview-action-card h3 { font-size: 1.125rem; margin-bottom: 0.5rem; }
+    .preview-action-card p { font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; }
+    .preview-action-card .btn { width: 100%; }
+
+    /* Plan picker upgrade */
+    .plan-card { background: var(--bg); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s; margin-bottom: 0.5rem; }
+    .plan-card:hover { border-color: var(--accent); }
+    .plan-card--selected { border-color: var(--green) !important; box-shadow: 0 0 16px rgba(77, 186, 82, 0.12); }
+    .plan-card--featured { border-color: var(--accent); box-shadow: 0 0 16px var(--accent-glow); }
+    .plan-card-info strong { display: block; font-size: 0.9375rem; }
+    .plan-card-info span { font-size: 0.6875rem; color: var(--text-muted); }
+    .plan-card-price { font-family: var(--font-serif); font-size: 1.25rem; flex-shrink: 0; }
+    .plan-card-badge { display: inline-block; font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: var(--accent); color: #12100e; padding: 2px 6px; border-radius: 3px; margin-left: 0.5rem; }
+
+    /* Revision form */
+    .revision-box { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle); }
+    .revision-box textarea { width: 100%; padding: 0.65rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: var(--font-body); font-size: 0.9375rem; resize: vertical; margin-bottom: 0.75rem; }
+    .revision-box textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    .revision-btns { display: flex; gap: 0.5rem; }
+  </style>
 </head>
 <body>
 
@@ -31,10 +107,35 @@
     <div class="container">
       <!-- ── Header ── -->
       <div class="dash-header">
-        <div>
-          <p class="hero-eyebrow">Dashboard</p>
-          <h1 class="dash-title">Welcome back.</h1>
-          <p class="dash-subtitle" id="dashEmail"></p>
+        <div class="dash-hero">
+          <div>
+            <p class="hero-eyebrow">Dashboard</p>
+            <h1 class="dash-title">Welcome back.</h1>
+            <p class="dash-subtitle" id="dashEmail"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Step Indicator ── -->
+      <div class="dash-stepper" id="dashStepper">
+        <div class="dash-stepper-item" id="stepperQ">
+          <span class="dash-stepper-num">1</span>
+          <span class="hide-mobile">Details</span>
+        </div>
+        <div class="dash-stepper-line"></div>
+        <div class="dash-stepper-item" id="stepperG">
+          <span class="dash-stepper-num">2</span>
+          <span class="hide-mobile">Generate</span>
+        </div>
+        <div class="dash-stepper-line"></div>
+        <div class="dash-stepper-item" id="stepperP">
+          <span class="dash-stepper-num">3</span>
+          <span class="hide-mobile">Preview</span>
+        </div>
+        <div class="dash-stepper-line"></div>
+        <div class="dash-stepper-item" id="stepperC">
+          <span class="dash-stepper-num">4</span>
+          <span class="hide-mobile">Launch</span>
         </div>
       </div>
 
@@ -43,7 +144,7 @@
         <div class="dash-card dash-card--wide">
           <div class="dash-card-head">
             <h3>Tell us about your business</h3>
-            <span class="dash-status">Step 1 of 2</span>
+            <span class="dash-status">Step 1 of 4</span>
           </div>
           <p class="dash-card-desc">We pulled some info from your website. Review it, edit anything that's wrong, and fill in the blanks so we can build something perfect for you.</p>
 
@@ -107,7 +208,6 @@
               </div>
             </div>
 
-            <!-- Other industry input (shown when "Other" is selected) -->
             <div class="input-wrap" id="otherNicheWrap" style="display:none;">
               <label for="qNicheOther">Tell us your industry</label>
               <input type="text" id="qNicheOther" placeholder="e.g. Pet grooming, Music lessons, Event planning...">
@@ -166,13 +266,13 @@
             </div>
 
             <div class="input-wrap">
-              <label for="qInspo">Websites you like <span class="label-hint">(optional &mdash; paste URLs for design inspiration)</span></label>
-              <textarea id="qInspo" rows="3" placeholder="Paste links to websites whose look/feel you want us to draw from. We'll analyze their colors, layout style, and small design touches for inspiration (never copy).&#10;&#10;e.g.&#10;https://example-roofing.com&#10;https://modern-plumber-site.com"></textarea>
+              <label for="qInspo">Websites you like <span class="label-hint">(optional)</span></label>
+              <textarea id="qInspo" rows="2" placeholder="Paste links to websites whose look you like."></textarea>
             </div>
 
             <div class="input-wrap">
               <label for="qNotes">Anything else we should know?</label>
-              <textarea id="qNotes" rows="3" placeholder="Special requests, features you need, branding preferences..."></textarea>
+              <textarea id="qNotes" rows="2" placeholder="Special requests, features, branding preferences..."></textarea>
             </div>
 
             <div class="q-actions">
@@ -185,44 +285,55 @@
 
       <!-- ═══ STEP 2: Generating ═══ -->
       <div id="stepGenerating" class="dash-section" style="display:none;">
-        <div class="dash-card dash-card--wide">
-          <div class="dash-card-head">
-            <h3>Building your preview</h3>
-            <span class="dash-status" id="genStatus">Analyzing</span>
-          </div>
-          <p class="dash-card-desc" id="genBusinessName"></p>
-
-          <div class="dash-progress-wrap">
-            <div class="dash-progress-bar">
-              <div class="dash-progress-fill" id="genProgressFill" style="width:0%"></div>
-            </div>
-            <span class="dash-progress-text" id="genProgressText">0%</span>
-          </div>
-
-          <div class="dash-progress-steps">
-            <div class="dash-step" id="genStep1">
-              <span class="dash-step-dot"></span>
-              <span>Analyzing your current website</span>
-            </div>
-            <div class="dash-step" id="genStep2">
-              <span class="dash-step-dot"></span>
-              <span>Extracting content &amp; brand info</span>
-            </div>
-            <div class="dash-step" id="genStep3">
-              <span class="dash-step-dot"></span>
-              <span>Designing layout &amp; color palette</span>
-            </div>
-            <div class="dash-step" id="genStep4">
-              <span class="dash-step-dot"></span>
-              <span>Building pages &amp; components</span>
-            </div>
-            <div class="dash-step" id="genStep5">
-              <span class="dash-step-dot"></span>
-              <span>Rendering final preview</span>
+        <div class="dash-card dash-card--wide gen-card">
+          <div class="gen-header">
+            <div class="gen-spinner"></div>
+            <div class="gen-header-text">
+              <h3>Building your preview</h3>
+              <p id="genBusinessName"></p>
             </div>
           </div>
 
-          <div class="gen-detail" id="genDetail">
+          <div class="gen-pct" id="genPct">0%</div>
+
+          <div class="gen-progress-outer">
+            <div class="gen-progress-inner" id="genProgressFill" style="width:0%"></div>
+          </div>
+
+          <div class="gen-steps-grid">
+            <div class="gen-step-card" id="genStep1">
+              <div class="gen-step-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+              <div class="gen-step-label">Scan</div>
+            </div>
+            <div class="gen-step-card" id="genStep2">
+              <div class="gen-step-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="gen-step-label">Extract</div>
+            </div>
+            <div class="gen-step-card" id="genStep3">
+              <div class="gen-step-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+              </div>
+              <div class="gen-step-label">Design</div>
+            </div>
+            <div class="gen-step-card" id="genStep4">
+              <div class="gen-step-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </div>
+              <div class="gen-step-label">Build</div>
+            </div>
+            <div class="gen-step-card" id="genStep5">
+              <div class="gen-step-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div class="gen-step-label">Finish</div>
+            </div>
+          </div>
+
+          <div class="gen-msg" id="genDetail">
             <p>Scraping your website for content, images, and brand elements...</p>
           </div>
         </div>
@@ -230,69 +341,77 @@
 
       <!-- ═══ STEP 3: Preview Ready ═══ -->
       <div id="stepPreview" class="dash-section" style="display:none;">
-        <div class="dash-grid">
-          <!-- Preview card -->
-          <div class="dash-card dash-card--preview">
-            <div class="dash-card-head">
-              <h3>Your Preview</h3>
-              <span class="dash-status dash-status--live">Ready</span>
+        <div class="preview-layout">
+          <!-- Left: Preview frame -->
+          <div>
+            <div class="preview-frame-wrap">
+              <div class="preview-frame-bar">
+                <div class="preview-frame-dot" style="background:#ff5f57;"></div>
+                <div class="preview-frame-dot" style="background:#febc2e;"></div>
+                <div class="preview-frame-dot" style="background:#28c840;"></div>
+                <div class="preview-frame-bar-url" id="previewBarUrl">velocity.delivery/preview</div>
+              </div>
+              <iframe id="previewIframe" class="preview-iframe" title="Your website preview" style="display:none;"></iframe>
+              <div id="previewFallback"></div>
             </div>
-            <div class="dash-preview-area">
-              <div id="previewContainer">
-                <iframe id="previewIframe" style="width:100%;height:500px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg);display:none;" title="Your website preview"></iframe>
-                <div id="previewFallback"></div>
-              </div>
-              <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;text-align:center;" id="previewLink"></p>
-              <div class="dash-preview-actions" id="previewActions">
-                <button class="btn btn-primary" id="approveBtn">I love it &mdash; let's build it!</button>
-                <button class="btn btn-ghost" id="revisionsBtn">Request changes</button>
-              </div>
-              <!-- Revision form (hidden) -->
-              <div class="revision-form" id="revisionForm" style="display:none;">
-                <div class="input-wrap">
-                  <label for="revisionNotes">What would you like changed?</label>
-                  <textarea id="revisionNotes" rows="4" placeholder="Tell us what you'd like different — colors, layout, wording, anything..."></textarea>
+            <div class="preview-link" id="previewLink"></div>
+          </div>
+
+          <!-- Right: Action panel -->
+          <div class="preview-panel">
+            <!-- Love it card -->
+            <div class="preview-action-card">
+              <h3>Like what you see?</h3>
+              <p>Choose a plan below and we'll build your full production website. Your preview becomes the foundation.</p>
+
+              <div id="planPicker">
+                <div class="plan-card" data-plan="starter" data-price="$997">
+                  <div class="plan-card-info">
+                    <strong>Starter</strong>
+                    <span>5-page custom website</span>
+                  </div>
+                  <div class="plan-card-price">$997</div>
                 </div>
-                <div class="q-actions">
-                  <button class="btn btn-primary" id="submitRevision">Submit revision request</button>
+                <div class="plan-card plan-card--featured" data-plan="professional" data-price="$1,997">
+                  <div class="plan-card-info">
+                    <strong>Professional<span class="plan-card-badge">Popular</span></strong>
+                    <span>Multi-page + CMS + Blog</span>
+                  </div>
+                  <div class="plan-card-price">$1,997</div>
+                </div>
+                <div class="plan-card" data-plan="premium" data-price="$3,497">
+                  <div class="plan-card-info">
+                    <strong>Premium</strong>
+                    <span>Full custom + booking system</span>
+                  </div>
+                  <div class="plan-card-price">$3,497</div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="approveBtn" style="width:100%;margin-top:1rem;">Continue with selected plan</button>
+            </div>
+
+            <!-- Request changes card -->
+            <div class="preview-action-card">
+              <h3>Want changes?</h3>
+              <p>Not 100% happy? Tell us what to tweak and we'll update your preview.</p>
+              <div id="revisionArea">
+                <button class="btn btn-outline" id="revisionsBtn" style="width:100%;">Request changes</button>
+              </div>
+              <div id="revisionForm" style="display:none;" class="revision-box">
+                <textarea id="revisionNotes" rows="4" placeholder="Tell us what you'd like different — colors, layout, wording, anything..."></textarea>
+                <div class="revision-btns">
+                  <button class="btn btn-primary" id="submitRevision" style="flex:1;">Submit</button>
                   <button class="btn btn-ghost" id="cancelRevision">Cancel</button>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Plan card -->
-          <div class="dash-card dash-card--plan">
-            <div class="dash-card-head">
-              <h3>Choose a Plan</h3>
-            </div>
-            <p class="dash-plan-desc">Select a plan to get your site built and deployed live.</p>
-            <div class="dash-plan-picker" id="planPicker">
-              <div class="dash-plan-option" data-plan="starter" data-price="$997">
-                <div>
-                  <strong>Starter</strong>
-                  <span>5-page custom website</span>
-                </div>
-                <div class="dash-plan-option-price">$997</div>
-              </div>
-              <div class="dash-plan-option dash-plan-option--featured" data-plan="professional" data-price="$1,997">
-                <div>
-                  <strong>Professional</strong>
-                  <span>Multi-page + CMS + Blog</span>
-                </div>
-                <div class="dash-plan-option-price">$1,997</div>
-              </div>
-              <div class="dash-plan-option" data-plan="premium" data-price="$3,497">
-                <div>
-                  <strong>Premium</strong>
-                  <span>Full custom + booking system</span>
-                </div>
-                <div class="dash-plan-option-price">$3,497</div>
-              </div>
-            </div>
-            <div class="dash-plan-selected" id="planSelected" style="display:none;">
-              <div class="dash-plan-name" id="planName"></div>
-              <div class="dash-plan-price" id="planPrice"></div>
+            <!-- Start over card -->
+            <div class="preview-action-card">
+              <h3>Start fresh?</h3>
+              <p>Want to try a completely different direction? Go back and fill out a new brief.</p>
+              <button class="btn btn-ghost" id="newDesignBtn" style="width:100%;">New design brief</button>
             </div>
           </div>
         </div>
@@ -364,7 +483,6 @@
       user.paid_at = new Date().toISOString();
       user.dashboard_step = 'building';
       localStorage.setItem('velocity_user', JSON.stringify(user));
-      // Clean URL
       window.history.replaceState({}, '', '/dashboard.html');
     } else if (urlParams.get('payment') === 'cancelled') {
       window.history.replaceState({}, '', '/dashboard.html');
@@ -390,7 +508,7 @@
       });
     }
 
-    // Sign out — clear both server session and local storage
+    // Sign out
     document.getElementById('signOut').addEventListener('click', function(e) {
       e.preventDefault();
       fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(function() {});
@@ -408,11 +526,14 @@
       });
     }
 
-    // ── Determine current step ──
+    // ── Steps ──
     var step = user.dashboard_step || 'questionnaire';
+    var allStepIds = ['stepQuestionnaire', 'stepGenerating', 'stepPreview', 'stepBuilding', 'stepLive'];
+    var stepperMap = { questionnaire: 'Q', generating: 'G', preview: 'P', building: 'C', live: 'C' };
+    var stepOrder = ['Q', 'G', 'P', 'C'];
 
     function showStep(s) {
-      ['stepQuestionnaire', 'stepGenerating', 'stepPreview', 'stepBuilding', 'stepLive'].forEach(function(id) {
+      allStepIds.forEach(function(id) {
         document.getElementById(id).style.display = 'none';
       });
       var el = document.getElementById('step' + s.charAt(0).toUpperCase() + s.slice(1));
@@ -420,12 +541,23 @@
       step = s;
       user.dashboard_step = s;
       localStorage.setItem('velocity_user', JSON.stringify(user));
+      updateStepper(s);
     }
 
-    // ── Pre-fill questionnaire from website URL and user email ──
+    function updateStepper(currentStep) {
+      var currentIdx = stepOrder.indexOf(stepperMap[currentStep] || 'Q');
+      stepOrder.forEach(function(code, i) {
+        var el = document.getElementById('stepper' + code);
+        if (!el) return;
+        el.classList.remove('dash-stepper-item--active', 'dash-stepper-item--done');
+        if (i < currentIdx) el.classList.add('dash-stepper-item--done');
+        else if (i === currentIdx) el.classList.add('dash-stepper-item--active');
+      });
+    }
+
+    // ── Pre-fill ──
     if (!user.questionnaire_filled) {
       if (website) prefillFromUrl(website);
-      // Default the contact email to account email
       var qContactEl = document.getElementById('qContactEmail');
       if (qContactEl && !qContactEl.value && email) {
         qContactEl.value = email;
@@ -436,12 +568,9 @@
       try {
         var host = new URL(url).hostname.replace('www.', '');
         var name = host.split('.')[0];
-        // Capitalize and guess a name
         name = name.replace(/[-_]/g, ' ');
         name = name.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
         document.getElementById('qName').value = name;
-
-        // Try to guess niche from URL keywords
         var lower = url.toLowerCase();
         var niches = {
           'roof': 'roofing', 'plumb': 'plumbing', 'hvac': 'hvac', 'heat': 'hvac',
@@ -458,11 +587,9 @@
       } catch(_) {}
     }
 
-    // ── Questionnaire submission — calls real generate API ──
+    // ── Questionnaire submission ──
     document.getElementById('questionnaireForm').addEventListener('submit', function(e) {
       e.preventDefault();
-
-      // Validate: at least one of phone or contact email
       var phone = document.getElementById('qPhone').value.trim();
       var contactEmail = document.getElementById('qContactEmail').value.trim();
       var contactError = document.getElementById('contactError');
@@ -488,35 +615,38 @@
       user.inspo_urls = document.getElementById('qInspo').value.trim();
       user.notes = document.getElementById('qNotes').value.trim();
       user.questionnaire_filled = true;
+      // Clear any old preview since this is a new submission
+      user.preview_url = null;
+      user.preview_id = null;
+      user.preview_ready = false;
 
       var submitBtn = document.getElementById('qSubmitBtn');
       submitBtn.textContent = 'Generating...';
       submitBtn.disabled = true;
 
       localStorage.setItem('velocity_user', JSON.stringify(user));
-
       showStep('generating');
       startGenerating();
     });
 
-    // ── Generating — calls real API with progress simulation ──
+    // ── Generating ──
     function startGenerating() {
-      document.getElementById('genBusinessName').textContent = user.business_name + ' — ' + (website || '');
+      document.getElementById('genBusinessName').textContent = user.business_name + (website ? ' \u2014 ' + website : '');
       var progress = 0;
       var apiDone = false;
       var apiResult = null;
       var messages = [
-        'Scraping your website for content, images, and brand elements...',
-        'Extracting service descriptions and contact information...',
-        'Analyzing your brand colors and typography...',
-        'Designing a custom layout based on your preferences...',
+        'Scanning your website for content and brand elements...',
+        'Extracting service descriptions and contact details...',
+        'Analyzing your brand identity and color palette...',
+        'Designing a custom layout tailored to your business...',
         'Building hero section and service pages...',
-        'Adding call-to-action elements and contact forms...',
-        'Optimizing for mobile and loading speed...',
-        'Rendering final preview...'
+        'Adding conversion-optimized call-to-action elements...',
+        'Optimizing for mobile devices and fast loading...',
+        'Rendering your personalized preview...'
       ];
       var msgIndex = 0;
-      var steps = [
+      var genSteps = [
         { id: 'genStep1', threshold: 15 },
         { id: 'genStep2', threshold: 30 },
         { id: 'genStep3', threshold: 50 },
@@ -524,12 +654,11 @@
         { id: 'genStep5', threshold: 95 }
       ];
 
-      // Skip API if we already have a preview from a prior run
+      // Skip API if we already have a preview
       if (user.preview_url) {
         apiDone = true;
         apiResult = { success: true, preview_id: user.preview_id, preview_url: user.preview_url };
       } else {
-        // Call the real generate API
         var genPayload = {
           email: email,
           website_url: website,
@@ -566,7 +695,6 @@
           apiResult = { success: false };
         });
 
-        // Also fire the redesign request for email notifications
         fetch('/api/request-redesign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -574,37 +702,29 @@
         }).catch(function() {});
       }
 
-      // Progress animation
       var interval = setInterval(function() {
-        // Advance faster when API is done, slower otherwise
         if (apiDone && progress < 90) {
           progress = 90;
         } else if (apiDone) {
           progress += 5;
         } else {
           progress += Math.floor(Math.random() * 3) + 1;
-          if (progress > 85) progress = 85; // Cap until API finishes
+          if (progress > 85) progress = 85;
         }
         if (progress > 100) progress = 100;
 
         document.getElementById('genProgressFill').style.width = progress + '%';
-        document.getElementById('genProgressText').textContent = progress + '%';
+        document.getElementById('genPct').textContent = progress + '%';
 
-        steps.forEach(function(s) {
+        genSteps.forEach(function(s) {
           var el = document.getElementById(s.id);
           if (progress >= s.threshold) {
-            el.classList.add('dash-step--done');
-            el.classList.remove('dash-step--active');
+            el.classList.add('gen-step-card--done');
+            el.classList.remove('gen-step-card--active');
           } else if (progress >= s.threshold - 15) {
-            el.classList.add('dash-step--active');
+            el.classList.add('gen-step-card--active');
           }
         });
-
-        var statusEl = document.getElementById('genStatus');
-        if (progress >= 90) statusEl.textContent = 'Finalizing';
-        else if (progress >= 60) statusEl.textContent = 'Building';
-        else if (progress >= 30) statusEl.textContent = 'Designing';
-        else statusEl.textContent = 'Analyzing';
 
         var newIndex = Math.min(Math.floor(progress / 13), messages.length - 1);
         if (newIndex !== msgIndex) {
@@ -624,26 +744,25 @@
       }, 800);
     }
 
-    // ── Render preview — use iframe if API returned a preview_url, else fallback to SVG ──
+    // ── Render preview ──
     function renderPreview() {
       var iframe = document.getElementById('previewIframe');
       var fallback = document.getElementById('previewFallback');
       var link = document.getElementById('previewLink');
+      var barUrl = document.getElementById('previewBarUrl');
 
       if (user.preview_url && user.preview_url.indexOf('/preview/') === 0) {
-        // Show real generated preview in iframe
         iframe.src = user.preview_url;
         iframe.style.display = 'block';
         fallback.innerHTML = '';
+        barUrl.textContent = 'velocity.delivery' + user.preview_url;
         var linkEl = document.createElement('a');
         linkEl.href = user.preview_url;
         linkEl.target = '_blank';
-        linkEl.style.color = 'var(--accent)';
         linkEl.textContent = 'Open full preview in new tab \u2192';
         link.innerHTML = '';
         link.appendChild(linkEl);
       } else {
-        // Fallback: render SVG mockup
         iframe.style.display = 'none';
         link.innerHTML = '';
         renderSvgPreview();
@@ -668,9 +787,9 @@
       var c = colors[style] || colors['modern-clean'];
       while (services.length < 4) services.push('Service');
       services = services.slice(0, 4);
-      var svg = '<svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;border-radius:10px;">'
-        + '<rect width="420" height="280" rx="10" fill="' + c.bg + '"/>'
-        + '<rect x="0" y="0" width="420" height="14" rx="10" fill="' + c.trust + '"/><rect x="0" y="7" width="420" height="7" fill="' + c.trust + '"/>'
+      var svg = '<svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">'
+        + '<rect width="420" height="280" fill="' + c.bg + '"/>'
+        + '<rect x="0" y="0" width="420" height="14" fill="' + c.trust + '"/>'
         + '<text x="24" y="10" font-size="6" fill="rgba(255,255,255,.8)" font-family="sans-serif">' + escHtml(ph) + '</text>'
         + '<rect x="0" y="14" width="420" height="24" fill="' + c.nav + '"/><line x1="0" y1="38" x2="420" y2="38" stroke="rgba(0,0,0,.06)"/>'
         + '<text x="24" y="30" font-size="10" fill="' + c.text + '" font-weight="bold" font-family="sans-serif">' + escHtml(biz) + '</text>'
@@ -708,14 +827,17 @@
       return d.innerHTML;
     }
 
-    // ── Preview actions — Stripe checkout integration ──
+    // ── Approve: select plan + checkout ──
     document.getElementById('approveBtn').addEventListener('click', function() {
       if (!user.plan) {
-        var picker = document.getElementById('planPicker');
-        picker.style.animation = 'none';
-        picker.offsetHeight;
-        picker.style.animation = 'pulse-border 0.6s ease 2';
-        picker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Highlight plan picker
+        var firstPlan = document.querySelector('.plan-card--featured') || document.querySelector('.plan-card');
+        if (firstPlan) {
+          firstPlan.style.animation = 'none';
+          firstPlan.offsetHeight;
+          firstPlan.style.animation = 'pulse-border 0.6s ease 2';
+          firstPlan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
       }
 
@@ -723,7 +845,6 @@
       approveBtn.textContent = 'Redirecting to checkout...';
       approveBtn.disabled = true;
 
-      // Try Stripe checkout
       fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -733,44 +854,39 @@
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.url) {
-          // Redirect to Stripe Checkout
           window.location.href = data.url;
         } else {
-          // Stripe not configured — go straight to building step
           user.dashboard_step = 'building';
           localStorage.setItem('velocity_user', JSON.stringify(user));
           showStep('building');
         }
       })
       .catch(function() {
-        // Stripe not available — proceed without payment
         user.dashboard_step = 'building';
         localStorage.setItem('velocity_user', JSON.stringify(user));
         showStep('building');
       });
     });
 
+    // ── Revisions ──
     document.getElementById('revisionsBtn').addEventListener('click', function() {
       document.getElementById('revisionForm').style.display = 'block';
-      document.getElementById('previewActions').style.display = 'none';
+      this.style.display = 'none';
     });
 
     document.getElementById('cancelRevision').addEventListener('click', function() {
       document.getElementById('revisionForm').style.display = 'none';
-      document.getElementById('previewActions').style.display = 'flex';
+      document.getElementById('revisionsBtn').style.display = '';
     });
 
     document.getElementById('submitRevision').addEventListener('click', function() {
       var notes = document.getElementById('revisionNotes').value.trim();
       if (!notes) return;
-
       user.revision_notes = notes;
       user.revision_count = (user.revision_count || 0) + 1;
       localStorage.setItem('velocity_user', JSON.stringify(user));
-
-      document.getElementById('revisionForm').innerHTML = '<p style="color:var(--green);font-weight:600;padding:1rem 0;">Revision request submitted! We\'ll update your preview within 24-48 hours.</p>';
-
-      // Fire to backend
+      document.getElementById('revisionArea').innerHTML = '<p style="color:var(--green);font-weight:600;padding:0.5rem 0;">Revision request submitted! We\'ll update your preview within 24-48 hours.</p>';
+      document.getElementById('revisionForm').style.display = 'none';
       try {
         fetch('/api/request-redesign', {
           method: 'POST',
@@ -780,53 +896,23 @@
       } catch (_) {}
     });
 
-    // ── Plan selection ──
-    document.querySelectorAll('.dash-plan-option').forEach(function(opt) {
-      opt.addEventListener('click', function() {
-        // Remove previous selection
-        document.querySelectorAll('.dash-plan-option').forEach(function(o) {
-          o.classList.remove('dash-plan-option--selected');
-        });
-        this.classList.add('dash-plan-option--selected');
-
-        user.plan = this.getAttribute('data-plan');
-        user.plan_price = this.getAttribute('data-price');
-        localStorage.setItem('velocity_user', JSON.stringify(user));
-
-        document.getElementById('planSelected').style.display = 'block';
-        document.getElementById('planName').textContent = user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' Plan';
-        document.getElementById('planPrice').textContent = user.plan_price + ' one-time';
-      });
-    });
-
-    // ── Route to correct step on load ──
-    if (user.dashboard_step === 'live' && user.live_url) {
-      showStep('live');
-      document.getElementById('liveUrl').href = user.live_url;
-      document.getElementById('liveUrl').textContent = user.live_url;
-    } else if (user.dashboard_step === 'building') {
-      showStep('building');
-    } else if (user.preview_ready && user.questionnaire_filled) {
-      showStep('preview');
-      renderPreview();
-      // Restore plan selection
-      if (user.plan) {
-        var opts = document.querySelectorAll('.dash-plan-option');
-        opts.forEach(function(o) {
-          if (o.getAttribute('data-plan') === user.plan) {
-            o.classList.add('dash-plan-option--selected');
-          }
-        });
-        document.getElementById('planSelected').style.display = 'block';
-        document.getElementById('planName').textContent = user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' Plan';
-        document.getElementById('planPrice').textContent = user.plan_price + ' one-time';
-      }
-    } else if (user.questionnaire_filled && !user.preview_ready) {
-      showStep('generating');
-      startGenerating();
-    } else {
+    // ── New design ──
+    document.getElementById('newDesignBtn').addEventListener('click', function() {
+      // Clear preview data, keep questionnaire answers for pre-fill
+      user.preview_url = null;
+      user.preview_id = null;
+      user.preview_ready = false;
+      user.questionnaire_filled = false;
+      user.plan = null;
+      user.plan_price = null;
+      user.dashboard_step = 'questionnaire';
+      localStorage.setItem('velocity_user', JSON.stringify(user));
       showStep('questionnaire');
       // Re-fill saved answers
+      refillForm();
+    });
+
+    function refillForm() {
       if (user.business_name) document.getElementById('qName').value = user.business_name;
       if (user.niche) {
         document.getElementById('qNiche').value = user.niche;
@@ -844,6 +930,51 @@
       if (user.site_type) document.getElementById('qSiteType').value = user.site_type;
       if (user.inspo_urls) document.getElementById('qInspo').value = user.inspo_urls;
       if (user.notes) document.getElementById('qNotes').value = user.notes;
+      var submitBtn = document.getElementById('qSubmitBtn');
+      submitBtn.textContent = 'Generate my preview';
+      submitBtn.disabled = false;
+    }
+
+    // ── Plan selection ──
+    document.querySelectorAll('.plan-card').forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        document.querySelectorAll('.plan-card').forEach(function(o) {
+          o.classList.remove('plan-card--selected');
+        });
+        this.classList.add('plan-card--selected');
+        user.plan = this.getAttribute('data-plan');
+        user.plan_price = this.getAttribute('data-price');
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        var btn = document.getElementById('approveBtn');
+        btn.textContent = 'Continue with ' + user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' \u2014 ' + user.plan_price;
+      });
+    });
+
+    // ── Route on load ──
+    if (user.dashboard_step === 'live' && user.live_url) {
+      showStep('live');
+      document.getElementById('liveUrl').href = user.live_url;
+      document.getElementById('liveUrl').textContent = user.live_url;
+    } else if (user.dashboard_step === 'building') {
+      showStep('building');
+    } else if (user.preview_ready && user.questionnaire_filled) {
+      showStep('preview');
+      renderPreview();
+      if (user.plan) {
+        document.querySelectorAll('.plan-card').forEach(function(o) {
+          if (o.getAttribute('data-plan') === user.plan) {
+            o.classList.add('plan-card--selected');
+          }
+        });
+        var btn = document.getElementById('approveBtn');
+        btn.textContent = 'Continue with ' + user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' \u2014 ' + user.plan_price;
+      }
+    } else if (user.questionnaire_filled && !user.preview_ready) {
+      showStep('generating');
+      startGenerating();
+    } else {
+      showStep('questionnaire');
+      refillForm();
     }
 
   })();

@@ -180,14 +180,26 @@
       .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
       .then(function(res) {
         if (!res.ok && res.data.error) {
-          errorEl.textContent = res.data.error;
+          // If storage not configured, fall back to local-only mode
+          if (res.data.error.toLowerCase().indexOf('storage') !== -1) {
+            return fallbackSignup();
+          }
+          // If user already exists, show friendly message
+          if (res.data.error.toLowerCase().indexOf('exists') !== -1) {
+            errorEl.textContent = 'An account with this email already exists. Try signing in instead.';
+          } else {
+            errorEl.textContent = res.data.error;
+          }
           errorEl.style.display = 'block';
           btn.textContent = 'Create account';
           btn.disabled = false;
           return;
         }
+        finishSignup(res.data.project_id || null);
+      })
+      .catch(function() { fallbackSignup(); });
 
-        // Store user data in localStorage
+      function finishSignup(projectId) {
         var user = {
           email: email,
           website_url: website,
@@ -195,12 +207,10 @@
           plan: null,
           status: 'preview_pending',
           progress: 0,
-          project_id: res.data.project_id || null,
+          project_id: projectId,
         };
         localStorage.setItem('velocity_user', JSON.stringify(user));
         localStorage.setItem('velocity_auth', 'true');
-
-        // Also trigger redesign request (background — don't block)
         if (website) {
           fetch('/api/request-redesign', {
             method: 'POST',
@@ -208,23 +218,12 @@
             body: JSON.stringify({ website_url: website, email: email }),
           }).catch(function() {});
         }
+        window.location.href = '/dashboard.html';
+      }
 
-        window.location.href = '/dashboard.html';
-      })
-      .catch(function() {
-        // Fallback: save to localStorage and redirect anyway
-        var user = {
-          email: email,
-          website_url: website,
-          created_at: new Date().toISOString(),
-          plan: null,
-          status: 'preview_pending',
-          progress: 0,
-        };
-        localStorage.setItem('velocity_user', JSON.stringify(user));
-        localStorage.setItem('velocity_auth', 'true');
-        window.location.href = '/dashboard.html';
-      });
+      function fallbackSignup() {
+        finishSignup(null);
+      }
     });
 
     // Sign In handler — awaits API response so session cookie is set
@@ -249,6 +248,10 @@
       .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
       .then(function(res) {
         if (!res.ok) {
+          // If storage issue, fall back to local-only mode
+          if (res.data.error && res.data.error.toLowerCase().indexOf('storage') !== -1) {
+            return fallbackSignin();
+          }
           errorEl.textContent = res.data.error || 'Invalid email or password.';
           errorEl.style.display = 'block';
           btn.textContent = 'Sign in';
@@ -256,16 +259,20 @@
           return;
         }
 
-        // Build user object from API response
+        finishSignin(res.data);
+      })
+      .catch(function() { fallbackSignin(); });
+
+      function finishSignin(apiData) {
         var user = {
-          email: res.data.email || email,
-          plan: res.data.plan || null,
+          email: (apiData && apiData.email) || email,
+          plan: (apiData && apiData.plan) || null,
           created_at: new Date().toISOString(),
           status: 'active',
         };
 
         // Try to load saved lead/questionnaire data
-        return fetch('/api/lead-data?email=' + encodeURIComponent(email))
+        fetch('/api/lead-data?email=' + encodeURIComponent(email))
           .then(function(r) { return r.json(); })
           .then(function(data) {
             if (data && data.data) {
@@ -286,15 +293,37 @@
           })
           .catch(function() {})
           .finally(function() {
+            // Also restore any existing localStorage data
+            var existing = JSON.parse(localStorage.getItem('velocity_user') || '{}');
+            if (existing.email === email) {
+              // Merge: new API data wins, but keep local questionnaire answers
+              Object.keys(existing).forEach(function(k) {
+                if (!(k in user) || user[k] === null || user[k] === undefined) {
+                  user[k] = existing[k];
+                }
+              });
+            }
             localStorage.setItem('velocity_user', JSON.stringify(user));
             localStorage.setItem('velocity_auth', 'true');
             window.location.href = '/dashboard.html';
           });
-      })
-      .catch(function() {
-        btn.textContent = 'Sign in';
-        btn.disabled = false;
-      });
+      }
+
+      function fallbackSignin() {
+        // Check if we have existing localStorage data for this email
+        var existing = JSON.parse(localStorage.getItem('velocity_user') || '{}');
+        if (existing.email === email) {
+          // Restore existing session
+          localStorage.setItem('velocity_auth', 'true');
+          window.location.href = '/dashboard.html';
+        } else {
+          // No previous data — create minimal session
+          var user = { email: email, created_at: new Date().toISOString(), status: 'active' };
+          localStorage.setItem('velocity_user', JSON.stringify(user));
+          localStorage.setItem('velocity_auth', 'true');
+          window.location.href = '/dashboard.html';
+        }
+      }
     });
   })();
   </script>
