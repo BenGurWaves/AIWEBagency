@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Velocity — AI-Powered Web Design for Service Businesses</title>
+  <meta name="description" content="We build high-converting websites for service businesses using AI. From plumbers to roofers, we turn your online presence into a lead machine.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- NAV -->
+  <!-- ═══════════════════════════════════════════ -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">
+        <span class="nav__logo-icon">⚡</span>
+        <span class="nav__logo-text">Velocity</span>
+      </a>
+      <div class="nav__links" id="navLinks">
+        <a href="#how-it-works">How It Works</a>
+        <a href="#results">Results</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="#cta" class="btn btn--sm btn--primary">Get Your Free Redesign</a>
+      </div>
+      <button class="nav__toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- HERO -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero__bg">
+      <div class="hero__gradient"></div>
+      <div class="hero__grid"></div>
+    </div>
+    <div class="container hero__inner">
+      <div class="hero__badge" data-animate="fade-up">
+        <span class="hero__badge-dot"></span>
+        AI-powered web design agency
+      </div>
+      <h1 class="hero__title" data-animate="fade-up" data-delay="100">
+        Your website is losing you<br>
+        <span class="hero__title-highlight">customers every day.</span>
+      </h1>
+      <p class="hero__subtitle" data-animate="fade-up" data-delay="200">
+        We build stunning, high-converting websites for service businesses — plumbers, roofers, HVAC, electricians, and more. Powered by AI. Delivered in days, not months.
+      </p>
+      <div class="hero__actions" data-animate="fade-up" data-delay="300">
+        <a href="#cta" class="btn btn--lg btn--primary">
+          Get Your Free Redesign
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#how-it-works" class="btn btn--lg btn--ghost">See How It Works</a>
+      </div>
+      <div class="hero__proof" data-animate="fade-up" data-delay="400">
+        <div class="hero__proof-avatars">
+          <div class="hero__proof-avatar" style="background: #3b82f6;">J</div>
+          <div class="hero__proof-avatar" style="background: #10b981;">M</div>
+          <div class="hero__proof-avatar" style="background: #f59e0b;">R</div>
+          <div class="hero__proof-avatar" style="background: #8b5cf6;">K</div>
+          <div class="hero__proof-avatar" style="background: #ef4444;">S</div>
+        </div>
+        <p class="hero__proof-text">
+          <strong>200+ service businesses</strong> already upgraded their websites
+        </p>
+      </div>
+    </div>
+    <!-- Browser mockup -->
+    <div class="hero__mockup" data-animate="fade-up" data-delay="500">
+      <div class="mockup">
+        <div class="mockup__bar">
+          <div class="mockup__dots">
+            <span style="background:#ff5f57"></span>
+            <span style="background:#ffbd2e"></span>
+            <span style="background:#28c840"></span>
+          </div>
+          <div class="mockup__url">yourbusiness.com</div>
+        </div>
+        <div class="mockup__content">
+          <div class="mockup__before-after">
+            <div class="mockup__side mockup__side--before">
+              <div class="mockup__label mockup__label--before">Before</div>
+              <div class="mockup__fake-site mockup__fake-site--bad">
+                <div class="fake-nav-bad"></div>
+                <div class="fake-hero-bad">
+                  <div class="fake-text-bad w80"></div>
+                  <div class="fake-text-bad w60"></div>
+                  <div class="fake-btn-bad"></div>
+                </div>
+                <div class="fake-cards-bad">
+                  <div class="fake-card-bad"></div>
+                  <div class="fake-card-bad"></div>
+                  <div class="fake-card-bad"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mockup__divider">
+              <div class="mockup__divider-line"></div>
+              <div class="mockup__divider-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+            <div class="mockup__side mockup__side--after">
+              <div class="mockup__label mockup__label--after">After</div>
+              <div class="mockup__fake-site mockup__fake-site--good">
+                <div class="fake-nav-good"></div>
+                <div class="fake-hero-good">
+                  <div class="fake-text-good w90"></div>
+                  <div class="fake-text-good w70"></div>
+                  <div class="fake-subtext-good w50"></div>
+                  <div class="fake-btn-good"></div>
+                </div>
+                <div class="fake-stats-good">
+                  <div class="fake-stat"></div>
+                  <div class="fake-stat"></div>
+                  <div class="fake-stat"></div>
+                </div>
+                <div class="fake-cards-good">
+                  <div class="fake-card-good"></div>
+                  <div class="fake-card-good"></div>
+                  <div class="fake-card-good"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- LOGOS / TRUST BAR -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="trust-bar">
+    <div class="container">
+      <p class="trust-bar__label">Trusted by service businesses across the US</p>
+      <div class="trust-bar__logos">
+        <div class="trust-bar__logo">Austin Roofing Co.</div>
+        <div class="trust-bar__logo">Peak HVAC</div>
+        <div class="trust-bar__logo">CleanPro Services</div>
+        <div class="trust-bar__logo">Metro Plumbing</div>
+        <div class="trust-bar__logo">AllStar Electric</div>
+        <div class="trust-bar__logo">GreenScape</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PROBLEM SECTION -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="problem">
+    <div class="container">
+      <div class="problem__grid">
+        <div class="problem__content" data-animate="fade-right">
+          <span class="section-tag section-tag--red">The Problem</span>
+          <h2 class="section-title">Your website is your worst employee.</h2>
+          <p class="section-text">It's working 24/7 — but instead of bringing in customers, it's driving them to your competitors. Slow load times, outdated design, and zero mobile optimization are costing you real money.</p>
+          <div class="problem__stats">
+            <div class="problem__stat">
+              <span class="problem__stat-number">75%</span>
+              <span class="problem__stat-label">of people judge a business by its website</span>
+            </div>
+            <div class="problem__stat">
+              <span class="problem__stat-number">53%</span>
+              <span class="problem__stat-label">of mobile visitors leave if a site takes &gt;3s to load</span>
+            </div>
+            <div class="problem__stat">
+              <span class="problem__stat-number">88%</span>
+              <span class="problem__stat-label">won't return to a site after a bad experience</span>
+            </div>
+          </div>
+        </div>
+        <div class="problem__visual" data-animate="fade-left">
+          <div class="problem__card">
+            <div class="problem__card-header">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+              <span>Common Issues We Find</span>
+            </div>
+            <ul class="problem__list">
+              <li>
+                <span class="problem__list-icon problem__list-icon--bad">!</span>
+                <span>Not mobile-friendly — 60%+ of your traffic is mobile</span>
+              </li>
+              <li>
+                <span class="problem__list-icon problem__list-icon--bad">!</span>
+                <span>5+ second load times losing impatient customers</span>
+              </li>
+              <li>
+                <span class="problem__list-icon problem__list-icon--bad">!</span>
+                <span>No SSL certificate — browsers show "Not Secure"</span>
+              </li>
+              <li>
+                <span class="problem__list-icon problem__list-icon--bad">!</span>
+                <span>Outdated design that screams "2012"</span>
+              </li>
+              <li>
+                <span class="problem__list-icon problem__list-icon--bad">!</span>
+                <span>No clear call-to-action or phone number</span>
+              </li>
+              <li>
+                <span class="problem__list-icon problem__list-icon--bad">!</span>
+                <span>Not showing up in Google for local searches</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- HOW IT WORKS -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <div class="section-header" data-animate="fade-up">
+        <span class="section-tag">How It Works</span>
+        <h2 class="section-title">From outdated to outstanding.<br>In 3 simple steps.</h2>
+        <p class="section-text">No calls. No meetings. No 6-week timelines. We do the work upfront — so you can see the value before spending a dime.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step" data-animate="fade-up" data-delay="100">
+          <div class="step__number">01</div>
+          <div class="step__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <h3 class="step__title">We Find You</h3>
+          <p class="step__text">Our AI scans thousands of service business websites, identifies issues, and flags sites that are leaving money on the table. If yours is one of them — you'll hear from us.</p>
+        </div>
+
+        <div class="step" data-animate="fade-up" data-delay="200">
+          <div class="step__number">02</div>
+          <div class="step__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <h3 class="step__title">We Redesign It (Free)</h3>
+          <p class="step__text">Before you pay anything, we build a complete mockup of your new website. Modern design, mobile-first, fast loading. You see exactly what you're getting.</p>
+        </div>
+
+        <div class="step" data-animate="fade-up" data-delay="300">
+          <div class="step__number">03</div>
+          <div class="step__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <h3 class="step__title">We Build & Launch</h3>
+          <p class="step__text">Love the design? We build the full site — multi-page, blog, contact forms, SEO — and have it live within a week. Fast hosting and SSL included.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- RESULTS / PORTFOLIO -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="results" id="results">
+    <div class="container">
+      <div class="section-header" data-animate="fade-up">
+        <span class="section-tag section-tag--green">Results</span>
+        <h2 class="section-title">Real results for real businesses.</h2>
+        <p class="section-text">Here's what happens when service businesses get a website that actually works for them.</p>
+      </div>
+
+      <div class="results__grid">
+        <div class="result-card" data-animate="fade-up" data-delay="100">
+          <div class="result-card__header">
+            <div class="result-card__avatar" style="background: #3b82f6;">JR</div>
+            <div>
+              <h4 class="result-card__name">Jake's Roofing</h4>
+              <p class="result-card__type">Roofing Contractor — Phoenix, AZ</p>
+            </div>
+          </div>
+          <div class="result-card__metrics">
+            <div class="result-card__metric">
+              <span class="result-card__metric-value result-card__metric-value--green">+340%</span>
+              <span class="result-card__metric-label">Website Leads</span>
+            </div>
+            <div class="result-card__metric">
+              <span class="result-card__metric-value">2.1s</span>
+              <span class="result-card__metric-label">Load Time (was 8.4s)</span>
+            </div>
+            <div class="result-card__metric">
+              <span class="result-card__metric-value">98</span>
+              <span class="result-card__metric-label">PageSpeed Score</span>
+            </div>
+          </div>
+          <blockquote class="result-card__quote">"I didn't even know my website was that bad until Velocity showed me the redesign. The new site pays for itself every month."</blockquote>
+        </div>
+
+        <div class="result-card" data-animate="fade-up" data-delay="200">
+          <div class="result-card__header">
+            <div class="result-card__avatar" style="background: #10b981;">MP</div>
+            <div>
+              <h4 class="result-card__name">Metro Plumbing</h4>
+              <p class="result-card__type">Plumber — Austin, TX</p>
+            </div>
+          </div>
+          <div class="result-card__metrics">
+            <div class="result-card__metric">
+              <span class="result-card__metric-value result-card__metric-value--green">+210%</span>
+              <span class="result-card__metric-label">Phone Calls</span>
+            </div>
+            <div class="result-card__metric">
+              <span class="result-card__metric-value">1.8s</span>
+              <span class="result-card__metric-label">Load Time (was 6.2s)</span>
+            </div>
+            <div class="result-card__metric">
+              <span class="result-card__metric-value">95</span>
+              <span class="result-card__metric-label">PageSpeed Score</span>
+            </div>
+          </div>
+          <blockquote class="result-card__quote">"They sent me a preview of my new site before I even asked. It looked so good I said yes on the spot. Best decision I've made this year."</blockquote>
+        </div>
+
+        <div class="result-card" data-animate="fade-up" data-delay="300">
+          <div class="result-card__header">
+            <div class="result-card__avatar" style="background: #f59e0b;">PH</div>
+            <div>
+              <h4 class="result-card__name">Peak HVAC</h4>
+              <p class="result-card__type">HVAC Contractor — Nashville, TN</p>
+            </div>
+          </div>
+          <div class="result-card__metrics">
+            <div class="result-card__metric">
+              <span class="result-card__metric-value result-card__metric-value--green">+180%</span>
+              <span class="result-card__metric-label">Online Bookings</span>
+            </div>
+            <div class="result-card__metric">
+              <span class="result-card__metric-value">1.4s</span>
+              <span class="result-card__metric-label">Load Time (was 7.1s)</span>
+            </div>
+            <div class="result-card__metric">
+              <span class="result-card__metric-value">97</span>
+              <span class="result-card__metric-label">PageSpeed Score</span>
+            </div>
+          </div>
+          <blockquote class="result-card__quote">"I was skeptical about the AI thing, but the quality is insane. My website looks better than companies charging 10x more."</blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- FEATURES -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="features">
+    <div class="container">
+      <div class="section-header" data-animate="fade-up">
+        <span class="section-tag">What You Get</span>
+        <h2 class="section-title">Everything a modern service business<br>website needs. Nothing you don't.</h2>
+      </div>
+
+      <div class="features__grid">
+        <div class="feature" data-animate="fade-up" data-delay="50">
+          <div class="feature__icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+          </div>
+          <h3 class="feature__title">Mobile-First Design</h3>
+          <p class="feature__text">Your site looks perfect on every device. Over 60% of your visitors are on phones — we design for them first.</p>
+        </div>
+
+        <div class="feature" data-animate="fade-up" data-delay="100">
+          <div class="feature__icon" style="background: rgba(16,185,129,0.1); color: #10b981;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <h3 class="feature__title">Lightning Fast</h3>
+          <p class="feature__text">Sub-2 second load times. No bloated WordPress plugins. Clean code that Google loves and customers don't have to wait for.</p>
+        </div>
+
+        <div class="feature" data-animate="fade-up" data-delay="150">
+          <div class="feature__icon" style="background: rgba(139,92,246,0.1); color: #8b5cf6;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+          <h3 class="feature__title">SEO Built In</h3>
+          <p class="feature__text">Proper meta tags, schema markup, fast load times, mobile optimization — everything Google looks for to rank you higher locally.</p>
+        </div>
+
+        <div class="feature" data-animate="fade-up" data-delay="200">
+          <div class="feature__icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="feature__title">SSL & Security</h3>
+          <p class="feature__text">Free SSL certificate included. No more "Not Secure" warnings scaring away your customers.</p>
+        </div>
+
+        <div class="feature" data-animate="fade-up" data-delay="250">
+          <div class="feature__icon" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+          </div>
+          <h3 class="feature__title">Click-to-Call</h3>
+          <p class="feature__text">Your phone number is prominent and clickable on every page. One tap from mobile and they're calling you.</p>
+        </div>
+
+        <div class="feature" data-animate="fade-up" data-delay="300">
+          <div class="feature__icon" style="background: rgba(6,182,212,0.1); color: #06b6d4;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <h3 class="feature__title">Multi-Page Sites</h3>
+          <p class="feature__text">Home, About, Services, Gallery, Contact, Blog — whatever your business needs. Not a single-page template.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- PRICING -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <div class="section-header" data-animate="fade-up">
+        <span class="section-tag">Pricing</span>
+        <h2 class="section-title">Simple pricing. No surprises.</h2>
+        <p class="section-text">One payment, full website. No monthly contracts required to keep your site running.</p>
+      </div>
+
+      <div class="pricing__grid">
+        <div class="pricing-card" data-animate="fade-up" data-delay="100">
+          <div class="pricing-card__header">
+            <h3 class="pricing-card__name">Starter</h3>
+            <p class="pricing-card__desc">Perfect for small local businesses</p>
+          </div>
+          <div class="pricing-card__price">
+            <span class="pricing-card__amount">$997</span>
+            <span class="pricing-card__period">one-time</span>
+          </div>
+          <ul class="pricing-card__features">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> 5-page custom website</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Mobile-first responsive design</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> SSL certificate included</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Basic SEO setup</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Contact form</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> 30 days support</li>
+          </ul>
+          <a href="#cta" class="btn btn--outline btn--full">Get Started</a>
+        </div>
+
+        <div class="pricing-card pricing-card--featured" data-animate="fade-up" data-delay="200">
+          <div class="pricing-card__badge">Most Popular</div>
+          <div class="pricing-card__header">
+            <h3 class="pricing-card__name">Professional</h3>
+            <p class="pricing-card__desc">For businesses ready to grow online</p>
+          </div>
+          <div class="pricing-card__price">
+            <span class="pricing-card__amount">$1,997</span>
+            <span class="pricing-card__period">one-time</span>
+          </div>
+          <ul class="pricing-card__features">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Multi-page custom website</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Blog with CMS</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Advanced SEO + Google Business</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Service area pages</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Photo gallery / portfolio</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> 60 days priority support</li>
+          </ul>
+          <a href="#cta" class="btn btn--primary btn--full">Get Started</a>
+        </div>
+
+        <div class="pricing-card" data-animate="fade-up" data-delay="300">
+          <div class="pricing-card__header">
+            <h3 class="pricing-card__name">Premium</h3>
+            <p class="pricing-card__desc">The full package for serious businesses</p>
+          </div>
+          <div class="pricing-card__price">
+            <span class="pricing-card__amount">$3,497</span>
+            <span class="pricing-card__period">one-time</span>
+          </div>
+          <ul class="pricing-card__features">
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Everything in Professional</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Online booking system</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Review integration</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Custom animations & design</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> Ongoing content updates</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg> 90 days VIP support</li>
+          </ul>
+          <a href="#cta" class="btn btn--outline btn--full">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- FAQ -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="faq" id="faq">
+    <div class="container container--narrow">
+      <div class="section-header" data-animate="fade-up">
+        <span class="section-tag">FAQ</span>
+        <h2 class="section-title">Questions? We've got answers.</h2>
+      </div>
+
+      <div class="faq__list" data-animate="fade-up">
+        <details class="faq__item">
+          <summary class="faq__question">
+            How long does it take to build my website?
+            <svg class="faq__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="faq__answer">
+            <p>Most websites are designed, built, and live within 5-7 business days. The free preview/mockup is ready within 24-48 hours so you can see the design before committing.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary class="faq__question">
+            What if I don't like the design?
+            <svg class="faq__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="faq__answer">
+            <p>The initial preview is completely free — no obligation. If you decide to proceed and want changes, we include revision rounds with every package. We work with you until you're happy.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary class="faq__question">
+            Do I need to provide content and photos?
+            <svg class="faq__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="faq__answer">
+            <p>Nope. We create all the content for you — professional copywriting tailored to your business and industry. If you have photos you'd like to use, great. If not, we use high-quality stock photos that match your business.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary class="faq__question">
+            Is there a monthly fee?
+            <svg class="faq__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="faq__answer">
+            <p>The website build is a one-time payment. Hosting is included free for the first year. After that, hosting and maintenance is $29/month — completely optional.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary class="faq__question">
+            What is "AI-powered" web design?
+            <svg class="faq__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="faq__answer">
+            <p>We use AI to analyze your current website, understand your industry, and generate designs that are proven to convert. Every site is custom — not a template. AI helps us work faster and smarter, which means lower prices and faster delivery for you.</p>
+          </div>
+        </details>
+
+        <details class="faq__item">
+          <summary class="faq__question">
+            Can I update the website myself after it's built?
+            <svg class="faq__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="faq__answer">
+            <p>Yes. Professional and Premium packages include a simple content management system. Or just message us and we'll make updates for you — that's included in your support period.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- CTA -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="cta" id="cta">
+    <div class="container container--narrow">
+      <div class="cta__card" data-animate="fade-up">
+        <div class="cta__glow"></div>
+        <h2 class="cta__title">See what your website <em>should</em> look like.</h2>
+        <p class="cta__text">Drop your website URL below and we'll send you a free preview of your redesigned site. No calls, no commitments — just a better website to look at.</p>
+        <form class="cta__form" id="ctaForm">
+          <div class="cta__input-group">
+            <input type="url" class="cta__input" placeholder="https://yourbusiness.com" required id="ctaUrl">
+            <input type="email" class="cta__input" placeholder="your@email.com" required id="ctaEmail">
+          </div>
+          <button type="submit" class="btn btn--lg btn--primary btn--full">
+            Get My Free Redesign
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <p class="cta__disclaimer">Free preview. No credit card required. Unsubscribe anytime.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- FOOTER -->
+  <!-- ═══════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <a href="#" class="nav__logo">
+            <span class="nav__logo-icon">⚡</span>
+            <span class="nav__logo-text">Velocity</span>
+          </a>
+          <p class="footer__tagline">AI-powered web design for service businesses that want more customers.</p>
+        </div>
+        <div class="footer__links">
+          <div class="footer__col">
+            <h4>Product</h4>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#results">Results</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#faq">FAQ</a>
+          </div>
+          <div class="footer__col">
+            <h4>Company</h4>
+            <a href="#">About</a>
+            <a href="#">Blog</a>
+            <a href="#">Careers</a>
+            <a href="#">Contact</a>
+          </div>
+          <div class="footer__col">
+            <h4>Legal</h4>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Cookie Policy</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; 2026 Velocity. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -11,6 +11,7 @@ Usage:
   agency stage design     — Run only the web design stage
   agency stage client     — Run only the client success stage
   agency status           — Show pipeline statistics
+  agency serve            — Start the web server (API + website + webhooks)
 """
 
 from __future__ import annotations
@@ -82,6 +83,22 @@ def stage(stage_name: str, categories: tuple, cities: tuple):
     console.print(f"[bold cyan]Running stage: {stage_name}...[/]")
     result = asyncio.run(orchestrator.run_stage(internal_name, **kwargs))
     console.print(result)
+
+
+@main.command()
+@click.option("--host", default="0.0.0.0", help="Host to bind to")
+@click.option("--port", default=8000, type=int, help="Port to listen on")
+@click.option("--reload", is_flag=True, help="Enable auto-reload for development")
+def serve(host: str, port: int, reload: bool):
+    """Start the web server (API + website + webhooks)."""
+    import uvicorn
+
+    console.print(f"[bold green]Starting Velocity web server on {host}:{port}...[/]")
+    console.print(f"[dim]  Website:    http://localhost:{port}[/]")
+    console.print(f"[dim]  API docs:   http://localhost:{port}/docs[/]")
+    console.print(f"[dim]  Webhooks:   http://localhost:{port}/webhooks/...[/]")
+    console.print(f"[dim]  Admin API:  http://localhost:{port}/api/admin/...[/]")
+    uvicorn.run("server.app:app", host=host, port=port, reload=reload)
 
 
 @main.command()

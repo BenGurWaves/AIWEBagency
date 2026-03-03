@@ -11,4 +11,5 @@ node_modules/
 .venv/
 venv/
 screenshots/
-previews/generated/
+previews/
+builds/
