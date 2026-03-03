@@ -438,7 +438,9 @@ async def health_check():
 # ═══════════════════════════════════════════════════════════
 
 if WEBSITE_DIR.exists():
-    app.mount("/assets", StaticFiles(directory=str(WEBSITE_DIR / "assets")), name="assets")
+    assets_dir = WEBSITE_DIR / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
     @app.get("/")
     async def serve_website():

@@ -1118,8 +1118,11 @@ h2 {
    AUTH PAGE
    ══════════════════════════════════════════════════════════ */
 .auth-page {
-  padding: 10rem 0 5rem;
+  padding: 7rem 1.5rem 3rem;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .auth-card {
@@ -1127,8 +1130,22 @@ h2 {
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 2.5rem 2rem;
+  width: 100%;
   max-width: 420px;
-  margin: 0 auto;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+.auth-header .logo {
+  font-size: 1.75rem;
+  display: inline-block;
+  margin-bottom: 0.35rem;
+}
+.auth-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
 }
 
 .auth-tabs {
@@ -1136,6 +1153,10 @@ h2 {
   gap: 0;
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 480px) {
+  .auth-card { padding: 2rem 1.5rem; }
 }
 .auth-tab {
   flex: 1;
