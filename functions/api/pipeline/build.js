@@ -93,13 +93,44 @@ export async function onRequestPost(context) {
 ${pageList.map(p => `  <url>
     <loc>${siteUrl}/${p === 'index' ? '' : p + '.html'}</loc>
     <lastmod>${today}</lastmod>
-    <priority>${p === 'index' ? '1.0' : '0.8'}</priority>
+    <changefreq>${p === 'index' ? 'weekly' : 'monthly'}</changefreq>
+    <priority>${p === 'index' ? '1.0' : p === 'contact' ? '0.9' : '0.8'}</priority>
   </url>`).join('\n')}
 </urlset>`;
 
-  // Generate robots.txt
+  // Generate robots.txt with AI crawler visibility
   pages['robots.txt'] = `User-agent: *
 Allow: /
+
+# Major search engines
+User-agent: Googlebot
+Allow: /
+User-agent: Bingbot
+Allow: /
+
+# AI chatbot visibility (ChatGPT, Claude, Perplexity can recommend this business)
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: Claude-User
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Perplexity-User
+Allow: /
+
+# Block pure training bots (does NOT hurt recommendations)
+User-agent: GPTBot
+Disallow: /
+User-agent: ClaudeBot
+Disallow: /
+User-agent: Google-Extended
+Disallow: /
+User-agent: Applebot-Extended
+Disallow: /
 
 Sitemap: ${siteUrl}/sitemap.xml`;
 
@@ -168,20 +199,46 @@ function generatePage(page, biz, content, theme, nav, footer, stylesheet, buildI
 
   const body = (bodyContent[page] || bodyContent.index)();
 
-  // JSON-LD structured data (homepage only for LocalBusiness)
-  const jsonLd = page === 'index' ? `
-<script type="application/ld+json">
-${JSON.stringify({
-  '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: biz.name,
-  ...(content.meta?.description && { description: content.meta.description }),
-  ...(biz.phone && { telephone: biz.phone }),
-  ...(biz.email && { email: biz.email }),
-  ...(biz.location && { address: { '@type': 'PostalAddress', addressLocality: biz.location } }),
-  ...(biz.niche && { knowsAbout: biz.niche }),
-})}
-</script>` : '';
+  // Compute site URL for canonical/OG
+  const siteUrl = biz.domain ? `https://${biz.domain}` : '';
+  const pageSlug = page === 'index' ? '/' : '/' + page + '.html';
+  const canonicalUrl = siteUrl ? siteUrl + pageSlug : pageSlug;
+  const desc = esc(content.meta?.description || '');
+
+  // JSON-LD structured data — rich graph for homepage, lightweight for others
+  let jsonLd = '';
+  if (page === 'index') {
+    const ldGraph = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'LocalBusiness',
+          name: biz.name,
+          ...(content.meta?.description && { description: content.meta.description }),
+          ...(siteUrl && { url: siteUrl }),
+          ...(biz.phone && { telephone: biz.phone }),
+          ...(biz.email && { email: biz.email }),
+          ...(biz.location && { address: { '@type': 'PostalAddress', addressLocality: biz.location } }),
+          ...(biz.niche && { knowsAbout: biz.niche }),
+        },
+        {
+          '@type': 'WebSite',
+          name: biz.name,
+          ...(siteUrl && { url: siteUrl }),
+        },
+      ],
+    };
+    // Add services as offers if available
+    const svcs = (content.services || []).slice(0, 6);
+    if (svcs.length) {
+      ldGraph['@graph'][0].hasOfferCatalog = {
+        '@type': 'OfferCatalog',
+        name: 'Services',
+        itemListElement: svcs.map(s => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: s.name, description: s.description } })),
+      };
+    }
+    jsonLd = `\n<script type="application/ld+json">\n${JSON.stringify(ldGraph)}\n</script>`;
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -189,11 +246,23 @@ ${JSON.stringify({
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(pageTitle)}</title>
-<meta name="description" content="${esc(content.meta?.description || '')}">
+<meta name="description" content="${desc}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="${canonicalUrl}">
+<link rel="sitemap" type="application/xml" href="/sitemap.xml">
+
+<!-- Open Graph -->
 <meta property="og:title" content="${esc(pageTitle)}">
-<meta property="og:description" content="${esc(content.meta?.description || '')}">
-<meta property="og:type" content="website">
-<link rel="canonical" href="${page === 'index' ? '/' : '/' + page + '.html'}">
+<meta property="og:description" content="${desc}">
+<meta property="og:type" content="${page === 'index' ? 'website' : 'article'}">
+<meta property="og:site_name" content="${esc(biz.name)}">
+${siteUrl ? `<meta property="og:url" content="${siteUrl}${pageSlug}">` : ''}
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="${esc(pageTitle)}">
+<meta name="twitter:description" content="${desc}">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=${theme.gFont}&display=swap" rel="stylesheet">
