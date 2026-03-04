@@ -73,10 +73,41 @@ export async function onRequestPost(context) {
     await kv.put('redesign:' + email, JSON.stringify(existing), { expirationTtl: 86400 * 90 });
   } catch { /* non-critical */ }
 
+  // ── Create dashboard project record so preview appears in user's dashboard ──
+  const projectId = previewId;
+  try {
+    const project = {
+      id: projectId,
+      user_email: email,
+      website_url: websiteUrl || '',
+      status: 'preview_ready',
+      progress: 100,
+      created_at: new Date().toISOString(),
+      preview_url: `/preview/${projectId}`,
+      preview_ready_at: new Date().toISOString(),
+      business_info: {
+        name: biz.name || '',
+        phone: biz.phone || '',
+        email: biz.email || email,
+        address: biz.location || '',
+        domain: biz.domain || '',
+      },
+    };
+    await kv.put(`project:${projectId}`, JSON.stringify(project), { expirationTtl: 86400 * 365 });
+
+    // Add to user's project list (newest first, no duplicates)
+    const list = (await kv.get(`user_projects:${email}`, { type: 'json' })) || [];
+    if (!list.includes(projectId)) {
+      list.unshift(projectId);
+      await kv.put(`user_projects:${email}`, JSON.stringify(list), { expirationTtl: 86400 * 365 });
+    }
+  } catch { /* non-critical */ }
+
   return json({
     success: true,
     preview_id: previewId,
     preview_url: `/preview/${previewId}`,
+    project_id: projectId,
   });
 }
 

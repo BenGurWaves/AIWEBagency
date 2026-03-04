@@ -232,6 +232,39 @@ export async function onRequestPost(context) {
       await kv.put('redesign:' + email, JSON.stringify(existing), { expirationTtl: 86400 * 90 });
     } catch {}
 
+    // ── Create dashboard project record so preview appears in user's dashboard ──
+    const projectId = previewId; // use same ID for consistency
+    try {
+      const project = {
+        id: projectId,
+        user_email: email,
+        website_url: body.website_url || '',
+        status: 'preview_ready',
+        progress: 100,
+        created_at: new Date().toISOString(),
+        preview_url: `/preview/${projectId}`,
+        preview_ready_at: new Date().toISOString(),
+        business_info: {
+          name: body.business_name || '',
+          phone: body.phone || siteDna?.phone || '',
+          email: body.contact_email || siteDna?.email || email,
+          address: body.location || siteDna?.address || '',
+          domain: siteDna?.domain || '',
+        },
+        qa_score: qaResult.score,
+        qa_passed: qaResult.passed,
+        pipeline_id: pipelineId,
+      };
+      await kv.put(`project:${projectId}`, JSON.stringify(project), { expirationTtl: 86400 * 365 });
+
+      // Add to user's project list (newest first, no duplicates)
+      const list = (await kv.get(`user_projects:${email}`, { type: 'json' })) || [];
+      if (!list.includes(projectId)) {
+        list.unshift(projectId);
+        await kv.put(`user_projects:${email}`, JSON.stringify(list), { expirationTtl: 86400 * 365 });
+      }
+    } catch {}
+
     // Mark complete
     await updateProgress(kv, email, {
       pipeline_id: pipelineId,
@@ -251,6 +284,7 @@ export async function onRequestPost(context) {
       success: true,
       preview_id: previewId,
       preview_url: `/preview/${previewId}`,
+      project_id: projectId,
       qa_score: qaResult.score,
       qa_passed: qaResult.passed,
     });

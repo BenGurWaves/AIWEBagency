@@ -169,8 +169,41 @@ Sitemap: ${siteUrl}/sitemap.xml`;
     await kv.put('redesign:' + email, JSON.stringify(existing), { expirationTtl: 86400 * 90 });
   } catch {}
 
+  // ── Create/update dashboard project record ──
+  const projectId = buildId;
+  try {
+    const project = {
+      id: projectId,
+      user_email: email,
+      website_url: biz.domain ? `https://${biz.domain}` : '',
+      status: 'preview_ready',
+      progress: 100,
+      created_at: new Date().toISOString(),
+      preview_url: `/preview/${projectId}`,
+      preview_ready_at: new Date().toISOString(),
+      business_info: {
+        name: biz.name || '',
+        phone: biz.phone || '',
+        email: biz.email || email,
+        address: biz.location || '',
+        domain: biz.domain || '',
+      },
+      build_pages: Object.keys(pages),
+      build_plan: biz.plan,
+    };
+    await kv.put(`project:${projectId}`, JSON.stringify(project), { expirationTtl: 86400 * 365 });
+
+    // Add to user's project list (newest first, no duplicates)
+    const list = (await kv.get(`user_projects:${email}`, { type: 'json' })) || [];
+    if (!list.includes(projectId)) {
+      list.unshift(projectId);
+      await kv.put(`user_projects:${email}`, JSON.stringify(list), { expirationTtl: 86400 * 365 });
+    }
+  } catch {}
+
   return json({
     build_id: buildId,
+    project_id: projectId,
     preview_url: `/preview/${buildId}`,
     pages: Object.keys(pages),
     plan: biz.plan,
