@@ -167,7 +167,10 @@ h2 {
 
 .btn-primary {
   background: var(--accent);
-  color: #12100e;
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(200, 149, 106, 0.2);
 }
 .btn-primary svg {
   transition: transform 0.2s var(--ease);
@@ -175,10 +178,14 @@ h2 {
 .btn-primary:hover {
   background: var(--accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(200, 149, 106, 0.25);
+  box-shadow: 0 6px 24px rgba(200, 149, 106, 0.3);
 }
 .btn-primary:hover svg {
   transform: translateX(3px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(200, 149, 106, 0.2);
 }
 
 .btn-ghost {
@@ -189,6 +196,7 @@ h2 {
 .btn-ghost:hover {
   color: var(--text);
   border-color: var(--text-muted);
+  background: rgba(255,255,255,0.03);
 }
 
 .btn-outline {
@@ -200,6 +208,36 @@ h2 {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-glow);
+}
+
+/* Disabled buttons */
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Green action button */
+.btn-success {
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(127, 176, 105, 0.2);
+}
+.btn-success:hover {
+  background: #8fc075;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(127, 176, 105, 0.3);
+}
+
+/* Danger button */
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+  font-weight: 700;
 }
 
 
@@ -242,6 +280,9 @@ h2 {
   letter-spacing: -0.02em;
 }
 .logo-dot { color: var(--accent); }
+.logo-sub { font-family: var(--font-body); font-size: 0.5em; color: var(--text-muted); font-weight: 400; margin-left: 0.35em; letter-spacing: 0; vertical-align: baseline; }
+.logo-sub a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+.logo-sub a:hover { color: var(--accent); }
 
 .nav-links {
   display: flex;
@@ -1295,25 +1336,28 @@ h2 {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 .input-wrap input {
   width: 100%;
-  padding: 0.8rem 1rem;
+  padding: 0.85rem 1rem;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
   font-size: 0.9375rem;
   font-family: var(--font-body);
-  transition: border-color var(--duration);
+  transition: border-color var(--duration), box-shadow var(--duration);
 }
 .input-wrap input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.input-wrap input:hover:not(:focus) {
+  border-color: var(--text-muted);
 }
 .input-wrap input::placeholder {
   color: var(--text-muted);
@@ -1442,36 +1486,66 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+/* Decorative glow behind auth card */
+.auth-page::before {
+  content: '';
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(200, 149, 106, 0.06) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .auth-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 2.5rem 2rem;
+  padding: 2.75rem 2.25rem;
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(200, 149, 106, 0.05);
+}
+/* Subtle accent line at top */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 1.75rem;
+  margin-bottom: 2rem;
 }
 .auth-header .logo {
-  font-size: 1.75rem;
+  font-size: 2rem;
   display: inline-block;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
 }
 .auth-subtitle {
-  font-size: 0.875rem;
-  color: var(--text-muted);
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
 }
 
 .auth-tabs {
   display: flex;
-  gap: 0;
+  gap: 4px;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 4px;
+  border: 1px solid var(--border-subtle);
 }
 
 @media (max-width: 480px) {
@@ -1479,7 +1553,7 @@ h2 {
 }
 .auth-tab {
   flex: 1;
-  background: none;
+  background: transparent;
   border: none;
   padding: 0.75rem 0;
   font-family: var(--font-body);
@@ -1487,40 +1561,59 @@ h2 {
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  border-radius: calc(var(--radius) - 2px);
   transition: all var(--duration);
 }
 .auth-tab--active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--text);
+  background: var(--bg-card);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .auth-tab:hover { color: var(--text); }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+}
+.auth-form .btn {
+  padding: 1rem 1.75rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+.auth-form .input-wrap input {
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+}
+.auth-form .input-wrap label {
+  font-size: 0.8125rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-secondary);
 }
 
 .auth-fine {
   text-align: center;
   font-size: 0.8125rem;
   color: var(--text-muted);
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
 }
 .auth-fine a {
   color: var(--accent);
   text-decoration: underline;
+}
+.auth-fine a:hover {
+  color: var(--accent-hover);
 }
 
 .auth-error {
   text-align: center;
   font-size: 0.8125rem;
   color: var(--red);
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
   background: var(--red-soft);
+  border: 1px solid rgba(192, 105, 90, 0.2);
   border-radius: var(--radius);
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 

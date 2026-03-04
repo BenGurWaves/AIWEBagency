@@ -415,7 +415,7 @@ function generatePreview(info) {
 <footer>
   <div class="foot-logo">${name}<em>.</em></div>
   <p>&copy; ${year} ${name}. All rights reserved.</p>
-  <span class="badge">Redesigned by Velocity</span>
+  <span class="badge">Redesigned by <a href="https://velocity.delivery" style="color:inherit;text-decoration:underline;">Velocity</a> &middot; by <a href="https://calyvent.com" target="_blank" style="color:inherit;text-decoration:underline;">Calyvent</a></span>
 </footer>
 </body>
 </html>`;

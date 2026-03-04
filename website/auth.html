@@ -16,7 +16,7 @@
   <!-- ── Nav ── -->
   <nav class="nav nav--scrolled" id="nav">
     <div class="nav-inner">
-      <a href="/" class="logo">Velocity<span class="logo-dot">.</span></a>
+      <a href="/" class="logo">Velocity<span class="logo-dot">.</span> <span class="logo-sub">by <a href="https://calyvent.com" target="_blank">Calyvent</a></span></a>
       <div class="nav-links" id="navLinks">
         <a href="/">Home</a>
         <a href="/#pricing">Pricing</a>
@@ -32,7 +32,7 @@
   <section class="auth-page">
       <div class="auth-card">
         <div class="auth-header">
-          <a href="/" class="logo">Velocity<span class="logo-dot">.</span></a>
+          <a href="/" class="logo">Velocity<span class="logo-dot">.</span> <span class="logo-sub">by <a href="https://calyvent.com" target="_blank">Calyvent</a></span></a>
           <p class="auth-subtitle">Manage your website redesign</p>
         </div>
 
@@ -170,7 +170,6 @@
       btn.textContent = 'Creating account...';
       btn.disabled = true;
 
-      // Call backend API — wait for response so session cookie is set
       fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -180,11 +179,6 @@
       .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
       .then(function(res) {
         if (!res.ok && res.data.error) {
-          // If storage not configured, fall back to local-only mode
-          if (res.data.error.toLowerCase().indexOf('storage') !== -1) {
-            return fallbackSignup();
-          }
-          // If user already exists, show friendly message
           if (res.data.error.toLowerCase().indexOf('exists') !== -1) {
             errorEl.textContent = 'An account with this email already exists. Try signing in instead.';
           } else {
@@ -195,11 +189,7 @@
           btn.disabled = false;
           return;
         }
-        finishSignup(res.data.project_id || null);
-      })
-      .catch(function() { fallbackSignup(); });
 
-      function finishSignup(projectId) {
         var user = {
           email: email,
           website_url: website,
@@ -207,26 +197,21 @@
           plan: null,
           status: 'preview_pending',
           progress: 0,
-          project_id: projectId,
+          project_id: res.data.project_id || null,
         };
         localStorage.setItem('velocity_user', JSON.stringify(user));
         localStorage.setItem('velocity_auth', 'true');
-        if (website) {
-          fetch('/api/request-redesign', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ website_url: website, email: email }),
-          }).catch(function() {});
-        }
         window.location.href = '/dashboard.html';
-      }
-
-      function fallbackSignup() {
-        finishSignup(null);
-      }
+      })
+      .catch(function() {
+        errorEl.textContent = 'Unable to create account. Please check your connection and try again.';
+        errorEl.style.display = 'block';
+        btn.textContent = 'Create account';
+        btn.disabled = false;
+      });
     });
 
-    // Sign In handler — awaits API response so session cookie is set
+    // Sign In handler — server-validated only, no fallback
     formSI.addEventListener('submit', function (e) {
       e.preventDefault();
       var errorEl = document.getElementById('siError');
@@ -238,7 +223,14 @@
       var email = document.getElementById('siEmail').value.trim();
       var password = document.getElementById('siPassword').value;
 
-      // Call login API — wait for session cookie
+      if (!email || !password) {
+        errorEl.textContent = 'Please enter your email and password.';
+        errorEl.style.display = 'block';
+        btn.textContent = 'Sign in';
+        btn.disabled = false;
+        return;
+      }
+
       fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -248,10 +240,6 @@
       .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
       .then(function(res) {
         if (!res.ok) {
-          // If storage issue, fall back to local-only mode
-          if (res.data.error && res.data.error.toLowerCase().indexOf('storage') !== -1) {
-            return fallbackSignin();
-          }
           errorEl.textContent = res.data.error || 'Invalid email or password.';
           errorEl.style.display = 'block';
           btn.textContent = 'Sign in';
@@ -259,14 +247,10 @@
           return;
         }
 
-        finishSignin(res.data);
-      })
-      .catch(function() { fallbackSignin(); });
-
-      function finishSignin(apiData) {
+        // Authenticated by server — proceed
         var user = {
-          email: (apiData && apiData.email) || email,
-          plan: (apiData && apiData.plan) || null,
+          email: (res.data && res.data.email) || email,
+          plan: (res.data && res.data.plan) || null,
           created_at: new Date().toISOString(),
           status: 'active',
         };
@@ -293,10 +277,8 @@
           })
           .catch(function() {})
           .finally(function() {
-            // Also restore any existing localStorage data
             var existing = JSON.parse(localStorage.getItem('velocity_user') || '{}');
             if (existing.email === email) {
-              // Merge: new API data wins, but keep local questionnaire answers
               Object.keys(existing).forEach(function(k) {
                 if (!(k in user) || user[k] === null || user[k] === undefined) {
                   user[k] = existing[k];
@@ -307,23 +289,13 @@
             localStorage.setItem('velocity_auth', 'true');
             window.location.href = '/dashboard.html';
           });
-      }
-
-      function fallbackSignin() {
-        // Check if we have existing localStorage data for this email
-        var existing = JSON.parse(localStorage.getItem('velocity_user') || '{}');
-        if (existing.email === email) {
-          // Restore existing session
-          localStorage.setItem('velocity_auth', 'true');
-          window.location.href = '/dashboard.html';
-        } else {
-          // No previous data — create minimal session
-          var user = { email: email, created_at: new Date().toISOString(), status: 'active' };
-          localStorage.setItem('velocity_user', JSON.stringify(user));
-          localStorage.setItem('velocity_auth', 'true');
-          window.location.href = '/dashboard.html';
-        }
-      }
+      })
+      .catch(function() {
+        errorEl.textContent = 'Unable to connect. Please check your connection and try again.';
+        errorEl.style.display = 'block';
+        btn.textContent = 'Sign in';
+        btn.disabled = false;
+      });
     });
   })();
   </script>

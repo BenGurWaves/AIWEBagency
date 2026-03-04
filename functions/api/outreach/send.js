@@ -96,7 +96,7 @@ function buildOutreachEmail(bizName, websiteUrl, previewUrl, niche) {
 <body style="margin:0;padding:0;background:#12100e;font-family:Georgia,'Times New Roman',serif;">
 <div style="max-width:560px;margin:0 auto;padding:48px 28px;">
 
-  <div style="font-size:22px;color:#e8ddd3;margin-bottom:32px;">Velocity<span style="color:#c8956a;">.</span></div>
+  <div style="font-size:22px;color:#e8ddd3;margin-bottom:32px;">Velocity<span style="color:#c8956a;">.</span> <span style="font-size:12px;color:#6d6560;font-family:-apple-system,system-ui,sans-serif;">by <a href="https://calyvent.com" style="color:#6d6560;text-decoration:none;">Calyvent</a></span></div>
 
   <h1 style="font-size:24px;color:#e8ddd3;font-weight:400;line-height:1.3;margin:0 0 16px;">
     Hi ${escaped.name},
@@ -158,7 +158,7 @@ function buildOutreachEmail(bizName, websiteUrl, previewUrl, niche) {
   </p>
 
   <div style="border-top:1px solid #2e2a24;margin-top:32px;padding-top:20px;text-align:center;">
-    <p style="font-size:16px;color:#e8ddd3;margin:0 0 6px;font-family:Georgia,serif;">Velocity<span style="color:#c8956a;">.</span></p>
+    <p style="font-size:16px;color:#e8ddd3;margin:0 0 6px;font-family:Georgia,serif;">Velocity<span style="color:#c8956a;">.</span> <span style="font-size:11px;color:#6d6560;font-family:-apple-system,system-ui,sans-serif;">by <a href="https://calyvent.com" style="color:#6d6560;text-decoration:none;">Calyvent</a></span></p>
     <p style="font-size:12px;color:#6d6560;margin:0;font-family:-apple-system,system-ui,sans-serif;">
       Websites for tradespeople who are too busy doing real work.
     </p>

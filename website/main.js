@@ -118,21 +118,11 @@
 
       if (!url || !email) return;
 
-      // Visual feedback
-      btn.textContent = 'Sending...';
+      // Redirect straight to create account — no API submission
+      btn.textContent = 'Taking you to sign up...';
       btn.disabled = true;
       btn.style.opacity = '0.7';
 
-      // Fire API request in background (don't block redirect)
-      try {
-        fetch('/api/request-redesign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ website_url: url, email: email }),
-        }).catch(function() {});
-      } catch (_) {}
-
-      // Redirect to sign-up page with pre-filled data
       const params = new URLSearchParams({ email: email, website: url });
       window.location.href = '/auth.html?' + params.toString();
     });

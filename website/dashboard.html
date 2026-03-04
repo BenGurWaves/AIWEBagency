@@ -91,7 +91,7 @@
   <!-- ── Dashboard Nav ── -->
   <nav class="nav nav--scrolled" id="nav">
     <div class="nav-inner">
-      <a href="/" class="logo">Velocity<span class="logo-dot">.</span></a>
+      <a href="/" class="logo">Velocity<span class="logo-dot">.</span> <span class="logo-sub">by <a href="https://calyvent.com" target="_blank">Calyvent</a></span></a>
       <div class="nav-links" id="navLinks">
         <a href="/">Home</a>
         <a href="#" id="navUser" class="dash-user-nav"></a>
@@ -139,8 +139,38 @@
         </div>
       </div>
 
+      <!-- ═══ WELCOME SCREEN ═══ -->
+      <div id="stepWelcome" class="dash-section">
+        <div class="dash-card dash-card--wide" style="text-align:center;padding:2.5rem 2rem;">
+          <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-glow);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <h3 style="font-size:1.5rem;margin-bottom:0.25rem;" id="welcomeName">Welcome back</h3>
+          <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:0.5rem;" id="welcomeEmail"></p>
+          <p style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:2rem;" id="welcomeUrl"></p>
+
+          <!-- Previous previews list -->
+          <div id="welcomePreviews" style="margin-bottom:1.5rem;display:none;">
+            <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.75rem;">Your Previews</p>
+            <div id="welcomePreviewList" style="display:flex;flex-direction:column;gap:0.5rem;max-width:400px;margin:0 auto;"></div>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+            <button class="btn btn-primary" id="welcomeNewDesign" style="gap:0.5rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Design
+            </button>
+            <button class="btn btn-outline" id="welcomeViewPreview" style="display:none;gap:0.5rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              View Latest Preview
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- ═══ STEP 1: Questionnaire ═══ -->
-      <div id="stepQuestionnaire" class="dash-section">
+      <div id="stepQuestionnaire" class="dash-section" style="display:none;">
         <div class="dash-card dash-card--wide">
           <div class="dash-card-head">
             <h3>Tell us about your business</h3>
@@ -460,7 +490,7 @@
   <footer class="footer">
     <div class="container">
       <div class="footer-bottom">
-        <p>&copy; 2026 Velocity. All rights reserved.</p>
+        <p>&copy; 2026 Velocity. All rights reserved. &middot; by <a href="https://calyvent.com" target="_blank" style="color:inherit;text-decoration:underline;">Calyvent</a></p>
         <p class="footer-note">Websites that work as hard as you do.</p>
       </div>
     </div>
@@ -533,20 +563,27 @@
     }
 
     // ── Steps ──
-    var step = user.dashboard_step || 'questionnaire';
-    var allStepIds = ['stepQuestionnaire', 'stepGenerating', 'stepPreview', 'stepBuilding', 'stepLive'];
-    var stepperMap = { questionnaire: 'Q', generating: 'G', preview: 'P', building: 'C', live: 'C' };
+    var step = user.dashboard_step || 'welcome';
+    var allStepIds = ['stepWelcome', 'stepQuestionnaire', 'stepGenerating', 'stepPreview', 'stepBuilding', 'stepLive'];
+    var stepperMap = { welcome: 'Q', questionnaire: 'Q', generating: 'G', preview: 'P', building: 'C', live: 'C' };
     var stepOrder = ['Q', 'G', 'P', 'C'];
 
     function showStep(s) {
       allStepIds.forEach(function(id) {
-        document.getElementById(id).style.display = 'none';
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
       });
       var el = document.getElementById('step' + s.charAt(0).toUpperCase() + s.slice(1));
       if (el) el.style.display = 'block';
       step = s;
-      user.dashboard_step = s;
-      localStorage.setItem('velocity_user', JSON.stringify(user));
+      // Don't persist 'welcome' — it's the default
+      if (s !== 'welcome') {
+        user.dashboard_step = s;
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+      }
+      // Hide stepper on welcome screen
+      var stepper = document.getElementById('dashStepper');
+      if (stepper) stepper.style.display = s === 'welcome' ? 'none' : '';
       updateStepper(s);
     }
 
@@ -591,6 +628,47 @@
           }
         }
       } catch(_) {}
+    }
+
+    // ── Welcome screen setup ──
+    var welcomeNameEl = document.getElementById('welcomeName');
+    var welcomeEmailEl = document.getElementById('welcomeEmail');
+    var welcomeUrlEl = document.getElementById('welcomeUrl');
+    if (welcomeNameEl) {
+      var displayName = user.business_name || email.split('@')[0] || 'there';
+      welcomeNameEl.textContent = 'Welcome back, ' + displayName;
+    }
+    if (welcomeEmailEl) welcomeEmailEl.textContent = email;
+    if (welcomeUrlEl && website) {
+      welcomeUrlEl.innerHTML = '<a href="' + website + '" target="_blank" rel="noopener" style="color:var(--accent);">' + website + '</a>';
+    }
+
+    // Show previous preview if available
+    if (user.preview_url || user.preview_id) {
+      var previewsEl = document.getElementById('welcomePreviews');
+      var listEl = document.getElementById('welcomePreviewList');
+      var viewBtn = document.getElementById('welcomeViewPreview');
+      if (previewsEl) previewsEl.style.display = 'block';
+      if (viewBtn) viewBtn.style.display = 'inline-flex';
+      if (listEl) {
+        var previewCard = document.createElement('div');
+        previewCard.style.cssText = 'background:var(--bg);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;';
+        previewCard.innerHTML = '<div><strong style="font-size:0.875rem;">' + (user.business_name || 'Preview') + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + (user.niche ? user.niche : 'Custom design') + '</span></div><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">Ready</span>';
+        listEl.appendChild(previewCard);
+      }
+    }
+
+    // Welcome buttons
+    document.getElementById('welcomeNewDesign').addEventListener('click', function() {
+      showStep('questionnaire');
+      refillForm();
+    });
+    var viewPreviewBtn = document.getElementById('welcomeViewPreview');
+    if (viewPreviewBtn) {
+      viewPreviewBtn.addEventListener('click', function() {
+        showStep('preview');
+        renderPreview();
+      });
     }
 
     // ── AI Form Enhancement (no API, pure code intelligence) ──
@@ -725,17 +803,20 @@
       var progress = 0;
       var apiDone = false;
       var apiResult = null;
-      var messages = [
-        'Scanning your website for content and brand elements...',
-        'Extracting service descriptions and contact details...',
-        'Analyzing your brand identity and color palette...',
-        'Designing a custom layout tailored to your business...',
-        'Building hero section and service pages...',
-        'Adding conversion-optimized call-to-action elements...',
-        'Optimizing for mobile devices and fast loading...',
-        'Rendering your personalized preview...'
+      // Messages synced to progress percentage, not just cycling
+      var stepMessages = [
+        { at: 0,  msg: 'Scanning your website for content and brand elements...' },
+        { at: 10, msg: 'Extracting service descriptions and contact details...' },
+        { at: 20, msg: 'Analyzing your brand identity and color palette...' },
+        { at: 35, msg: 'Writing custom copy tailored to your industry...' },
+        { at: 50, msg: 'Designing a layout that fits your business type...' },
+        { at: 60, msg: 'Building hero section and service pages...' },
+        { at: 72, msg: 'Adding conversion-optimized call-to-action elements...' },
+        { at: 82, msg: 'Optimizing for mobile devices and fast loading...' },
+        { at: 92, msg: 'Running quality checks on your preview...' },
+        { at: 98, msg: 'Rendering your personalized preview...' },
       ];
-      var msgIndex = 0;
+      var lastMsgIdx = -1;
       var genSteps = [
         { id: 'genStep1', threshold: 15 },
         { id: 'genStep2', threshold: 30 },
@@ -827,28 +908,27 @@
       }, 2000);
 
       // Slower, more deliberate progress — gives agents real time to work
-      var msgIdx = 0;
-      var localMsgInterval = setInterval(function() {
-        if (msgIdx < messages.length && !apiDone) {
-          document.getElementById('genDetail').innerHTML = '<p>' + messages[msgIdx] + '</p>';
-          msgIdx++;
-        }
-      }, 3500);
-
       var interval = setInterval(function() {
         if (apiDone && progress < 88) {
-          // API finished — catch up smoothly, don't jump
           progress += 3;
         } else if (apiDone && progress >= 88) {
           progress += 2;
         } else if (progress < 85) {
-          // Slow, deliberate increments while agents work
           progress += Math.random() < 0.4 ? 1 : 0;
         }
         if (progress > 100) progress = 100;
 
         document.getElementById('genProgressFill').style.width = progress + '%';
         document.getElementById('genPct').textContent = progress + '%';
+
+        // Sync message to current progress
+        for (var mi = stepMessages.length - 1; mi >= 0; mi--) {
+          if (progress >= stepMessages[mi].at && mi > lastMsgIdx) {
+            lastMsgIdx = mi;
+            document.getElementById('genDetail').innerHTML = '<p>' + stepMessages[mi].msg + '</p>';
+            break;
+          }
+        }
 
         genSteps.forEach(function(s) {
           var el = document.getElementById(s.id);
@@ -863,7 +943,6 @@
         if (progress >= 100) {
           clearInterval(interval);
           clearInterval(progressPollInterval);
-          clearInterval(localMsgInterval);
           user.preview_ready = true;
           localStorage.setItem('velocity_user', JSON.stringify(user));
           setTimeout(function() {
@@ -921,15 +1000,23 @@
       var yrs = user.years || '10+';
       var style = user.style || 'modern-clean';
       var arch = detectClientArchetype(user.niche);
-      var colors = {
-        'modern-clean': { bg: '#f8f7f4', nav: '#fff', accent: '#1a6b44', trust: '#1a3a2a', text: '#1a2e22', muted: '#5c6b65', card: '#f3f6f4' },
-        'bold-dark': { bg: '#0e0c0a', nav: '#121010', accent: '#c8956a', trust: '#1a1614', text: '#e8ddd3', muted: '#a89f94', card: '#1a1815' },
-        'warm-friendly': { bg: '#faf6f1', nav: '#fff', accent: '#c66b2e', trust: '#3b2a18', text: '#2e2218', muted: '#7a6a56', card: '#f5efe8' },
-        'professional': { bg: '#f5f6f8', nav: '#fff', accent: '#2955a3', trust: '#1a2a4a', text: '#1a2030', muted: '#6b7280', card: '#eef1f6' },
-        'rustic': { bg: '#f4f0e8', nav: '#fff', accent: '#7a6040', trust: '#3a3020', text: '#2e2418', muted: '#8a7c6a', card: '#ede8de' },
-        'surprise': { bg: '#faf8ff', nav: '#fff', accent: '#7c3aed', trust: '#2a1a4a', text: '#1e1b2e', muted: '#6b6580', card: '#f2f0fa' }
+      // Archetype-first color palettes (matches server-side getTheme)
+      var archColors = {
+        'local-service': { bg: '#fafaf5', nav: '#fff', accent: '#1a5632', trust: '#14301e', text: '#1a2e1c', muted: '#4d5e4f', card: '#ecf4ef' },
+        'food': { bg: '#fdf8f3', nav: '#fdf8f3', accent: '#8b2252', trust: '#3a1522', text: '#2c1a18', muted: '#6b524e', card: '#fff' },
+        'creative': { bg: '#ffffff', nav: '#fff', accent: '#111111', trust: '#111111', text: '#111111', muted: '#999999', card: '#f6f6f6' },
+        'wellness': { bg: '#f5faf6', nav: '#f5faf6', accent: '#4a7c59', trust: '#2a4a32', text: '#1e3228', muted: '#5a7562', card: '#e8f2eb' },
+        'professional': { bg: '#f4f5f7', nav: '#fff', accent: '#1e3a5f', trust: '#0f1f33', text: '#1a2030', muted: '#4a5568', card: '#e8eef6' },
       };
-      var c = colors[style] || colors['modern-clean'];
+      // Style overrides
+      var styleOverrides = {
+        'bold-dark': { bg: '#0e0c0a', nav: '#121010', text: '#e8ddd3', muted: '#a89f94', card: '#1a1815', trust: '#1a1614' },
+        'warm-friendly': { accent: '#c66b2e' },
+        'surprise': { accent: '#7c3aed' },
+      };
+      var c = archColors[arch] || archColors['local-service'];
+      var so = styleOverrides[style];
+      if (so) { for (var k in so) c[k] = so[k]; }
       while (services.length < 4) services.push('Service');
       services = services.slice(0, 4);
 
@@ -1053,15 +1140,32 @@
         if (data.url) {
           window.location.href = data.url;
         } else {
-          user.dashboard_step = 'building';
-          localStorage.setItem('velocity_user', JSON.stringify(user));
-          showStep('building');
+          var errMsg = data.error || 'Payment system unavailable. Please try again later.';
+          approveBtn.textContent = errMsg;
+          approveBtn.style.background = 'var(--red-soft)';
+          approveBtn.style.color = 'var(--red)';
+          approveBtn.style.border = '1px solid var(--red)';
+          setTimeout(function() {
+            approveBtn.textContent = 'Continue with ' + user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' \u2014 ' + user.plan_price;
+            approveBtn.disabled = false;
+            approveBtn.style.background = '';
+            approveBtn.style.color = '';
+            approveBtn.style.border = '';
+          }, 4000);
         }
       })
       .catch(function() {
-        user.dashboard_step = 'building';
-        localStorage.setItem('velocity_user', JSON.stringify(user));
-        showStep('building');
+        approveBtn.textContent = 'Connection error. Please try again.';
+        approveBtn.style.background = 'var(--red-soft)';
+        approveBtn.style.color = 'var(--red)';
+        approveBtn.style.border = '1px solid var(--red)';
+        setTimeout(function() {
+          approveBtn.textContent = 'Continue with ' + user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' \u2014 ' + user.plan_price;
+          approveBtn.disabled = false;
+          approveBtn.style.background = '';
+          approveBtn.style.color = '';
+          approveBtn.style.border = '';
+        }, 4000);
       });
     });
 
@@ -1081,17 +1185,36 @@
       if (!notes) return;
       user.revision_notes = notes;
       user.revision_count = (user.revision_count || 0) + 1;
+      user.notes = (user.notes ? user.notes + ' | ' : '') + notes;
+
+      // Apply revision changes to the style/content immediately
+      applyRevisionHints(notes);
+
       localStorage.setItem('velocity_user', JSON.stringify(user));
-      document.getElementById('revisionArea').innerHTML = '<p style="color:var(--green);font-weight:600;padding:0.5rem 0;">Revision request submitted! We\'ll update your preview within 24-48 hours.</p>';
       document.getElementById('revisionForm').style.display = 'none';
-      try {
-        fetch('/api/request-redesign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ website_url: website, email: email, revision: notes }),
-        }).catch(function() {});
-      } catch (_) {}
+      document.getElementById('revisionArea').innerHTML = '<p style="color:var(--green);font-weight:600;padding:0.5rem 0;">Updating your preview...</p>';
+
+      // Immediately regenerate preview with new instructions
+      user.preview_url = null;
+      user.preview_id = null;
+      user.preview_ready = false;
+      localStorage.setItem('velocity_user', JSON.stringify(user));
+
+      // Re-trigger generation with updated notes
+      showStep('generating');
+      startGenerating();
     });
+
+    function applyRevisionHints(notes) {
+      var lower = notes.toLowerCase();
+      // Style hints
+      if (/dark|bold|edgy|dramatic/i.test(lower) && user.style !== 'bold-dark') user.style = 'bold-dark';
+      if (/warm|friendly|cozy|welcoming/i.test(lower) && user.style !== 'warm-friendly') user.style = 'warm-friendly';
+      if (/clean|minimal|modern|simple/i.test(lower) && user.style !== 'modern-clean') user.style = 'modern-clean';
+      if (/professional|corporate|formal/i.test(lower) && user.style !== 'professional') user.style = 'professional';
+      if (/rustic|organic|natural|earthy/i.test(lower) && user.style !== 'rustic') user.style = 'rustic';
+      if (/purple|creative|playful|fun/i.test(lower) && user.style !== 'surprise') user.style = 'surprise';
+    }
 
     // ── New design ──
     document.getElementById('newDesignBtn').addEventListener('click', function() {
@@ -1155,8 +1278,8 @@
     } else if (user.dashboard_step === 'building') {
       showStep('building');
     } else if (user.preview_ready && user.questionnaire_filled) {
-      showStep('preview');
-      renderPreview();
+      // Go to welcome first, let user choose to view preview
+      showStep('welcome');
       if (user.plan) {
         document.querySelectorAll('.plan-card').forEach(function(o) {
           if (o.getAttribute('data-plan') === user.plan) {
@@ -1170,8 +1293,8 @@
       showStep('generating');
       startGenerating();
     } else {
-      showStep('questionnaire');
-      refillForm();
+      // Default: welcome screen, not the form
+      showStep('welcome');
     }
 
   })();

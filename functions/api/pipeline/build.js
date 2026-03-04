@@ -62,7 +62,8 @@ export async function onRequestPost(context) {
   };
 
   const buildId = generateId();
-  const theme = getTheme(biz.style);
+  const archetype = detectArchetype(biz);
+  const theme = getTheme(biz.style, archetype);
 
   // Determine pages based on plan
   const pageList = ['index', 'services', 'about', 'contact'];
@@ -527,7 +528,7 @@ function buildFooter(biz, content, theme) {
   </div>
   <div class="footer-bottom">
     <span>&copy; ${year} ${name}. All rights reserved.</span>
-    <span class="footer-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Built by Velocity</span>
+    <span class="footer-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Built by <a href="https://velocity.delivery" style="color:inherit;text-decoration:underline;">Velocity</a> &middot; by <a href="https://calyvent.com" target="_blank" style="color:inherit;text-decoration:underline;">Calyvent</a></span>
   </div>
 </footer>`;
 }
@@ -536,58 +537,104 @@ function buildFooter(biz, content, theme) {
 // THEME & STYLESHEET
 // ═══════════════════════════════════════════════════════════════
 
-function getTheme(style) {
-  const themes = {
-    'modern-clean': {
-      bg: '#fafaf8', bgAlt: '#f2f1ed', nav: '#ffffff', accent: '#1a6b44', accentHover: '#15573a',
-      accentBg: 'rgba(26,107,68,0.06)', accentBgSolid: '#eef5f0', trust: '#1a3a2a', text: '#1a2e22', textSec: '#5a6b60',
-      muted: '#8a9b90', card: '#ffffff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #f0f7f3 0%, #fafaf8 50%, #f7f5f0 100%)',
-      font: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-      fontHead: "'Georgia', 'Times New Roman', serif",
-      gFont: 'Inter:wght@400;500;600;700',
+function getTheme(style, archetype) {
+  // Archetype-specific base themes — each archetype gets DIFFERENT fonts, colors, layout vars
+  const archetypeThemes = {
+    'local-service': {
+      font: "'Poppins', -apple-system, system-ui, sans-serif", fontHead: "'Poppins', sans-serif",
+      gFont: 'Poppins:wght@400;500;600;700;800',
+      bg: '#fafaf5', bgAlt: '#f2f1eb', nav: '#fff', accent: '#1a5632', accentHover: '#134425',
+      accentBg: 'rgba(26,86,50,0.06)', accentBgSolid: '#ecf4ef', trust: '#14301e', text: '#1a2e1c', textSec: '#4d5e4f',
+      muted: '#7a8b7c', card: '#ffffff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #ecf4ef 0%, #fafaf5 50%, #f5f3ec 100%)',
     },
-    'bold-dark': {
-      bg: '#0e0c0a', bgAlt: '#161412', nav: '#121010', accent: '#c8956a', accentHover: '#d4a57a',
-      accentBg: 'rgba(200,149,106,0.08)', accentBgSolid: '#1e1a15', trust: '#1a1614', text: '#e8ddd3', textSec: '#a89f94',
-      muted: '#6d6560', card: '#1a1815', border: 'rgba(255,255,255,0.06)', heroGrad: 'linear-gradient(135deg, #1a1410 0%, #0e0c0a 50%, #12100e 100%)',
-      font: "'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-      fontHead: "'Georgia', 'Times New Roman', serif",
-      gFont: 'DM+Sans:wght@400;500;600;700',
+    'food': {
+      font: "'Lato', sans-serif", fontHead: "'Playfair Display', Georgia, serif",
+      gFont: 'Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;700',
+      bg: '#fdf8f3', bgAlt: '#f6efe6', nav: '#fdf8f3', accent: '#8b2252', accentHover: '#6d1a40',
+      accentBg: 'rgba(139,34,82,0.06)', accentBgSolid: '#faf0f4', trust: '#3a1522', text: '#2c1a18', textSec: '#6b524e',
+      muted: '#9a8480', card: '#fff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #faf0f4 0%, #fdf8f3 50%, #f8f0e8 100%)',
     },
-    'warm-friendly': {
-      bg: '#faf6f1', bgAlt: '#f3ece3', nav: '#ffffff', accent: '#c66b2e', accentHover: '#b55e24',
-      accentBg: 'rgba(198,107,46,0.07)', accentBgSolid: '#fdf3e8', trust: '#3b2a18', text: '#2e2218', textSec: '#7a6a56',
-      muted: '#a09080', card: '#ffffff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #fdf3e8 0%, #faf6f1 50%, #f8f0e6 100%)',
-      font: "'Nunito Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-      fontHead: "'Georgia', 'Times New Roman', serif",
-      gFont: 'Nunito+Sans:wght@400;500;600;700',
+    'creative': {
+      font: "'Inter', -apple-system, system-ui, sans-serif", fontHead: "'Space Grotesk', sans-serif",
+      gFont: 'Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500',
+      bg: '#ffffff', bgAlt: '#f6f6f6', nav: '#fff', accent: '#111111', accentHover: '#333333',
+      accentBg: 'rgba(0,0,0,0.04)', accentBgSolid: '#f4f4f4', trust: '#111111', text: '#111111', textSec: '#666666',
+      muted: '#999999', card: '#f6f6f6', border: 'rgba(0,0,0,0.08)', heroGrad: 'linear-gradient(135deg, #ffffff 0%, #fafafa 50%, #f8f8f8 100%)',
+    },
+    'wellness': {
+      font: "'Jost', sans-serif", fontHead: "'Cormorant Garamond', Georgia, serif",
+      gFont: 'Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600',
+      bg: '#f5faf6', bgAlt: '#edf4ef', nav: '#f5faf6', accent: '#4a7c59', accentHover: '#3a6348',
+      accentBg: 'rgba(74,124,89,0.06)', accentBgSolid: '#e8f2eb', trust: '#2a4a32', text: '#1e3228', textSec: '#5a7562',
+      muted: '#7a9580', card: '#ffffff', border: 'rgba(0,0,0,0.05)', heroGrad: 'linear-gradient(135deg, #e8f2eb 0%, #f5faf6 50%, #f0f7f2 100%)',
     },
     'professional': {
-      bg: '#f5f6f8', bgAlt: '#eef0f4', nav: '#ffffff', accent: '#2955a3', accentHover: '#1e4590',
-      accentBg: 'rgba(41,85,163,0.06)', accentBgSolid: '#eef2fa', trust: '#1a2a4a', text: '#1a2030', textSec: '#5a6578',
-      muted: '#8a90a0', card: '#ffffff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #eef2fa 0%, #f5f6f8 50%, #f0f2f8 100%)',
-      font: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-      fontHead: "'Georgia', 'Times New Roman', serif",
-      gFont: 'Inter:wght@400;500;600;700',
+      font: "'Source Sans 3', -apple-system, system-ui, sans-serif", fontHead: "'Libre Baskerville', Georgia, serif",
+      gFont: 'Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;500;600;700',
+      bg: '#f4f5f7', bgAlt: '#eceef2', nav: '#fff', accent: '#1e3a5f', accentHover: '#152d4d',
+      accentBg: 'rgba(30,58,95,0.06)', accentBgSolid: '#e8eef6', trust: '#0f1f33', text: '#1a2030', textSec: '#4a5568',
+      muted: '#8a95a5', card: '#ffffff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #e8eef6 0%, #f4f5f7 50%, #eff1f6 100%)',
     },
-    'rustic': {
-      bg: '#f4f0e8', bgAlt: '#ebe5da', nav: '#ffffff', accent: '#7a6040', accentHover: '#6a5035',
-      accentBg: 'rgba(122,96,64,0.07)', accentBgSolid: '#f0ebe0', trust: '#3a3020', text: '#2e2418', textSec: '#706050',
-      muted: '#9a8a78', card: '#ffffff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #f0ebe0 0%, #f4f0e8 50%, #ede8dd 100%)',
-      font: "'Lora', Georgia, 'Times New Roman', serif",
-      fontHead: "'Georgia', 'Times New Roman', serif",
-      gFont: 'Lora:wght@400;500;600;700',
+    'ecommerce': {
+      font: "'Inter', -apple-system, system-ui, sans-serif", fontHead: "'Sora', sans-serif",
+      gFont: 'Sora:wght@300;400;500;600;700&family=Inter:wght@400;500',
+      bg: '#fafafa', bgAlt: '#f0f0f0', nav: '#fff', accent: '#e85d3a', accentHover: '#d04c2a',
+      accentBg: 'rgba(232,93,58,0.06)', accentBgSolid: '#fef0ec', trust: '#2a1510', text: '#1a1a1a', textSec: '#666666',
+      muted: '#999999', card: '#ffffff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #fef0ec 0%, #fafafa 50%, #f8f6f4 100%)',
     },
-    'surprise': {
-      bg: '#faf8ff', bgAlt: '#f2f0fa', nav: '#ffffff', accent: '#7c3aed', accentHover: '#6d28d9',
-      accentBg: 'rgba(124,58,237,0.06)', accentBgSolid: '#f0ecff', trust: '#2a1a4a', text: '#1e1b2e', textSec: '#6b6580',
-      muted: '#9a95a8', card: '#ffffff', border: 'rgba(0,0,0,0.06)', heroGrad: 'linear-gradient(135deg, #f0ecff 0%, #faf8ff 50%, #f4f0ff 100%)',
-      font: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-      fontHead: "'Georgia', 'Times New Roman', serif",
-      gFont: 'Inter:wght@400;500;600;700',
+    'nonprofit': {
+      font: "'Open Sans', -apple-system, system-ui, sans-serif", fontHead: "'Merriweather', Georgia, serif",
+      gFont: 'Merriweather:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@400;500;600;700',
+      bg: '#f8f6f2', bgAlt: '#f0ece5', nav: '#fff', accent: '#2a6b4e', accentHover: '#1e5a3d',
+      accentBg: 'rgba(42,107,78,0.06)', accentBgSolid: '#e8f2ec', trust: '#1a3a2a', text: '#1e2a20', textSec: '#5a6b5e',
+      muted: '#8a9a8e', card: '#ffffff', border: 'rgba(0,0,0,0.05)', heroGrad: 'linear-gradient(135deg, #e8f2ec 0%, #f8f6f2 50%, #f2f0ea 100%)',
     },
   };
-  return themes[style] || themes['modern-clean'];
+
+  // Style overrides layer on top of archetype base
+  const styleOverrides = {
+    'bold-dark': {
+      bg: '#0e0c0a', bgAlt: '#161412', nav: '#121010', text: '#e8ddd3', textSec: '#a89f94',
+      muted: '#6d6560', card: '#1a1815', border: 'rgba(255,255,255,0.06)', trust: '#1a1614',
+      heroGrad: 'linear-gradient(135deg, #1a1410 0%, #0e0c0a 50%, #12100e 100%)',
+      accentBg: 'rgba(200,149,106,0.08)', accentBgSolid: '#1e1a15',
+      accent: '#c8956a', accentHover: '#d4a57a',
+    },
+    'warm-friendly': { accent: '#c66b2e', accentHover: '#b55e24', accentBg: 'rgba(198,107,46,0.07)', accentBgSolid: '#fdf3e8' },
+    'surprise': { accent: '#7c3aed', accentHover: '#6d28d9', accentBg: 'rgba(124,58,237,0.06)', accentBgSolid: '#f0ecff' },
+    'rustic': { accent: '#7a6040', accentHover: '#6a5035', accentBg: 'rgba(122,96,64,0.07)', accentBgSolid: '#f0ebe0' },
+  };
+
+  const base = archetypeThemes[archetype] || archetypeThemes['local-service'];
+  const override = styleOverrides[style] || {};
+  return { ...base, ...override };
+}
+
+// ── Archetype detection (shared with orchestrate.js) ──────────
+
+function detectArchetype(biz) {
+  const niche = (biz.niche || '').toLowerCase();
+  const notes = (biz.notes || '').toLowerCase();
+  const name = (biz.name || '').toLowerCase();
+
+  const creativeNiches = ['photography', 'videography', 'music', 'musician', 'artist', 'design', 'graphic', 'filmmaker', 'dj', 'band', 'producer', 'creative', 'art', 'illustration', 'tattoo'];
+  if (creativeNiches.some(n => niche.includes(n) || notes.includes(n) || name.includes(n))) return 'creative';
+
+  const foodNiches = ['restaurant', 'cafe', 'bakery', 'catering', 'bar', 'food', 'chef', 'bistro', 'pizzeria', 'brewery', 'coffee'];
+  if (foodNiches.some(n => niche.includes(n) || notes.includes(n))) return 'food';
+
+  const healthNiches = ['dental', 'chiropractic', 'fitness', 'personal training', 'salon', 'barbershop', 'spa', 'massage', 'yoga', 'therapy', 'medical', 'clinic', 'vet', 'wellness', 'skincare'];
+  if (healthNiches.some(n => niche.includes(n) || notes.includes(n))) return 'wellness';
+
+  const proNiches = ['law', 'legal', 'accounting', 'bookkeeping', 'consulting', 'insurance', 'real-estate', 'realtor', 'financial', 'marketing', 'agency', 'tech', 'software', 'it-services'];
+  if (proNiches.some(n => niche.includes(n) || notes.includes(n))) return 'professional';
+
+  const retailNiches = ['ecommerce', 'shop', 'store', 'retail', 'boutique', 'fashion', 'jewelry'];
+  if (retailNiches.some(n => niche.includes(n) || notes.includes(n))) return 'ecommerce';
+
+  if (niche.includes('nonprofit') || niche.includes('charity') || niche.includes('foundation')) return 'nonprofit';
+
+  return 'local-service';
 }
 
 function generateStylesheet(t, biz) {

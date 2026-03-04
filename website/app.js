@@ -127,7 +127,7 @@
     }
     return (
       '<header class="app-header">' +
-        '<a href="/" class="app-logo">Velocity<span class="app-logo-dot">.</span><span class="app-logo-badge">Dashboard</span></a>' +
+        '<a href="/" class="app-logo">Velocity<span class="app-logo-dot">.</span> <span style="font-size:0.5em;color:#6d6560;font-family:sans-serif;margin-left:0.35em;">by <a href="https://calyvent.com" target="_blank" style="color:#6d6560;text-decoration:none;">Calyvent</a></span><span class="app-logo-badge">Dashboard</span></a>' +
         right +
       '</header>'
     );

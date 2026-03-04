@@ -126,6 +126,32 @@ export async function onRequestPost(context) {
     });
 
     // ═══════════════════════════════════════════════════════════
+    // STEP 2.5: DISCOVER — Load design inspiration from curated sites
+    // ═══════════════════════════════════════════════════════════
+
+    let designIntel = null;
+    if (body.niche) {
+      await updateProgress(kv, email, {
+        step: 'discover', step_number: 2, percent: 48,
+        message: 'Researching top designs in your industry...',
+        detail: 'Analyzing high-quality websites for design inspiration',
+      });
+
+      // Check if we already have discovery data for this niche
+      try {
+        designIntel = await kv.get('discover:' + (body.niche || '').trim().toLowerCase(), { type: 'json' });
+      } catch {}
+
+      if (designIntel) {
+        await updateProgress(kv, email, {
+          step: 'discover', step_number: 2, percent: 52,
+          message: 'Design research loaded',
+          detail: `${designIntel.sites_analyzed || 0} top sites analyzed for design patterns`,
+        });
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // STEP 3: BUILD — Construct the website pages
     // ═══════════════════════════════════════════════════════════
 
@@ -149,6 +175,7 @@ export async function onRequestPost(context) {
       domain: siteDna?.domain || '',
       tagline: siteDna?.tagline || '',
       notes: body.notes || '',
+      designIntel: designIntel || null,
     };
 
     const previewId = generateId();
@@ -695,6 +722,21 @@ function enhanceServices(rawServices, nicheContent) {
 
 function capitalizeWords(str) { return (str || '').replace(/\b\w/g, c => c.toUpperCase()); }
 
+function hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  if (h.length < 6) return '0,0,0';
+  return `${parseInt(h.substring(0, 2), 16)},${parseInt(h.substring(2, 4), 16)},${parseInt(h.substring(4, 6), 16)}`;
+}
+
+function darkenHex(hex, percent) {
+  const h = hex.replace('#', '');
+  if (h.length < 6) return hex;
+  const r = Math.max(0, parseInt(h.substring(0, 2), 16) - Math.round(255 * percent / 100));
+  const g = Math.max(0, parseInt(h.substring(2, 4), 16) - Math.round(255 * percent / 100));
+  const b = Math.max(0, parseInt(h.substring(4, 6), 16) - Math.round(255 * percent / 100));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
 // ── Industry Archetype System ──────────────────────────────────
 //
 // Instead of one layout for all businesses, we classify into archetypes
@@ -818,7 +860,39 @@ function getArchetypeConfig(archetype) {
 function buildPreviewPage(biz, content) {
   const archetype = detectArchetype(biz);
   const config = getArchetypeConfig(archetype);
-  const t = getTheme(biz.style);
+  const t = getTheme(biz.style, archetype);
+
+  // Apply discovery intelligence if available — override fonts/colors from real-world sites
+  if (biz.designIntel?.aggregate) {
+    const agg = biz.designIntel.aggregate;
+    // Use discovered font pairings if available
+    if (agg.popular_fonts?.length >= 2) {
+      const discoveredHead = agg.popular_fonts[0];
+      const discoveredBody = agg.popular_fonts[1];
+      // Only override if they are Google Fonts (have proper names)
+      if (discoveredHead && discoveredHead.length > 2 && !/system|inherit|sans-serif|serif|mono/i.test(discoveredHead)) {
+        t.fontHead = `'${discoveredHead}', ${t.fontHead}`;
+        t.font = `'${discoveredBody || discoveredHead}', ${t.font}`;
+        const gFontHead = discoveredHead.replace(/\s/g, '+');
+        const gFontBody = (discoveredBody || '').replace(/\s/g, '+');
+        if (gFontBody && gFontBody !== gFontHead) {
+          t.gFont = `${gFontHead}:wght@400;500;600;700&family=${gFontBody}:wght@300;400;500;600`;
+        } else {
+          t.gFont = `${gFontHead}:wght@300;400;500;600;700`;
+        }
+      }
+    }
+    // Use discovered accent color if available and different from archetype default
+    if (agg.dominant_colors?.length >= 1) {
+      const discovered = agg.dominant_colors[0];
+      if (discovered && discovered.startsWith('#') && discovered !== t.accent) {
+        t.accent = discovered;
+        t.accentHover = darkenHex(discovered, 15);
+        t.accentBg = discovered.replace('#', 'rgba(') ? `rgba(${hexToRgb(discovered)},0.06)` : t.accentBg;
+      }
+    }
+  }
+
   const name = esc(biz.name);
   const phone = esc(biz.phone || '');
   const phoneHref = (biz.phone || '').replace(/[^0-9+]/g, '');
@@ -878,6 +952,31 @@ function buildPreviewPage(biz, content) {
     }
   }).join('\n');
 
+  // Archetype-specific CSS overrides for truly different layouts
+  const svcCols = t.svcCols || 3;
+  const cardR = t.cardRadius || '14px';
+  const headingWeight = archetype === 'creative' ? '300' : archetype === 'food' ? '400' : archetype === 'professional' ? '400' : '700';
+  const headingSize = archetype === 'creative' ? '56px' : archetype === 'food' ? '48px' : '44px';
+  const heroH1Style = archetype === 'creative'
+    ? 'font-weight:300;letter-spacing:-.03em;text-transform:none'
+    : archetype === 'food'
+    ? 'font-weight:400;font-style:italic;letter-spacing:-.01em'
+    : archetype === 'wellness'
+    ? 'font-weight:400;letter-spacing:-.015em'
+    : archetype === 'professional'
+    ? 'font-weight:700;letter-spacing:-.02em'
+    : 'font-weight:800;letter-spacing:-.02em;text-transform:none';
+  const svcCardStyle = archetype === 'food'
+    ? 'border:none;border-bottom:1px solid var(--border);border-radius:0;padding:24px 0;background:transparent'
+    : archetype === 'creative'
+    ? 'border:none;border-radius:0;padding:32px 0;background:transparent;border-bottom:1px solid var(--border)'
+    : archetype === 'wellness'
+    ? `border-radius:${cardR};border:1px solid var(--border);padding:32px;background:var(--card)`
+    : `border-radius:${cardR};border:1px solid var(--border);padding:28px;background:var(--card)`;
+  const navHeight = archetype === 'creative' ? '72px' : archetype === 'food' ? '56px' : '64px';
+  const logoSize = archetype === 'creative' ? '24px' : archetype === 'food' ? '22px' : '20px';
+  const logoWeight = archetype === 'creative' ? '600' : archetype === 'food' ? '400' : '400';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -890,24 +989,24 @@ function buildPreviewPage(biz, content) {
 <link href="https://fonts.googleapis.com/css2?family=${t.gFont}&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:${t.bg};--bg-alt:${t.bgAlt};--nav:${t.nav};--accent:${t.accent};--accent-hover:${t.accentHover};--accent-bg:${t.accentBg};--accent-bg-solid:${t.accentBgSolid};--trust:${t.trust};--text:${t.text};--text-sec:${t.textSec};--muted:${t.muted};--card:${t.card};--border:${t.border};--font:${t.font};--font-head:${t.fontHead};--r:${v.btnRadius};--rl:14px;--heading-weight:${v.headingWeight}}
+:root{--bg:${t.bg};--bg-alt:${t.bgAlt};--nav:${t.nav};--accent:${t.accent};--accent-hover:${t.accentHover};--accent-bg:${t.accentBg};--accent-bg-solid:${t.accentBgSolid};--trust:${t.trust};--text:${t.text};--text-sec:${t.textSec};--muted:${t.muted};--card:${t.card};--border:${t.border};--font:${t.font};--font-head:${t.fontHead};--r:${v.btnRadius};--rl:${cardR};--heading-weight:${headingWeight}}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.65;overflow-x:hidden}a{color:inherit;text-decoration:none}img{max-width:100%;display:block}.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
-.nav{position:sticky;top:0;z-index:100;background:var(--nav);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}.logo{font-family:var(--font-head);font-size:20px;font-weight:400;letter-spacing:-.02em}.logo span{color:var(--accent)}.nav-links{display:flex;align-items:center;gap:28px;font-size:14px;color:var(--text-sec)}.nav-links a{transition:color .2s}.nav-links a:hover{color:var(--text)}.nav-cta{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;padding:9px 20px;border-radius:var(--r);font-weight:600;font-size:13px;transition:all .2s}.nav-cta:hover{background:var(--accent-hover);color:#fff;transform:translateY(-1px)}.nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:6px}.nav-toggle span{display:block;width:20px;height:2px;background:var(--text);margin:4px 0}
-.sec-tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:8px}.sec-title{font-family:var(--font-head);font-size:clamp(22px,3.5vw,34px);font-weight:var(--heading-weight);margin-bottom:12px}.sec-desc{font-size:15px;color:var(--text-sec);line-height:1.7;margin-bottom:40px;max-width:540px}
-.btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:14px 28px;border-radius:var(--r);font-weight:600;font-size:15px;transition:all .25s;border:none;cursor:pointer}.btn-p:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 8px 24px ${isDark ? 'rgba(200,149,106,.2)' : 'rgba(0,0,0,.12)'}}.btn-o{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--text-sec);padding:14px 28px;border-radius:var(--r);font-weight:500;font-size:15px;border:1px solid var(--border);transition:all .25s;cursor:pointer}.btn-o:hover{border-color:var(--accent);color:var(--accent)}
-.hero{padding:${v.spacing === 'airy' ? '100px' : '80px'} 24px ${v.spacing === 'airy' ? '80px' : '64px'};background:${t.heroGrad};position:relative;overflow:hidden;text-align:${v.align}}.hero::after{content:'';position:absolute;top:-30%;right:-15%;width:500px;height:500px;border-radius:50%;background:var(--accent-bg);filter:blur(80px);pointer-events:none;opacity:.7}.hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1}.hero-split{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;text-align:left}.hero-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:16px;padding:6px 14px;background:var(--accent-bg-solid);border-radius:100px;border:1px solid var(--accent-bg)}.hero h1{font-family:var(--font-head);font-size:clamp(28px,4.5vw,${archetype === 'creative' ? '56px' : '46px'});font-weight:${archetype === 'creative' ? '300' : 'var(--heading-weight)'};line-height:1.12;letter-spacing:-.02em;margin-bottom:20px}.hero-sub{font-size:16px;color:var(--text-sec);line-height:1.75;margin-bottom:32px;max-width:${v.align === 'center' ? '600px;margin-left:auto;margin-right:auto' : '500px'}}.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px;${v.align === 'center' ? 'justify-content:center' : ''}}.hero-proof{display:flex;align-items:center;gap:14px;${v.align === 'center' ? 'justify-content:center' : ''}}.hero-stars{color:#f5b731;font-size:15px;letter-spacing:2px}.hero-proof-text{font-size:13px;color:var(--text-sec)}.hero-proof-text strong{color:var(--text)}
+.nav{position:sticky;top:0;z-index:100;background:var(--nav);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:${navHeight}}.logo{font-family:var(--font-head);font-size:${logoSize};font-weight:${logoWeight};letter-spacing:${archetype === 'creative' ? '0.02em' : '-.02em'}${archetype === 'creative' ? ';text-transform:uppercase' : ''}}.logo span{color:var(--accent)}.nav-links{display:flex;align-items:center;gap:${archetype === 'creative' ? '36px' : '28px'};font-size:${archetype === 'food' ? '13px' : '14px'};color:var(--text-sec)${archetype === 'food' ? ';text-transform:uppercase;letter-spacing:.08em;font-weight:400' : archetype === 'creative' ? ';letter-spacing:.04em' : ''}}.nav-links a{transition:color .2s}.nav-links a:hover{color:var(--text)}.nav-cta{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;padding:${archetype === 'food' ? '8px 18px' : '9px 20px'};border-radius:${archetype === 'food' ? '0' : archetype === 'creative' ? '0' : 'var(--r)'};font-weight:600;font-size:13px;transition:all .2s${archetype === 'food' ? ';border:1px solid var(--accent);background:transparent;color:var(--accent)' : ''}}.nav-cta:hover{background:var(--accent-hover);color:#fff;transform:translateY(-1px)}.nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:6px}.nav-toggle span{display:block;width:20px;height:2px;background:var(--text);margin:4px 0}
+.sec-tag{font-size:${archetype === 'food' ? '11px' : '12px'};font-weight:${archetype === 'food' ? '400' : '700'};text-transform:uppercase;letter-spacing:${archetype === 'food' ? '.2em' : '.12em'};color:var(--accent);margin-bottom:${archetype === 'food' ? '12px' : '8px'}${archetype === 'food' ? ';font-family:var(--font)' : ''}}.sec-title{font-family:var(--font-head);font-size:clamp(22px,3.5vw,34px);font-weight:var(--heading-weight);margin-bottom:12px${archetype === 'food' ? ';font-style:italic' : ''}}.sec-desc{font-size:15px;color:var(--text-sec);line-height:1.7;margin-bottom:40px;max-width:540px}
+.btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:${archetype === 'food' ? '16px 36px' : archetype === 'creative' ? '14px 32px' : '14px 28px'};border-radius:${archetype === 'food' ? '0' : archetype === 'creative' ? '0' : 'var(--r)'};font-weight:${archetype === 'food' ? '400' : '600'};font-size:${archetype === 'food' ? '14px' : '15px'};transition:all .25s;border:none;cursor:pointer${archetype === 'food' ? ';letter-spacing:.06em;text-transform:uppercase' : archetype === 'creative' ? ';letter-spacing:.02em' : ''}}.btn-p:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 8px 24px ${isDark ? 'rgba(200,149,106,.2)' : 'rgba(0,0,0,.12)'}}.btn-o{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--text-sec);padding:${archetype === 'food' ? '16px 36px' : '14px 28px'};border-radius:${archetype === 'food' ? '0' : archetype === 'creative' ? '0' : 'var(--r)'};font-weight:500;font-size:15px;border:1px solid var(--border);transition:all .25s;cursor:pointer${archetype === 'food' ? ';letter-spacing:.06em;text-transform:uppercase;font-size:14px' : ''}}.btn-o:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:${archetype === 'creative' ? '140px 24px 100px' : archetype === 'food' ? '120px 24px 80px' : v.spacing === 'airy' ? '100px 24px 80px' : '80px 24px 64px'};background:${t.heroGrad};position:relative;overflow:hidden;text-align:${v.align}}.hero::after{content:'';position:absolute;top:-30%;right:-15%;width:500px;height:500px;border-radius:50%;background:var(--accent-bg);filter:blur(80px);pointer-events:none;opacity:.7}.hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1}.hero-split{display:grid;grid-template-columns:${archetype === 'food' || archetype === 'creative' ? '1fr' : '1.15fr .85fr'};gap:48px;align-items:center;text-align:${archetype === 'food' || archetype === 'creative' ? 'center' : 'left'}}.hero-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:${archetype === 'food' ? '400' : '700'};text-transform:uppercase;letter-spacing:${archetype === 'food' ? '.2em' : '.1em'};color:var(--accent);margin-bottom:16px;padding:${archetype === 'food' ? '0' : '6px 14px'};background:${archetype === 'food' ? 'transparent' : 'var(--accent-bg-solid)'};border-radius:100px;border:${archetype === 'food' ? 'none' : '1px solid var(--accent-bg)'}}.hero h1{font-family:var(--font-head);font-size:clamp(28px,4.5vw,${headingSize});${heroH1Style};line-height:1.12;margin-bottom:20px}.hero-sub{font-size:${archetype === 'food' ? '17px' : '16px'};color:var(--text-sec);line-height:1.75;margin-bottom:32px;max-width:${v.align === 'center' || archetype === 'food' || archetype === 'creative' ? '600px;margin-left:auto;margin-right:auto' : '500px'}}.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px;${v.align === 'center' || archetype === 'food' || archetype === 'creative' ? 'justify-content:center' : ''}}.hero-proof{display:flex;align-items:center;gap:14px;${v.align === 'center' || archetype === 'food' || archetype === 'creative' ? 'justify-content:center' : ''}}.hero-stars{color:#f5b731;font-size:15px;letter-spacing:2px}.hero-proof-text{font-size:13px;color:var(--text-sec)}.hero-proof-text strong{color:var(--text)}
 .hero-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:32px;box-shadow:0 24px 64px ${isDark ? 'rgba(0,0,0,.4)' : 'rgba(0,0,0,.08)'};position:relative}.hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);border-radius:var(--rl) var(--rl) 0 0}.hero-card-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:20px}.hero-card-stat{font-family:var(--font-head);font-size:52px;line-height:1;margin-bottom:4px}.hero-card-desc{font-size:14px;color:var(--text-sec);margin-bottom:24px}.hero-card-row{display:flex;gap:12px}.hero-card-mini{flex:1;text-align:center;padding:14px 8px;background:var(--accent-bg-solid);border-radius:var(--r);border:1px solid var(--accent-bg)}.hero-card-mini strong{display:block;font-family:var(--font-head);font-size:22px;color:var(--accent)}.hero-card-mini span{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.trust{background:var(--trust);padding:24px}.trust-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:center;gap:48px;flex-wrap:wrap}.trust-item{display:flex;flex-direction:column;align-items:center;gap:2px}.trust-num{font-family:var(--font-head);font-size:24px;color:#fff;font-weight:400}.trust-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45)}
+.trust{background:var(--trust);padding:${archetype === 'food' ? '16px 24px' : '24px'}}.trust-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:center;gap:${archetype === 'food' ? '60px' : '48px'};flex-wrap:wrap}.trust-item{display:flex;flex-direction:column;align-items:center;gap:2px}.trust-num{font-family:var(--font-head);font-size:${archetype === 'food' ? '20px' : '24px'};color:#fff;font-weight:400}.trust-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45)}
 .sect{padding:${v.spacing === 'airy' ? '100px' : v.spacing === 'tight' ? '60px' : '80px'} 24px}.sect-alt{background:var(--bg-alt)}
-.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.svc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:28px;transition:all .3s}.svc-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 32px ${isDark ? 'rgba(0,0,0,.25)' : 'rgba(0,0,0,.06)'}}.svc-icon{width:44px;height:44px;border-radius:var(--r);background:var(--accent-bg-solid);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--accent);border:1px solid var(--accent-bg)}.svc-card h3{font-size:16px;font-weight:600;margin-bottom:8px}.svc-card p{font-size:13px;color:var(--text-sec);line-height:1.65}
-.portfolio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.port-item{aspect-ratio:1;background:var(--accent-bg-solid);border-radius:var(--rl);border:1px solid var(--accent-bg);display:flex;align-items:center;justify-content:center;transition:all .3s;overflow:hidden;position:relative}.port-item:hover{transform:scale(1.02);box-shadow:0 12px 40px ${isDark ? 'rgba(0,0,0,.3)' : 'rgba(0,0,0,.08)'}}.port-item:nth-child(1){grid-column:span 2;grid-row:span 2;aspect-ratio:auto}.port-overlay{position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff}.port-overlay h3{font-size:14px;font-weight:600}.port-overlay p{font-size:11px;opacity:.8}
+.services-grid{display:grid;grid-template-columns:repeat(${svcCols},1fr);gap:${archetype === 'food' ? '0' : '16px'}}.svc-card{${svcCardStyle};transition:all .3s}.svc-card:hover{${archetype === 'food' || archetype === 'creative' ? 'transform:none;border-color:var(--accent)' : 'border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 32px ' + (isDark ? 'rgba(0,0,0,.25)' : 'rgba(0,0,0,.06)')}}.svc-icon{width:44px;height:44px;border-radius:${archetype === 'wellness' ? '50%' : 'var(--r)'};background:var(--accent-bg-solid);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--accent);border:1px solid var(--accent-bg)${archetype === 'food' ? ';display:none' : ''}}.svc-card h3{font-size:${archetype === 'food' ? '18px' : '16px'};font-weight:${archetype === 'food' ? '400' : '600'};margin-bottom:8px${archetype === 'food' ? ';font-family:var(--font-head);font-style:italic' : ''}}.svc-card p{font-size:13px;color:var(--text-sec);line-height:1.65}
+.portfolio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:${archetype === 'creative' ? '4px' : '12px'}}.port-item{aspect-ratio:${archetype === 'creative' ? '3/4' : '1'};background:var(--accent-bg-solid);border-radius:${archetype === 'creative' ? '0' : 'var(--rl)'};border:${archetype === 'creative' ? 'none' : '1px solid var(--accent-bg)'};display:flex;align-items:center;justify-content:center;transition:all .3s;overflow:hidden;position:relative}.port-item:hover{transform:scale(1.02);box-shadow:0 12px 40px ${isDark ? 'rgba(0,0,0,.3)' : 'rgba(0,0,0,.08)'}}.port-item:nth-child(1){grid-column:${archetype === 'creative' ? 'span 1' : 'span 2'};grid-row:${archetype === 'creative' ? 'span 2' : 'span 2'};aspect-ratio:auto}.port-overlay{position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;${archetype === 'creative' ? 'opacity:0;transition:opacity .3s' : ''}}.port-item:hover .port-overlay{opacity:1}.port-overlay h3{font-size:14px;font-weight:${archetype === 'creative' ? '300' : '600'}}.port-overlay p{font-size:11px;opacity:.8}
 .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.menu-item{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 0;border-bottom:1px solid var(--border)}.menu-item h3{font-size:15px;font-weight:600;margin-bottom:4px}.menu-item p{font-size:13px;color:var(--text-sec)}.menu-price{font-family:var(--font-head);font-size:16px;color:var(--accent);white-space:nowrap;margin-left:16px}
 .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;counter-reset:steps}.step-card{text-align:center;padding:32px 24px;position:relative}.step-num{width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:20px;font-weight:700;margin:0 auto 16px}.step-card h3{font-size:16px;font-weight:600;margin-bottom:8px}.step-card p{font-size:13px;color:var(--text-sec);line-height:1.65}
-.about-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}.about-img{width:100%;aspect-ratio:4/3;background:var(--accent-bg-solid);border-radius:var(--rl);display:flex;align-items:center;justify-content:center;border:1px solid var(--accent-bg)}.about-img svg{width:80px;height:80px;color:var(--accent);opacity:.25}.about-text h2{font-family:var(--font-head);font-size:28px;font-weight:var(--heading-weight);margin-bottom:20px}.about-text p{font-size:15px;color:var(--text-sec);line-height:1.8;margin-bottom:16px}.about-stats{display:flex;gap:32px;margin-top:28px;padding-top:24px;border-top:1px solid var(--border)}.about-stat{text-align:center}.about-stat strong{display:block;font-family:var(--font-head);font-size:32px;color:var(--accent)}.about-stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.about-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:${archetype === 'food' || archetype === 'creative' ? '1fr' : '1fr 1fr'};gap:56px;align-items:center${archetype === 'food' ? ';text-align:center;max-width:700px' : ''}}.about-img{width:100%;aspect-ratio:4/3;background:var(--accent-bg-solid);border-radius:var(--rl);display:flex;align-items:center;justify-content:center;border:1px solid var(--accent-bg)${archetype === 'food' ? ';display:none' : archetype === 'creative' ? ';display:none' : ''}}.about-img svg{width:80px;height:80px;color:var(--accent);opacity:.25}.about-text h2{font-family:var(--font-head);font-size:${archetype === 'food' ? '32px' : '28px'};font-weight:var(--heading-weight);margin-bottom:20px${archetype === 'food' ? ';font-style:italic' : ''}}.about-text p{font-size:15px;color:var(--text-sec);line-height:1.8;margin-bottom:16px}.about-stats{display:flex;gap:32px;margin-top:28px;padding-top:24px;border-top:1px solid var(--border)${archetype === 'food' ? ';justify-content:center' : ''}}.about-stat{text-align:center}.about-stat strong{display:block;font-family:var(--font-head);font-size:32px;color:var(--accent)}.about-stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.gallery-item{aspect-ratio:1;background:var(--accent-bg-solid);border-radius:var(--r);border:1px solid var(--accent-bg);display:flex;align-items:center;justify-content:center}.gallery-item svg{width:32px;height:32px;color:var(--accent);opacity:.2}
-.reviews-grid{display:grid;grid-template-columns:repeat(${testimonials.length > 2 ? 3 : testimonials.length},1fr);gap:16px}.review-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:28px;display:flex;flex-direction:column}.review-stars{color:#f5b731;font-size:14px;letter-spacing:2px;margin-bottom:16px}.review-card blockquote{font-size:14px;color:var(--text-sec);line-height:1.7;margin-bottom:auto;padding-bottom:20px;flex:1;font-style:${archetype === 'creative' ? 'italic' : 'normal'}}.review-card cite{font-style:normal;font-size:13px;font-weight:600;display:block;padding-top:16px;border-top:1px solid var(--border)}.review-card cite span{font-weight:400;color:var(--muted);font-size:12px;display:block;margin-top:2px}
+.reviews-grid{display:grid;grid-template-columns:repeat(${testimonials.length > 2 ? 3 : testimonials.length},1fr);gap:${archetype === 'food' ? '0' : '16px'}}.review-card{background:${archetype === 'food' ? 'transparent' : 'var(--card)'};border:${archetype === 'food' ? 'none;border-bottom:1px solid var(--border)' : '1px solid var(--border)'};border-radius:${archetype === 'food' ? '0' : 'var(--rl)'};padding:${archetype === 'food' ? '32px 0' : '28px'};display:flex;flex-direction:column${archetype === 'food' ? ';text-align:center' : ''}}.review-stars{color:#f5b731;font-size:14px;letter-spacing:2px;margin-bottom:16px}.review-card blockquote{font-size:${archetype === 'food' ? '16px' : '14px'};color:var(--text-sec);line-height:1.7;margin-bottom:auto;padding-bottom:20px;flex:1;font-style:${archetype === 'creative' || archetype === 'food' ? 'italic' : 'normal'}${archetype === 'food' ? ';font-family:var(--font-head)' : ''}}.review-card cite{font-style:normal;font-size:13px;font-weight:600;display:block;padding-top:16px;border-top:${archetype === 'food' ? 'none' : '1px solid var(--border)'}${archetype === 'food' ? ';text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:400' : ''}}.review-card cite span{font-weight:400;color:var(--muted);font-size:12px;display:block;margin-top:2px}
 .hours-box{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:32px;max-width:500px;margin:0 auto}.hours-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}.hours-row:last-child{border:none}
-.cta-sect{padding:80px 24px;background:var(--bg-alt);text-align:center}.cta-inner{max-width:600px;margin:0 auto}.cta-inner h2{font-family:var(--font-head);font-size:clamp(22px,3.5vw,34px);font-weight:var(--heading-weight);margin-bottom:16px}.cta-inner p{font-size:15px;color:var(--text-sec);line-height:1.7;margin-bottom:28px}.cta-btns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.cta-sect{padding:${archetype === 'food' ? '100px' : '80px'} 24px;background:${archetype === 'food' ? 'var(--trust)' : archetype === 'creative' ? 'var(--text)' : 'var(--bg-alt)'};text-align:center${archetype === 'food' || archetype === 'creative' ? ';color:#fff' : ''}}.cta-inner{max-width:600px;margin:0 auto}.cta-inner h2{font-family:var(--font-head);font-size:clamp(22px,3.5vw,34px);font-weight:var(--heading-weight);margin-bottom:16px${archetype === 'food' ? ';font-style:italic;color:#fff' : archetype === 'creative' ? ';color:#fff;font-weight:300' : ''}}.cta-inner p{font-size:15px;color:${archetype === 'food' || archetype === 'creative' ? 'rgba(255,255,255,.7)' : 'var(--text-sec)'};line-height:1.7;margin-bottom:28px}.cta-btns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.cta-sect .btn-p{${archetype === 'food' ? 'background:#fff;color:var(--accent)' : archetype === 'creative' ? 'background:#fff;color:var(--text);border-radius:0' : ''}}.cta-sect .btn-o{${archetype === 'food' || archetype === 'creative' ? 'border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.8)' : ''}}
 .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;max-width:800px;margin:0 auto}.contact-info{display:flex;flex-direction:column;gap:16px}.contact-item{display:flex;align-items:flex-start;gap:12px}.contact-item svg{flex-shrink:0;color:var(--accent);margin-top:2px}.contact-item p{font-size:14px;color:var(--text-sec);line-height:1.6}.contact-item a{color:var(--accent)}
 footer{padding:48px 24px 32px;border-top:1px solid var(--border)}.footer-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px}.footer-brand .logo{margin-bottom:12px;display:inline-block}.footer-brand p{font-size:13px;color:var(--muted);line-height:1.6;max-width:240px}.footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px}.footer-col ul{list-style:none}.footer-col li{margin-bottom:6px}.footer-col a{font-size:13px;color:var(--text-sec);transition:color .2s}.footer-col a:hover{color:var(--accent)}.footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}.footer-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);background:var(--accent-bg-solid);padding:4px 10px;border-radius:4px;font-weight:600;border:1px solid var(--accent-bg)}
 @media(max-width:900px){.hero-split{grid-template-columns:1fr}.hero-card{display:none}.services-grid,.reviews-grid,.steps-grid{grid-template-columns:1fr 1fr}.portfolio-grid{grid-template-columns:1fr 1fr}.port-item:nth-child(1){grid-column:span 1;grid-row:span 1}.about-inner{grid-template-columns:1fr}.about-img{display:none}.footer-inner{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}.menu-grid,.contact-grid{grid-template-columns:1fr}.gallery-grid{grid-template-columns:repeat(3,1fr)}}
@@ -918,7 +1017,7 @@ footer{padding:48px 24px 32px;border-top:1px solid var(--border)}.footer-inner{m
 <body>
 <nav class="nav"><div class="nav-inner"><a href="#" class="logo">${name}<span>.</span></a><div class="nav-links">${navLinks}${navCta}</div><button class="nav-toggle"><span></span><span></span><span></span></button></div></nav>
 ${sectionHtml}
-<footer><div class="footer-inner"><div class="footer-brand"><a href="#" class="logo">${name}<span>.</span></a><p>${archetype === 'creative' ? esc(biz.tagline || biz.niche || 'Creative professional') + '.' : `Serving ${loc} ${biz.years ? 'for ' + years + ' years' : 'and surrounding areas'}.`}</p></div><div class="footer-col"><h4>${labels.services}</h4><ul>${services.slice(0, 4).map(s => `<li><a href="#services">${esc(s.name)}</a></li>`).join('')}</ul></div><div class="footer-col"><h4>Company</h4><ul><li><a href="#about">${labels.about}</a></li><li><a href="#reviews">${labels.reviews}</a></li></ul></div><div class="footer-col"><h4>Contact</h4><ul>${phone ? `<li><a href="tel:${phoneHref}">${phone}</a></li>` : ''}${contactEmail ? `<li><a href="mailto:${contactEmail}">${contactEmail}</a></li>` : ''}<li>${loc}</li></ul></div></div><div class="footer-bottom"><span>&copy; ${year} ${name}. All rights reserved.</span><span class="footer-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Redesigned by Velocity</span></div></footer>
+<footer><div class="footer-inner"><div class="footer-brand"><a href="#" class="logo">${name}<span>.</span></a><p>${archetype === 'creative' ? esc(biz.tagline || biz.niche || 'Creative professional') + '.' : `Serving ${loc} ${biz.years ? 'for ' + years + ' years' : 'and surrounding areas'}.`}</p></div><div class="footer-col"><h4>${labels.services}</h4><ul>${services.slice(0, 4).map(s => `<li><a href="#services">${esc(s.name)}</a></li>`).join('')}</ul></div><div class="footer-col"><h4>Company</h4><ul><li><a href="#about">${labels.about}</a></li><li><a href="#reviews">${labels.reviews}</a></li></ul></div><div class="footer-col"><h4>Contact</h4><ul>${phone ? `<li><a href="tel:${phoneHref}">${phone}</a></li>` : ''}${contactEmail ? `<li><a href="mailto:${contactEmail}">${contactEmail}</a></li>` : ''}<li>${loc}</li></ul></div></div><div class="footer-bottom"><span>&copy; ${year} ${name}. All rights reserved.</span><span class="footer-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Redesigned by <a href="https://velocity.delivery" style="color:inherit;text-decoration:underline;">Velocity</a> &middot; by <a href="https://calyvent.com" target="_blank" style="color:inherit;text-decoration:underline;">Calyvent</a></span></div></footer>
 </body></html>`;
 }
 
@@ -959,8 +1058,18 @@ function buildServicesSection(services, d) {
 }
 
 function buildPortfolioSection(services, d) {
-  // Creative archetype: showcase work as a visual grid instead of service cards
-  const items = services.map((s, i) => `<div class="port-item fu fu${Math.min(i, 3)}"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".15"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><div class="port-overlay"><h3>${esc(s.name)}</h3><p>${esc((s.desc || '').substring(0, 60))}</p></div></div>`);
+  // Creative archetype: abstract project tiles that look like real work
+  const fills = ['var(--accent)', 'var(--trust)', 'var(--muted)'];
+  const items = services.map((s, i) => {
+    const f = fills[i % fills.length];
+    const patterns = [
+      `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><circle cx="40%" cy="40%" r="30%" fill="${f}" opacity=".1"/><circle cx="60%" cy="55%" r="20%" fill="${f}" opacity=".15"/>`,
+      `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><rect x="10%" y="15%" width="80%" height="50%" rx="8" fill="${f}" opacity=".08"/><rect x="20%" y="72%" width="60%" height="6" rx="3" fill="var(--muted)" opacity=".12"/>`,
+      `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><polygon points="150,20 280,180 20,180" fill="${f}" opacity=".08"/><circle cx="50%" cy="30%" r="12%" fill="${f}" opacity=".12"/>`,
+      `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><rect x="5%" y="5%" width="42%" height="90%" rx="6" fill="${f}" opacity=".07"/><rect x="53%" y="5%" width="42%" height="43%" rx="6" fill="${f}" opacity=".1"/><rect x="53%" y="52%" width="42%" height="43%" rx="6" fill="${f}" opacity=".06"/>`,
+    ];
+    return `<div class="port-item fu fu${Math.min(i, 3)}"><svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;position:absolute;top:0;left:0">${patterns[i % patterns.length]}</svg><div class="port-overlay"><h3>${esc(s.name)}</h3><p>${esc((s.desc || '').substring(0, 60))}</p></div></div>`;
+  });
   return `<section class="sect" id="work"><div class="wrap"><div class="sec-tag">${esc(d.labels.services)}</div><div class="sec-title">Selected Work</div><div class="sec-desc">A glimpse of recent projects and creative work.</div><div class="portfolio-grid">${items.join('')}</div></div></section>`;
 }
 
@@ -989,7 +1098,9 @@ function buildProcessSteps(biz, d) {
 
 function buildAboutSection(about, d) {
   const statsHtml = d.config.showStats ? `<div class="about-stats"><div class="about-stat"><strong>${d.years}</strong><span>Years</span></div><div class="about-stat"><strong>500+</strong><span>Projects</span></div><div class="about-stat"><strong>4.9</strong><span>Rating</span></div></div>` : '';
-  return `<section class="sect sect-alt" id="about"><div class="about-inner wrap"><div class="about-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="width:80px;height:80px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div><div class="about-text"><div class="sec-tag">${esc(d.labels.about)}</div><h2>${esc(about.heading || 'Real people. Real work. Real results.')}</h2><p>${d.aboutParas || ''}</p>${statsHtml}</div></div></section>`;
+  // Rich team/person illustration instead of empty box
+  const aboutIllustration = `<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block"><rect width="400" height="300" rx="14" fill="var(--accent-bg-solid)"/><rect x="20" y="20" width="360" height="170" rx="10" fill="var(--card)" stroke="var(--border)"/><circle cx="130" cy="90" r="40" fill="var(--accent-bg)"/><circle cx="130" cy="80" r="16" fill="var(--accent)" opacity=".25"/><path d="M130 96c-18 0-30 14-30 24h60c0-10-12-24-30-24z" fill="var(--accent)" opacity=".18"/><rect x="200" y="55" width="140" height="8" rx="4" fill="var(--accent)" opacity=".18"/><rect x="200" y="75" width="120" height="5" rx="3" fill="var(--muted)" opacity=".15"/><rect x="200" y="90" width="150" height="5" rx="3" fill="var(--muted)" opacity=".12"/><rect x="200" y="105" width="100" height="5" rx="3" fill="var(--muted)" opacity=".12"/><rect x="200" y="135" width="80" height="24" rx="var(--r)" fill="var(--accent)" opacity=".2"/><rect x="30" y="210" width="105" height="70" rx="8" fill="var(--card)" stroke="var(--border)"/><text x="82" y="245" text-anchor="middle" font-size="22" font-weight="700" fill="var(--accent)" font-family="sans-serif">${d.years}</text><text x="82" y="262" text-anchor="middle" font-size="8" fill="var(--muted)" font-family="sans-serif">YEARS</text><rect x="148" y="210" width="105" height="70" rx="8" fill="var(--card)" stroke="var(--border)"/><text x="200" y="245" text-anchor="middle" font-size="22" font-weight="700" fill="var(--accent)" font-family="sans-serif">4.9</text><text x="200" y="262" text-anchor="middle" font-size="8" fill="var(--muted)" font-family="sans-serif">RATING</text><rect x="265" y="210" width="105" height="70" rx="8" fill="var(--card)" stroke="var(--border)"/><text x="317" y="245" text-anchor="middle" font-size="22" font-weight="700" fill="var(--accent)" font-family="sans-serif">500+</text><text x="317" y="262" text-anchor="middle" font-size="8" fill="var(--muted)" font-family="sans-serif">CLIENTS</text></svg>`;
+  return `<section class="sect sect-alt" id="about"><div class="about-inner wrap"><div class="about-img" style="background:none;border:none">${aboutIllustration}</div><div class="about-text"><div class="sec-tag">${esc(d.labels.about)}</div><h2>${esc(about.heading || 'Real people. Real work. Real results.')}</h2><p>${d.aboutParas || ''}</p>${statsHtml}</div></div></section>`;
 }
 
 function buildTestimonialsSection(testimonials, d) {
@@ -998,8 +1109,20 @@ function buildTestimonialsSection(testimonials, d) {
 }
 
 function buildGallerySection(d) {
-  const placeholders = Array.from({ length: 8 }, () => `<div class="gallery-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`);
-  return `<section class="sect sect-alt"><div class="wrap"><div class="sec-tag">Gallery</div><div class="sec-title">Moments &amp; Atmosphere</div><div class="gallery-grid">${placeholders.join('')}</div></div></section>`;
+  // Generate varied abstract gallery tiles that look like real photos
+  const colors = ['var(--accent)', 'var(--trust)', 'var(--accent-bg-solid)', 'var(--muted)'];
+  const patterns = [
+    `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><circle cx="50%" cy="40%" r="25%" fill="var(--accent)" opacity=".12"/><rect x="10%" y="65%" width="80%" height="4" rx="2" fill="var(--muted)" opacity=".15"/>`,
+    `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><rect x="15%" y="20%" width="70%" height="40%" rx="6" fill="var(--accent)" opacity=".08"/><rect x="25%" y="70%" width="50%" height="4" rx="2" fill="var(--muted)" opacity=".15"/>`,
+    `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><circle cx="30%" cy="35%" r="15%" fill="var(--accent)" opacity=".15"/><circle cx="65%" cy="50%" r="20%" fill="var(--accent)" opacity=".08"/>`,
+    `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><polygon points="50,15 85,75 15,75" fill="var(--accent)" opacity=".1"/><rect x="20%" y="80%" width="60%" height="3" rx="2" fill="var(--muted)" opacity=".12"/>`,
+    `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><rect x="10%" y="10%" width="35%" height="80%" rx="6" fill="var(--accent)" opacity=".08"/><rect x="55%" y="20%" width="35%" height="60%" rx="6" fill="var(--accent)" opacity=".12"/>`,
+    `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><circle cx="50%" cy="45%" r="30%" fill="var(--accent)" opacity=".06"/><circle cx="50%" cy="45%" r="18%" fill="var(--accent)" opacity=".1"/>`,
+    `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><rect x="5%" y="30%" width="90%" height="40%" rx="8" fill="var(--accent)" opacity=".07"/><rect x="15%" y="75%" width="30%" height="4" rx="2" fill="var(--muted)" opacity=".15"/>`,
+    `<rect width="100%" height="100%" fill="var(--accent-bg-solid)"/><path d="M0 80 Q50 20 100 60 Q150 100 200 50" stroke="var(--accent)" stroke-width="2" fill="none" opacity=".15" transform="scale(1.5)"/>`,
+  ];
+  const items = patterns.map(p => `<div class="gallery-item"><svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice">${p}</svg></div>`);
+  return `<section class="sect sect-alt"><div class="wrap"><div class="sec-tag">Gallery</div><div class="sec-title">Moments &amp; Atmosphere</div><div class="gallery-grid">${items.join('')}</div></div></section>`;
 }
 
 function buildHoursLocation(d) {
@@ -1020,16 +1143,29 @@ function buildCtaSection(ctaContent, d) {
   return `<section class="cta-sect"><div class="cta-inner"><div class="sec-tag">Ready?</div><h2>${esc(ctaContent.heading || d.labels.cta)}</h2><p>${esc(ctaContent.subtext || 'No pressure, no obligation.')}</p><div class="cta-btns">${d.phone ? `<a href="tel:${d.phoneHref}" class="btn-p">Call ${d.phone}</a>` : ''}${d.contactEmail ? `<a href="mailto:${d.contactEmail}" class="btn-o">Email Us</a>` : ''}</div></div></section>`;
 }
 
-function getTheme(style) {
-  const themes = {
-    'modern-clean': { bg:'#fafaf8',bgAlt:'#f2f1ed',nav:'#ffffff',accent:'#1a6b44',accentHover:'#15573a',accentBg:'rgba(26,107,68,0.06)',accentBgSolid:'#eef5f0',trust:'#1a3a2a',text:'#1a2e22',textSec:'#5a6b60',muted:'#8a9b90',card:'#ffffff',border:'rgba(0,0,0,0.06)',heroGrad:'linear-gradient(135deg,#f0f7f3 0%,#fafaf8 50%,#f7f5f0 100%)',font:"'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif",fontHead:"'Georgia','Times New Roman',serif",gFont:'Inter:wght@400;500;600;700' },
-    'bold-dark': { bg:'#0e0c0a',bgAlt:'#161412',nav:'#121010',accent:'#c8956a',accentHover:'#d4a57a',accentBg:'rgba(200,149,106,0.08)',accentBgSolid:'#1e1a15',trust:'#1a1614',text:'#e8ddd3',textSec:'#a89f94',muted:'#6d6560',card:'#1a1815',border:'rgba(255,255,255,0.06)',heroGrad:'linear-gradient(135deg,#1a1410 0%,#0e0c0a 50%,#12100e 100%)',font:"'DM Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif",fontHead:"'Georgia','Times New Roman',serif",gFont:'DM+Sans:wght@400;500;600;700' },
-    'warm-friendly': { bg:'#faf6f1',bgAlt:'#f3ece3',nav:'#ffffff',accent:'#c66b2e',accentHover:'#b55e24',accentBg:'rgba(198,107,46,0.07)',accentBgSolid:'#fdf3e8',trust:'#3b2a18',text:'#2e2218',textSec:'#7a6a56',muted:'#a09080',card:'#ffffff',border:'rgba(0,0,0,0.06)',heroGrad:'linear-gradient(135deg,#fdf3e8 0%,#faf6f1 50%,#f8f0e6 100%)',font:"'Nunito Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif",fontHead:"'Georgia','Times New Roman',serif",gFont:'Nunito+Sans:wght@400;500;600;700' },
-    'professional': { bg:'#f5f6f8',bgAlt:'#eef0f4',nav:'#ffffff',accent:'#2955a3',accentHover:'#1e4590',accentBg:'rgba(41,85,163,0.06)',accentBgSolid:'#eef2fa',trust:'#1a2a4a',text:'#1a2030',textSec:'#5a6578',muted:'#8a90a0',card:'#ffffff',border:'rgba(0,0,0,0.06)',heroGrad:'linear-gradient(135deg,#eef2fa 0%,#f5f6f8 50%,#f0f2f8 100%)',font:"'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif",fontHead:"'Georgia','Times New Roman',serif",gFont:'Inter:wght@400;500;600;700' },
-    'rustic': { bg:'#f4f0e8',bgAlt:'#ebe5da',nav:'#ffffff',accent:'#7a6040',accentHover:'#6a5035',accentBg:'rgba(122,96,64,0.07)',accentBgSolid:'#f0ebe0',trust:'#3a3020',text:'#2e2418',textSec:'#706050',muted:'#9a8a78',card:'#ffffff',border:'rgba(0,0,0,0.06)',heroGrad:'linear-gradient(135deg,#f0ebe0 0%,#f4f0e8 50%,#ede8dd 100%)',font:"'Lora',Georgia,'Times New Roman',serif",fontHead:"'Georgia','Times New Roman',serif",gFont:'Lora:wght@400;500;600;700' },
-    'surprise': { bg:'#faf8ff',bgAlt:'#f2f0fa',nav:'#ffffff',accent:'#7c3aed',accentHover:'#6d28d9',accentBg:'rgba(124,58,237,0.06)',accentBgSolid:'#f0ecff',trust:'#2a1a4a',text:'#1e1b2e',textSec:'#6b6580',muted:'#9a95a8',card:'#ffffff',border:'rgba(0,0,0,0.06)',heroGrad:'linear-gradient(135deg,#f0ecff 0%,#faf8ff 50%,#f4f0ff 100%)',font:"'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif",fontHead:"'Georgia','Times New Roman',serif",gFont:'Inter:wght@400;500;600;700' },
+function getTheme(style, archetype) {
+  // Archetype-specific themes with truly different fonts, colors, and visual DNA
+  const archetypeThemes = {
+    'local-service': { bg:'#fafaf5',bgAlt:'#f0ede6',nav:'#ffffff',accent:'#1a5632',accentHover:'#13472a',accentBg:'rgba(26,86,50,0.06)',accentBgSolid:'#ecf4ef',trust:'#14301e',text:'#1a2e1c',textSec:'#4d5e4f',muted:'#7e8e80',card:'#ffffff',border:'rgba(0,0,0,0.07)',heroGrad:'linear-gradient(140deg,#e8f0ea 0%,#fafaf5 60%,#f5f3ed 100%)',font:"'Poppins',-apple-system,system-ui,sans-serif",fontHead:"'Poppins',sans-serif",gFont:'Poppins:wght@400;500;600;700;800',svcCols:2,cardRadius:'12px',headingStyle:'bold-sans' },
+    'food': { bg:'#fdf8f3',bgAlt:'#f8f0e6',nav:'#fdf8f3',accent:'#8b2252',accentHover:'#751d45',accentBg:'rgba(139,34,82,0.05)',accentBgSolid:'#fdf0f4',trust:'#3a1522',text:'#2c1a18',textSec:'#6b524e',muted:'#9a827e',card:'#ffffff',border:'rgba(139,34,82,0.08)',heroGrad:'linear-gradient(160deg,#f8ece0 0%,#fdf8f3 40%,#fdf0f4 100%)',font:"'Lato',-apple-system,system-ui,sans-serif",fontHead:"'Playfair Display',Georgia,serif",gFont:'Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lato:wght@300;400;700',svcCols:1,cardRadius:'0px',headingStyle:'elegant-serif' },
+    'creative': { bg:'#ffffff',bgAlt:'#f6f6f6',nav:'#ffffff',accent:'#111111',accentHover:'#333333',accentBg:'rgba(0,0,0,0.03)',accentBgSolid:'#f0f0f0',trust:'#111111',text:'#111111',textSec:'#555555',muted:'#999999',card:'#fafafa',border:'rgba(0,0,0,0.08)',heroGrad:'linear-gradient(180deg,#ffffff 0%,#f8f8f8 100%)',font:"'Inter',-apple-system,system-ui,sans-serif",fontHead:"'Space Grotesk','Inter',sans-serif",gFont:'Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500',svcCols:3,cardRadius:'0px',headingStyle:'display-sans' },
+    'wellness': { bg:'#f5faf6',bgAlt:'#edf5ef',nav:'#f5faf6',accent:'#4a7c59',accentHover:'#3d6a4b',accentBg:'rgba(74,124,89,0.06)',accentBgSolid:'#e8f2eb',trust:'#2a4a32',text:'#1e3228',textSec:'#5a7562',muted:'#8aaa92',card:'#ffffff',border:'rgba(74,124,89,0.1)',heroGrad:'linear-gradient(150deg,#e8f2eb 0%,#f5faf6 50%,#faf8f5 100%)',font:"'Jost',-apple-system,system-ui,sans-serif",fontHead:"'Cormorant Garamond',Georgia,serif",gFont:'Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600',svcCols:3,cardRadius:'20px',headingStyle:'delicate-serif' },
+    'professional': { bg:'#f4f5f7',bgAlt:'#ebeef2',nav:'#ffffff',accent:'#1e3a5f',accentHover:'#162d4a',accentBg:'rgba(30,58,95,0.05)',accentBgSolid:'#e8eef6',trust:'#0f1f33',text:'#1a2030',textSec:'#4a5568',muted:'#8292a2',card:'#ffffff',border:'rgba(0,0,0,0.06)',heroGrad:'linear-gradient(135deg,#e8eef6 0%,#f4f5f7 50%,#f0f2f6 100%)',font:"'Source Sans 3',-apple-system,system-ui,sans-serif",fontHead:"'Libre Baskerville',Georgia,serif",gFont:'Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700',svcCols:3,cardRadius:'8px',headingStyle:'classic-serif' },
+    'ecommerce': { bg:'#fafafa',bgAlt:'#f0f0f0',nav:'#ffffff',accent:'#2563eb',accentHover:'#1d4fd8',accentBg:'rgba(37,99,235,0.05)',accentBgSolid:'#eff4ff',trust:'#111827',text:'#111827',textSec:'#4b5563',muted:'#9ca3af',card:'#ffffff',border:'rgba(0,0,0,0.06)',heroGrad:'linear-gradient(135deg,#eff4ff 0%,#fafafa 50%,#f5f5ff 100%)',font:"'Inter',-apple-system,system-ui,sans-serif",fontHead:"'Sora','Inter',sans-serif",gFont:'Sora:wght@300;400;500;600;700&family=Inter:wght@400;500',svcCols:4,cardRadius:'16px',headingStyle:'modern-sans' },
+    'nonprofit': { bg:'#fafbf8',bgAlt:'#f0f2ed',nav:'#ffffff',accent:'#0d7377',accentHover:'#0a5e61',accentBg:'rgba(13,115,119,0.06)',accentBgSolid:'#e6f3f3',trust:'#0a4a4c',text:'#1a2e2e',textSec:'#4a6060',muted:'#7a9090',card:'#ffffff',border:'rgba(13,115,119,0.08)',heroGrad:'linear-gradient(140deg,#e6f3f3 0%,#fafbf8 50%,#f5f8f0 100%)',font:"'Open Sans',-apple-system,system-ui,sans-serif",fontHead:"'Merriweather',Georgia,serif",gFont:'Merriweather:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@400;500;600;700',svcCols:3,cardRadius:'12px',headingStyle:'serious-serif' },
   };
-  return themes[style] || themes['modern-clean'];
+
+  // Style overrides (user preference) can modify the archetype base
+  const styleOverrides = {
+    'bold-dark': { bg:'#0e0c0a',bgAlt:'#161412',nav:'#121010',text:'#e8ddd3',textSec:'#a89f94',muted:'#6d6560',card:'#1a1815',border:'rgba(255,255,255,0.06)',heroGrad:'linear-gradient(135deg,#1a1410 0%,#0e0c0a 50%,#12100e 100%)' },
+    'warm-friendly': { accent:'#c66b2e',accentHover:'#b55e24',accentBg:'rgba(198,107,46,0.07)',accentBgSolid:'#fdf3e8' },
+    'rustic': { accent:'#7a6040',accentHover:'#6a5035',accentBg:'rgba(122,96,64,0.07)',accentBgSolid:'#f0ebe0',font:"'Lora',Georgia,serif",gFont:'Lora:wght@400;500;600;700' },
+    'surprise': { accent:'#7c3aed',accentHover:'#6d28d9',accentBg:'rgba(124,58,237,0.06)',accentBgSolid:'#f0ecff' },
+  };
+
+  const base = archetypeThemes[archetype] || archetypeThemes['local-service'];
+  const overrides = styleOverrides[style] || {};
+  return { ...base, ...overrides };
 }
 
 // ── QA Engine (inline copy from qa.js for orchestrator) ───────

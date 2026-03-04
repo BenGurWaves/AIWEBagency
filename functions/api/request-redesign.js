@@ -183,7 +183,7 @@ function buildConfirmationEmail(websiteUrl) {
   <div style="max-width:560px;margin:0 auto;padding:48px 28px;">
 
     <!-- Logo -->
-    <div style="font-size:22px;color:#e8ddd3;margin-bottom:32px;">Velocity<span style="color:#c8956a;">.</span></div>
+    <div style="font-size:22px;color:#e8ddd3;margin-bottom:32px;">Velocity<span style="color:#c8956a;">.</span> <span style="font-size:12px;color:#6d6560;font-family:-apple-system,system-ui,sans-serif;">by <a href="https://calyvent.com" style="color:#6d6560;text-decoration:none;">Calyvent</a></span></div>
 
     <!-- Welcome -->
     <h1 style="font-size:28px;color:#e8ddd3;font-weight:400;line-height:1.3;margin:0 0 8px;">
@@ -306,7 +306,7 @@ function buildConfirmationEmail(websiteUrl) {
 
     <!-- Footer -->
     <div style="border-top:1px solid #2e2a24;margin-top:36px;padding-top:24px;text-align:center;">
-      <p style="font-size:18px;color:#e8ddd3;margin:0 0 6px;font-family:Georgia,serif;">Velocity<span style="color:#c8956a;">.</span></p>
+      <p style="font-size:18px;color:#e8ddd3;margin:0 0 6px;font-family:Georgia,serif;">Velocity<span style="color:#c8956a;">.</span> <span style="font-size:11px;color:#6d6560;font-family:-apple-system,system-ui,sans-serif;">by <a href="https://calyvent.com" style="color:#6d6560;text-decoration:none;">Calyvent</a></span></p>
       <p style="font-size:12px;color:#6d6560;margin:0 0 4px;font-family:-apple-system,system-ui,sans-serif;">
         Websites for tradespeople who are too busy doing real work.
       </p>
@@ -328,7 +328,7 @@ function buildNotificationEmail(websiteUrl, email) {
   <div style="max-width:560px;margin:0 auto;padding:48px 28px;">
 
     <!-- Logo -->
-    <div style="font-size:22px;color:#e8ddd3;font-family:Georgia,serif;margin-bottom:28px;">Velocity<span style="color:#c8956a;">.</span></div>
+    <div style="font-size:22px;color:#e8ddd3;font-family:Georgia,serif;margin-bottom:28px;">Velocity<span style="color:#c8956a;">.</span> <span style="font-size:12px;color:#6d6560;font-family:-apple-system,system-ui,sans-serif;">by <a href="https://calyvent.com" style="color:#6d6560;text-decoration:none;">Calyvent</a></span></div>
 
     <!-- Alert Banner -->
     <div style="background:rgba(200,149,106,0.12);border:1px solid rgba(200,149,106,0.25);border-radius:10px;padding:16px 20px;margin-bottom:24px;">
