@@ -658,6 +658,457 @@ function getNicheIntelligence(niche) {
       ],
       ctaBlocks: [{ heading: 'Ready to stop cleaning your own house?', subtext: 'Book your first clean and see the difference. If you\'re not thrilled, it\'s on us.', button_text: 'Book Your First Clean' }],
     },
+    'auto-repair': {
+      headlines: [
+        'Your car deserves a mechanic you actually trust.',
+        'Honest diagnostics. Fair prices. No upsells.',
+        'We fix cars — not invoices.',
+        'The shop your neighbor told you about.',
+      ],
+      heroSubs: [
+        '{name} has been keeping {location} vehicles on the road for {years} years. From oil changes to engine rebuilds, we explain everything before we touch a wrench.',
+        'Tired of mechanics who "find" problems you didn\'t have? {name} diagnoses honestly, prices fairly, and gets you back on the road fast. {years} years of trust in {location}.',
+      ],
+      heroTags: ['ASE-Certified Mechanics • {location}', '{years} Years Trusted • {location}'],
+      heroCTAs: ['Schedule Service', 'Get a Free Diagnostic Quote'],
+      services: [
+        { name: 'Oil Change & Maintenance', description: 'Synthetic, conventional, or high-mileage. Quick service, proper disposal, and we check everything else while it\'s up on the lift.', icon: 'droplet' },
+        { name: 'Brake Service', description: 'Pads, rotors, calipers, lines. We show you the old parts so you can see why they needed replacing.', icon: 'shield' },
+        { name: 'Engine Diagnostics', description: 'Check engine light? We read the code and actually investigate the root cause — not just the symptom.', icon: 'search' },
+        { name: 'Transmission Service', description: 'Fluid changes, filter replacement, and full transmission repair. We save what we can and replace what we must.', icon: 'settings' },
+        { name: 'AC & Heating', description: 'Blowing hot in summer? Cold in winter? We diagnose the system properly and fix it right.', icon: 'thermometer' },
+        { name: 'Tire Service', description: 'New tires, rotation, balancing, alignment. We carry major brands and offer competitive pricing.', icon: 'tool' },
+      ],
+      aboutBlocks: [{
+        heading: 'We show you the problem. Then we fix it.',
+        paragraphs: [
+          '{name} was founded on one rule: never fix something that isn\'t broken. Our ASE-certified technicians diagnose honestly and explain clearly. You decide what gets done.',
+          '{years} years in {location}. We\'ve built our business on repeat customers and referrals — not upsells and scare tactics.',
+        ],
+      }],
+      values: [
+        { title: 'Honest Diagnostics', desc: 'We show you what\'s wrong before we fix it.' },
+        { title: 'ASE Certified', desc: 'Every mechanic holds ASE certification.' },
+        { title: 'Fair Pricing', desc: 'Competitive rates. No surprise charges.' },
+        { title: 'Warranty Work', desc: 'Parts and labor warranty on all repairs.' },
+      ],
+      testimonials: [
+        { text: 'Other shop wanted $2,800 for a "full rebuild." {name} found a $200 sensor was the problem. Fixed it in an hour. That\'s integrity.', author: 'Mike P.', role: 'Customer, {location}' },
+        { text: 'Been bringing both our cars here for four years. Always honest, always on time, and they don\'t try to sell me stuff I don\'t need.', author: 'Laura S.', role: 'Customer, {location}' },
+        { text: 'Best mechanic I\'ve ever used. They called me before doing anything over $100. That kind of respect keeps me coming back.', author: 'James W.', role: 'Customer' },
+      ],
+      ctaBlocks: [{ heading: 'Need a mechanic you can trust?', subtext: 'Honest diagnosis. Fair estimate. No work done without your approval. That\'s our promise.', button_text: 'Schedule Your Appointment' }],
+    },
+    'pest-control': {
+      headlines: [
+        'Bugs don\'t pay rent. Time to evict them.',
+        'Sleep tight. We\'ll handle the rest.',
+        'Your home should be yours — not theirs.',
+        'Pests out. Peace of mind in.',
+      ],
+      heroSubs: [
+        '{name} has been protecting {location} homes from unwanted guests for {years} years. Fast response, effective treatment, and prevention plans that keep them from coming back.',
+        'Ants, roaches, rodents, termites — {name} eliminates the problem at the source and builds a barrier so it stays gone. {years} years of trusted service in {location}.',
+      ],
+      heroTags: ['Licensed Pest Control • {location}', 'EPA-Approved Methods • {location}'],
+      heroCTAs: ['Get a Free Inspection', 'Call for Same-Day Service'],
+      services: [
+        { name: 'General Pest Control', description: 'Ants, spiders, roaches, silverfish — we eliminate current infestations and prevent new ones with quarterly treatments.', icon: 'shield' },
+        { name: 'Termite Treatment', description: 'Liquid barriers, bait systems, and spot treatments. We protect your biggest investment from hidden damage.', icon: 'home' },
+        { name: 'Rodent Control', description: 'Mice, rats, squirrels. We find entry points, set effective traps, and seal gaps to prevent re-entry.', icon: 'search' },
+        { name: 'Mosquito & Tick Control', description: 'Yard treatments that let you enjoy your outdoor space without becoming a meal.', icon: 'sun' },
+        { name: 'Bed Bug Treatment', description: 'Heat treatment and targeted chemical applications. We eliminate every stage of the life cycle.', icon: 'thermometer' },
+        { name: 'Wildlife Removal', description: 'Raccoons, opossums, bats. Humane removal, exclusion work, and cleanup of affected areas.', icon: 'tree' },
+      ],
+      aboutBlocks: [{
+        heading: 'We fix the problem. Then we prevent it.',
+        paragraphs: [
+          '{name} doesn\'t just spray and pray. We identify the pest, find how it\'s getting in, eliminate the colony, and build a prevention plan that keeps your home protected year-round.',
+          'Every technician is licensed, EPA-certified, and trained on the latest methods. {years} years of keeping {location} homes pest-free.',
+        ],
+      }],
+      values: [
+        { title: 'Child & Pet Safe', desc: 'EPA-approved products safe for your whole family.' },
+        { title: 'Guaranteed Results', desc: 'Pests come back? So do we. Free of charge.' },
+        { title: 'Same-Day Service', desc: 'Emergency pest situations handled fast.' },
+        { title: 'Prevention Plans', desc: 'Quarterly treatments keep problems from returning.' },
+      ],
+      testimonials: [
+        { text: 'We had a carpenter ant problem we couldn\'t solve for two years. {name} found the colony in our wall, treated it, and sealed the entry. Problem solved in one visit.', author: 'Greg T.', role: 'Homeowner, {location}' },
+        { text: 'On their quarterly plan for three years now. Haven\'t seen a single pest inside since they started. Worth every penny.', author: 'Andrea M.', role: 'Homeowner, {location}' },
+        { text: 'Called about mice in our restaurant. They were there same day, discreet, professional, and thorough. No one noticed a thing.', author: 'Tony R.', role: 'Restaurant Owner' },
+      ],
+      ctaBlocks: [{ heading: 'Ready to reclaim your home?', subtext: 'Free inspection. We identify the problem, explain your options, and give you a fair price. Same-day service available.', button_text: 'Get Your Free Inspection' }],
+    },
+    'moving': {
+      headlines: [
+        'Your stuff is important. We treat it that way.',
+        'Moving day doesn\'t have to be the worst day.',
+        'Licensed movers who actually show up on time.',
+        'We move your life — carefully.',
+      ],
+      heroSubs: [
+        '{name} has been moving {location} families for {years} years. Licensed, insured, and trained to handle everything from studio apartments to five-bedroom houses.',
+        'Packing, loading, driving, unpacking — {name} handles your move from start to finish. {years} years of careful, reliable, on-time service in {location}.',
+      ],
+      heroTags: ['Licensed & Insured Movers • {location}', '{years} Years Moving {location}'],
+      heroCTAs: ['Get a Free Moving Quote', 'Book Your Move Today'],
+      services: [
+        { name: 'Local Moving', description: 'Same-city moves with experienced crews who handle your furniture, boxes, and fragile items with genuine care.', icon: 'home' },
+        { name: 'Long-Distance Moving', description: 'Cross-state or cross-country. Full-service moves with GPS tracking and guaranteed delivery windows.', icon: 'map' },
+        { name: 'Packing Services', description: 'We bring the boxes, the tape, the bubble wrap, and the skill. Every item packed properly for safe transport.', icon: 'box' },
+        { name: 'Commercial Moving', description: 'Office relocations planned around your business hours. Minimal downtime, maximum efficiency.', icon: 'building' },
+        { name: 'Storage Solutions', description: 'Climate-controlled, secure storage for short-term or long-term needs. Your stuff stays safe until you\'re ready.', icon: 'lock' },
+        { name: 'Specialty Items', description: 'Pianos, antiques, artwork, gun safes. We have the equipment and training for items that need extra care.', icon: 'shield' },
+      ],
+      aboutBlocks: [{
+        heading: 'We move people. Not just boxes.',
+        paragraphs: [
+          '{name} understands that a move isn\'t just about transporting things. It\'s about a family starting a new chapter. We handle your belongings like they\'re our own — because we know they are.',
+          '{years} years of moving {location} families. Every mover is background-checked, drug-tested, and trained. Zero damage guarantees on every move.',
+        ],
+      }],
+      values: [
+        { title: 'No Hidden Fees', desc: 'The quote we give is the price you pay. Guaranteed.' },
+        { title: 'Trained Crews', desc: 'Professional movers — not day laborers.' },
+        { title: 'Full Insurance', desc: 'Every item covered. Every move protected.' },
+        { title: 'On-Time Guarantee', desc: 'We show up when we say. Every time.' },
+      ],
+      testimonials: [
+        { text: 'Moved our four-bedroom house in under 6 hours. Not a single scratch on anything. These guys are pros.', author: 'The Johnson Family', role: 'Residential Move, {location}' },
+        { text: 'They packed our entire kitchen — including my grandmother\'s china — and everything arrived perfect. Couldn\'t believe how careful they were.', author: 'Maria C.', role: 'Customer, {location}' },
+        { text: 'Used {name} for our office relocation. 45 workstations moved over a weekend. Monday morning, everything was in place. Incredible logistics.', author: 'Kevin D.', role: 'Office Manager' },
+      ],
+      ctaBlocks: [{ heading: 'Ready to make your move?', subtext: 'Free in-home estimates. We walk through your entire home, take inventory, and give you a guaranteed price.', button_text: 'Get Your Free Quote' }],
+    },
+    'photography': {
+      headlines: [
+        'Moments worth remembering.',
+        'Real photos. Not stock photos.',
+        'We capture what matters.',
+        'Your story, in frames.',
+      ],
+      heroSubs: [
+        '{name} creates photographs that feel like memories — warm, real, and worth keeping forever. Serving {location} for {years} years.',
+        'From portraits to events, {name} brings intention and artistry to every shoot. {years} years behind the lens in {location}.',
+      ],
+      heroTags: ['Professional Photography • {location}', 'Award-Winning • {location}'],
+      heroCTAs: ['Book Your Session', 'View My Portfolio'],
+      services: [
+        { name: 'Portrait Sessions', description: 'Studio and outdoor portraits that feel natural, not forced. Individuals, couples, families — your personality, captured.', icon: 'camera' },
+        { name: 'Wedding Photography', description: 'Your most important day, documented with artistry and care. Full-day coverage, second shooter available.', icon: 'heart' },
+        { name: 'Event Photography', description: 'Corporate events, parties, conferences. Candid and posed shots that tell the full story.', icon: 'calendar' },
+        { name: 'Commercial & Product', description: 'Product shots, headshots, brand photography that elevates your business. Studio or on-location.', icon: 'building' },
+        { name: 'Editing & Retouching', description: 'Professional color grading and retouching that enhances without making things look fake.', icon: 'settings' },
+        { name: 'Prints & Albums', description: 'Gallery-quality prints and handcrafted albums. Your photos deserve more than a hard drive.', icon: 'layers' },
+      ],
+      aboutBlocks: [{
+        heading: 'Every frame tells a story.',
+        paragraphs: [
+          '{name} has been behind the lens for {years} years. Every shoot starts with listening — understanding what you want to remember, and then making it happen.',
+          'No awkward poses. No cookie-cutter setups. Just you, looking like yourself, in your best light.',
+        ],
+      }],
+      values: [
+        { title: 'Natural Style', desc: 'Real moments. Real emotions. No forced smiles.' },
+        { title: 'Fast Delivery', desc: 'Edited gallery delivered within 2 weeks.' },
+        { title: 'Print Quality', desc: 'Professional-grade prints and albums available.' },
+        { title: 'Full Rights', desc: 'Digital files with personal use rights included.' },
+      ],
+      testimonials: [
+        { text: 'The wedding photos still make me cry. Every important moment was captured — even ones I didn\'t know happened.', author: 'Rachel & Mike', role: 'Wedding Clients' },
+        { text: '{name} made our whole team look natural and professional. Best headshots we\'ve ever had. Marketing loved them.', author: 'Sarah L.', role: 'Marketing Director' },
+        { text: 'Finally, photos of my family where everyone looks genuinely happy. Not posed, not stiff. Just us.', author: 'Kim W.', role: 'Family Session' },
+      ],
+      ctaBlocks: [{ heading: 'Let\'s create something beautiful.', subtext: 'Every session starts with a conversation. Tell me your vision and I\'ll make it happen.', button_text: 'Book Your Session' }],
+    },
+    'restaurant': {
+      headlines: [
+        'Come hungry. Leave happy.',
+        'Food made with hands, not machines.',
+        'The table you\'ll keep coming back to.',
+        'Good food. Great people. No pretense.',
+      ],
+      heroSubs: [
+        '{name} has been a neighborhood favorite in {location} for {years} years. Fresh ingredients, made-from-scratch recipes, and a table that feels like home.',
+        'Every dish on the menu at {name} is made with care, from scratch, using ingredients we believe in. Serving {location} for {years} years.',
+      ],
+      heroTags: ['Farm-to-Table • {location}', 'Locally Sourced • {location}'],
+      heroCTAs: ['Make a Reservation', 'View Our Menu'],
+      services: [
+        { name: 'Dinner Service', description: 'Seasonal menu featuring locally sourced ingredients and bold flavors you won\'t find at the chain around the corner.', icon: 'utensils' },
+        { name: 'Weekend Brunch', description: 'Handmade pastries, farm-fresh eggs, bottomless coffee, and absolutely no rush. Come hungry.', icon: 'coffee' },
+        { name: 'Private Events', description: 'Birthdays, anniversaries, corporate dinners — our space, your celebration. Custom menus available.', icon: 'calendar' },
+        { name: 'Catering', description: 'Full-service catering for events of any size. Same quality you get at our table, delivered to yours.', icon: 'truck' },
+        { name: 'Takeout & Delivery', description: 'Your favorites, packaged with care and ready when you are. Order online or call ahead.', icon: 'box' },
+        { name: 'Bar & Cocktails', description: 'Craft cocktails, local beers, curated wine list. Our bartenders take their craft as seriously as our chefs.', icon: 'glass' },
+      ],
+      aboutBlocks: [{
+        heading: 'A table for everyone.',
+        paragraphs: [
+          '{name} started with a simple idea: good food shouldn\'t be complicated. Every dish is made from scratch using ingredients we source personally.',
+          'We\'ve been a {location} gathering place for {years} years. The kind of restaurant where the staff remembers your name and your order.',
+        ],
+      }],
+      values: [
+        { title: 'From Scratch', desc: 'Every dish made fresh. No shortcuts.' },
+        { title: 'Local Sourcing', desc: 'We know our farmers by name.' },
+        { title: 'Warm Service', desc: 'Hospitality that makes everyone feel welcome.' },
+        { title: 'Seasonal Menu', desc: 'Our menu changes with what\'s fresh and available.' },
+      ],
+      testimonials: [
+        { text: 'This is our go-to spot. The pasta alone is worth the drive. Staff remembers your name after one visit.', author: 'Laura M.', role: 'Regular, {location}' },
+        { text: 'Hosted my wife\'s birthday here. Custom menu, perfect setup. She cried happy tears. Can\'t beat that.', author: 'David P.', role: 'Guest' },
+        { text: 'Best brunch in {location}. The sourdough pancakes are unreal. Get there early.', author: 'Kim S.', role: 'Regular' },
+      ],
+      ctaBlocks: [{ heading: 'Your table is waiting.', subtext: 'Reservations recommended for dinner. Walk-ins always welcome for lunch, brunch, and the bar.', button_text: 'Make a Reservation' }],
+    },
+    'dental': {
+      headlines: [
+        'A smile you actually feel good about.',
+        'Gentle dentistry for the whole family.',
+        'The dentist you\'ll stop avoiding.',
+        'Modern care. Genuine comfort. Real results.',
+      ],
+      heroSubs: [
+        '{name} provides gentle, judgment-free dental care for the whole family. {years} years of building healthy smiles in {location}.',
+        'From routine cleanings to complete smile makeovers, {name} makes every visit comfortable, efficient, and — dare we say — pleasant. Serving {location} for {years} years.',
+      ],
+      heroTags: ['Welcoming New Patients • {location}', 'Family Dentistry • {location}'],
+      heroCTAs: ['Book Your Appointment', 'Meet Our Team'],
+      services: [
+        { name: 'Cleanings & Exams', description: 'Thorough cleanings, digital X-rays, and personalized care plans. The foundation of a healthy smile.', icon: 'check' },
+        { name: 'Cosmetic Dentistry', description: 'Whitening, veneers, bonding, and complete smile makeovers that look natural — not "dental."', icon: 'sparkle' },
+        { name: 'Restorative Care', description: 'Crowns, bridges, implants — designed to last, function perfectly, and feel like your own teeth.', icon: 'tool' },
+        { name: 'Emergency Care', description: 'Pain, trauma, broken teeth — same-day emergency appointments because toothaches don\'t schedule ahead.', icon: 'alert' },
+        { name: 'Invisalign', description: 'Straighter teeth without metal brackets. Custom aligners that fit your life — and your smile.', icon: 'refresh' },
+        { name: 'Pediatric Dentistry', description: 'Making dental visits fun (or at least not scary) for kids of all ages. Patient, gentle, and experienced.', icon: 'heart' },
+      ],
+      aboutBlocks: [{
+        heading: 'Dentistry without the dread.',
+        paragraphs: [
+          '{name} was built on the belief that everyone deserves a dentist they\'re not afraid of. We use the latest technology to make every visit as comfortable and efficient as possible.',
+          '{years} years in {location}. Our patients range from toddlers to retirees, and they all get the same thing: honest answers, gentle hands, and zero judgment.',
+        ],
+      }],
+      values: [
+        { title: 'Judgment-Free', desc: 'No lectures. Just solutions and support.' },
+        { title: 'Modern Technology', desc: 'Digital X-rays, intraoral cameras, laser treatment.' },
+        { title: 'Flexible Scheduling', desc: 'Early morning and evening appointments available.' },
+        { title: 'Insurance Friendly', desc: 'We work with most insurance plans and offer financing.' },
+      ],
+      testimonials: [
+        { text: 'I hadn\'t been to a dentist in 8 years. They made me feel zero judgment and got me back on track with a plan I could actually afford.', author: 'Ryan M.', role: 'Patient, {location}' },
+        { text: 'My kids actually look forward to their appointments. That says everything about this practice.', author: 'Jessica T.', role: 'Parent, {location}' },
+        { text: 'Got Invisalign done here. The result looks completely natural. Best decision I\'ve made in years.', author: 'Amanda R.', role: 'Patient' },
+      ],
+      ctaBlocks: [{ heading: 'Ready for a dentist you actually like?', subtext: 'New patients welcome. We\'ll take the time to listen, create a plan, and make sure you\'re comfortable every step of the way.', button_text: 'Book Your First Visit' }],
+    },
+    'fitness': {
+      headlines: [
+        'Your strongest chapter starts here.',
+        'Results you can feel. Community you can count on.',
+        'No judgment. No ego. Just work.',
+        'Transform your body. Keep your sanity.',
+      ],
+      heroSubs: [
+        '{name} has been helping {location} get stronger for {years} years. Expert coaching, real community, and programs that actually work for real people.',
+        'Whether you\'re just starting or training for a competition, {name} meets you where you are. {years} years of transformations in {location}.',
+      ],
+      heroTags: ['Now Accepting Members • {location}', 'Certified Trainers • {location}'],
+      heroCTAs: ['Start Your Free Trial', 'View Class Schedule'],
+      services: [
+        { name: 'Personal Training', description: 'One-on-one sessions tailored to your goals, your body, and your schedule. Certified trainers who actually listen.', icon: 'user' },
+        { name: 'Group Classes', description: 'HIIT, strength, yoga, spin — motivating classes led by coaches who remember your name.', icon: 'users' },
+        { name: 'Nutrition Coaching', description: 'Sustainable eating plans that complement your training. No fad diets. No deprivation. Real food strategies.', icon: 'heart' },
+        { name: 'Open Gym', description: 'Premium equipment, clean facility, and a community that supports each other. Your second home.', icon: 'home' },
+        { name: 'Athletic Performance', description: 'Sport-specific training for athletes who want to compete at their best. Speed, agility, power.', icon: 'zap' },
+        { name: 'Recovery & Mobility', description: 'Stretching, foam rolling, recovery sessions. Because the work you do outside the gym matters just as much.', icon: 'refresh' },
+      ],
+      aboutBlocks: [{
+        heading: 'This is not a gym. It\'s a training facility.',
+        paragraphs: [
+          '{name} was built for people who are tired of cookie-cutter gym experiences. Our certified coaches design programs that match your goals — not someone else\'s.',
+          '{years} years of helping {location} residents get stronger, healthier, and more confident. The results speak for themselves.',
+        ],
+      }],
+      values: [
+        { title: 'Certified Coaches', desc: 'Every trainer is nationally certified and experienced.' },
+        { title: 'Proven Programs', desc: 'Science-based training that delivers real results.' },
+        { title: 'Inclusive Community', desc: 'All levels welcome. Zero intimidation.' },
+        { title: 'Clean Facility', desc: 'Premium equipment. Cleaned throughout the day.' },
+      ],
+      testimonials: [
+        { text: 'Down 40 pounds and stronger than I\'ve been in 20 years. The coaches here genuinely care about your progress.', author: 'Marcus T.', role: 'Member, {location}' },
+        { text: 'I was terrified to walk in. Within a week, I felt like family. Best decision I\'ve made for my health.', author: 'Katie M.', role: 'Member, {location}' },
+        { text: 'The group classes are addictive. Great energy, smart programming, and coaches who push you just enough.', author: 'Jason L.', role: 'Member' },
+      ],
+      ctaBlocks: [{ heading: 'Your transformation starts with one step.', subtext: 'Free trial week. No commitment. Come see what you\'re capable of.', button_text: 'Start Your Free Trial' }],
+    },
+    'tattoo': {
+      headlines: [
+        'Ink that means something.',
+        'Your body. Your art. Our craft.',
+        'Permanent art deserves a permanent standard.',
+        'Custom tattoos for people who care about quality.',
+      ],
+      heroSubs: [
+        '{name} creates custom tattoo art for clients who know the difference between a tattoo and a tattoo done right. {years} years of artistry in {location}.',
+        'From fine line to full sleeve, {name} approaches every piece as original art. Clean studio, experienced artists, and {years} years of trust in {location}.',
+      ],
+      heroTags: ['Custom Tattoo Studio • {location}', 'Licensed & Certified • {location}'],
+      heroCTAs: ['Book a Consultation', 'View Our Work'],
+      services: [
+        { name: 'Custom Tattoos', description: 'Original designs created just for you. We work with your ideas and refine them into art that works on skin.', icon: 'pen' },
+        { name: 'Cover-Ups', description: 'Transforming old or unwanted tattoos into something you\'re proud to show. Expert color matching and design.', icon: 'refresh' },
+        { name: 'Fine Line & Minimalist', description: 'Delicate, precise line work for clients who want something subtle and elegant.', icon: 'pen' },
+        { name: 'Traditional & Neo-Trad', description: 'Bold lines, bright colors, and timeless designs that look great for decades.', icon: 'palette' },
+        { name: 'Realism & Portraits', description: 'Photorealistic tattoos that capture incredible detail. Portraits, nature, and hyper-real artwork.', icon: 'camera' },
+        { name: 'Touch-Ups', description: 'Refreshing older work to bring back vibrancy and clean up lines. Quick sessions, big improvement.', icon: 'tool' },
+      ],
+      aboutBlocks: [{
+        heading: 'Art is permanent. So are our standards.',
+        paragraphs: [
+          '{name} is a custom tattoo studio run by artists who take their craft — and your skin — seriously. Every piece is original. Every client gets a consultation. Every tattoo is approached as fine art.',
+          'Clean studio. Licensed artists. {years} years in {location}. We don\'t do walk-in flash sheets. We do meaningful, lasting art.',
+        ],
+      }],
+      values: [
+        { title: 'Custom Only', desc: 'Every tattoo is designed specifically for you.' },
+        { title: 'Hospital-Grade Clean', desc: 'Autoclave sterilized. Single-use everything.' },
+        { title: 'Licensed Artists', desc: 'Certified, experienced, and continuously trained.' },
+        { title: 'Aftercare Support', desc: 'Detailed instructions and follow-up care included.' },
+      ],
+      testimonials: [
+        { text: 'Got a full sleeve done over 6 sessions. Every session was comfortable, professional, and the artwork is genuinely museum-quality.', author: 'Derek T.', role: 'Client, {location}' },
+        { text: 'They turned a terrible cover-up job into something I actually love showing off. True artists.', author: 'Nicole R.', role: 'Client' },
+        { text: 'First tattoo ever and they made the whole experience calm, fun, and painless (okay, mostly painless). Love the result.', author: 'Alex M.', role: 'First Timer' },
+      ],
+      ctaBlocks: [{ heading: 'Ready to wear your art?', subtext: 'Book a free consultation. We\'ll discuss your vision, placement, and design — no commitment until you\'re ready.', button_text: 'Book Your Consultation' }],
+    },
+    'salon': {
+      headlines: [
+        'Your look. Your rules. Our expertise.',
+        'Hair that works for your actual life.',
+        'Walk in feeling fine. Walk out feeling incredible.',
+        'Great style starts with great listening.',
+      ],
+      heroSubs: [
+        '{name} is where expertise meets genuine care. Every service starts with listening — understanding your style, your lifestyle, and what makes you feel your best. Serving {location} for {years} years.',
+        'From precision cuts to complete transformations, {name} brings artistry and attention to every appointment. {years} years of making {location} look incredible.',
+      ],
+      heroTags: ['Now Booking • {location}', 'Expert Stylists • {location}'],
+      heroCTAs: ['Book Your Appointment', 'Meet Our Stylists'],
+      services: [
+        { name: 'Haircuts & Styling', description: 'Precision cuts tailored to your face shape, hair type, and lifestyle. We style for real life, not just Instagram.', icon: 'scissors' },
+        { name: 'Color & Highlights', description: 'From subtle balayage to bold transformation. Always healthy, always beautiful, always you.', icon: 'palette' },
+        { name: 'Treatments', description: 'Deep conditioning, keratin smoothing, scalp treatments. Healthier hair from the inside out.', icon: 'droplet' },
+        { name: 'Blowouts', description: 'Quick, gorgeous blowouts that last. Perfect for date night, big meetings, or just because.', icon: 'wind' },
+        { name: 'Bridal & Event', description: 'Wedding updos, event styling, trial runs. Look your best when it matters most.', icon: 'heart' },
+        { name: 'Extensions', description: 'Seamless, natural-looking extensions. Hand-tied, tape-in, and clip-in options available.', icon: 'layers' },
+      ],
+      aboutBlocks: [{
+        heading: 'We listen first. Then we create.',
+        paragraphs: [
+          '{name} was founded on the idea that a great salon experience is about more than just the cut. Our stylists listen to what you want, consider what works for your hair, and create something you\'ll actually love.',
+          '{years} years in {location}. Ongoing education in the latest techniques. A team that genuinely loves what they do.',
+        ],
+      }],
+      values: [
+        { title: 'Expert Stylists', desc: 'Continuous education in the latest techniques.' },
+        { title: 'Premium Products', desc: 'Only the best products touch your hair.' },
+        { title: 'Relaxing Space', desc: 'A salon that feels like a retreat, not a factory.' },
+        { title: 'Honest Advice', desc: 'We\'ll tell you what works — and what won\'t.' },
+      ],
+      testimonials: [
+        { text: 'Best color I\'ve ever had. She actually listened to what I wanted instead of doing her own thing. Finally.', author: 'Megan L.', role: 'Client, {location}' },
+        { text: 'Been coming here for 3 years. Wouldn\'t trust my hair with anyone else. Every visit is consistent and relaxing.', author: 'Taylor K.', role: 'Regular Client' },
+        { text: 'Got my wedding updo done here. It lasted all night, through dancing and tears. I felt incredible.', author: 'Sophie R.', role: 'Bride' },
+      ],
+      ctaBlocks: [{ heading: 'Ready for hair you love?', subtext: 'Book your appointment online or give us a call. New clients always welcome.', button_text: 'Book Now' }],
+    },
+    'law': {
+      headlines: [
+        'Experienced counsel when you need it most.',
+        'Results-driven advocacy. Client-first approach.',
+        'Your case deserves a team that fights.',
+        'Strong legal representation for real people.',
+      ],
+      heroSubs: [
+        '{name} has represented clients across {location} for {years} years. Straightforward advice. Strong advocacy. Results that matter.',
+        'When the stakes are high, {name} brings {years} years of litigation experience, deep legal knowledge, and a genuine commitment to your outcome. Serving {location}.',
+      ],
+      heroTags: ['Free Consultation • {location}', '{years} Years of Practice • {location}'],
+      heroCTAs: ['Schedule a Free Consultation', 'Call to Discuss Your Case'],
+      services: [
+        { name: 'Personal Injury', description: 'Car accidents, slip-and-falls, workplace injuries. We fight for the compensation you deserve. No fee unless we win.', icon: 'shield' },
+        { name: 'Family Law', description: 'Divorce, custody, adoption, prenuptial agreements. Compassionate guidance through life\'s most difficult transitions.', icon: 'heart' },
+        { name: 'Business Law', description: 'Contracts, disputes, formations, intellectual property. Protecting your business interests at every stage.', icon: 'building' },
+        { name: 'Estate Planning', description: 'Wills, trusts, powers of attorney, probate. Securing your family\'s future with proper planning.', icon: 'lock' },
+        { name: 'Criminal Defense', description: 'DUI, misdemeanors, felonies. Aggressive defense that protects your rights and your future.', icon: 'shield' },
+        { name: 'Real Estate Law', description: 'Closings, disputes, zoning, title issues. Legal protection for your most significant transaction.', icon: 'home' },
+      ],
+      aboutBlocks: [{
+        heading: 'Your case. Our priority.',
+        paragraphs: [
+          '{name} was founded on the principle that good legal representation shouldn\'t be reserved for corporations. We give every client the same thorough, aggressive advocacy — regardless of the size of the case.',
+          '{years} years in {location}. Our track record speaks for itself. When you hire us, you get a team that knows the law, knows the courts, and fights for your best outcome.',
+        ],
+      }],
+      values: [
+        { title: 'Client-First', desc: 'Your case is our priority. Period.' },
+        { title: 'Proven Results', desc: '{years} years of successful outcomes.' },
+        { title: 'Transparent Fees', desc: 'Clear fee structures. No surprises.' },
+        { title: 'Responsive Team', desc: 'We actually return your calls and emails.' },
+      ],
+      testimonials: [
+        { text: 'After my accident, they handled everything while I focused on recovery. Settlement exceeded expectations. I can\'t recommend them enough.', author: 'Michael R.', role: 'Personal Injury Client' },
+        { text: 'Guided us through a complex custody situation with compassion and clarity. Our kids\' best interests were always their focus.', author: 'Jennifer H.', role: 'Family Law Client, {location}' },
+        { text: 'Sharp, responsive, and they actually return your calls. Novel concept for a law firm. Great representation and better results.', author: 'David K.', role: 'Business Client' },
+      ],
+      ctaBlocks: [{ heading: 'Let\'s discuss your case.', subtext: 'Free initial consultation. We\'ll review your situation, explain your options, and give you honest advice about the best path forward.', button_text: 'Schedule Your Free Consultation' }],
+    },
+    'real-estate': {
+      headlines: [
+        'Your next chapter starts here.',
+        'Buy smart. Sell strong. Live well.',
+        'The agent your friends keep recommending.',
+        'Local expertise. Personal attention. Real results.',
+      ],
+      heroSubs: [
+        '{name} helps {location} buyers find their dream home and sellers get top dollar. {years} years of local market expertise and honest guidance.',
+        'Whether you\'re buying your first home or selling your forever home, {name} brings {years} years of {location} market knowledge and genuine care for your goals.',
+      ],
+      heroTags: ['Top-Rated Agent • {location}', '{years} Years of Local Expertise'],
+      heroCTAs: ['Get Your Free Home Valuation', 'Search Listings'],
+      services: [
+        { name: 'Home Buying', description: 'Full-service representation from search to closing. We negotiate hard so you don\'t have to.', icon: 'home' },
+        { name: 'Home Selling', description: 'Professional staging, photography, marketing, and pricing strategy to sell fast and for more.', icon: 'tag' },
+        { name: 'Market Analysis', description: 'Data-driven pricing based on comparable sales, market trends, and current conditions. Know your home\'s true value.', icon: 'chart' },
+        { name: 'Investment Property', description: 'Multi-family, rentals, flips — we help investors identify, evaluate, and close on the right opportunities.', icon: 'building' },
+        { name: 'First-Time Buyers', description: 'Navigating your first purchase with patience, education, and zero pressure. We make it make sense.', icon: 'compass' },
+        { name: 'Relocation Services', description: 'Moving to {location}? We know every neighborhood, school district, and hidden gem. Let us show you around.', icon: 'map' },
+      ],
+      aboutBlocks: [{
+        heading: 'Not just an agent. Your advocate.',
+        paragraphs: [
+          '{name} has been helping families in {location} find their perfect home for {years} years. We\'re not about the hard sell — we\'re about the right fit.',
+          'Every client gets our full attention, deep market knowledge, and relentless negotiation. Your biggest financial decision deserves nothing less.',
+        ],
+      }],
+      values: [
+        { title: 'Local Expert', desc: 'Born, raised, and selling in {location}.' },
+        { title: 'Strong Negotiator', desc: 'We fight for the best price. Every time.' },
+        { title: 'Full Transparency', desc: 'You\'ll always know where things stand.' },
+        { title: 'After-Sale Support', desc: 'We\'re here for you long after closing day.' },
+      ],
+      testimonials: [
+        { text: 'Found us our dream home in a competitive market. Their negotiation skills saved us $30K. Worth every penny of the commission.', author: 'The Martinez Family', role: 'Buyers, {location}' },
+        { text: 'Sold our house in 5 days, $15K over asking. Their marketing strategy and staging advice were incredible.', author: 'Robert & Carol T.', role: 'Sellers, {location}' },
+        { text: 'As first-time buyers, we were clueless. {name} walked us through everything with patience and zero pressure. Now we\'re homeowners.', author: 'James W.', role: 'First-Time Buyer' },
+      ],
+      ctaBlocks: [{ heading: 'Ready to make your move?', subtext: 'Free market analysis for sellers. Personalized search for buyers. Let\'s start a conversation.', button_text: 'Get Started Today' }],
+    },
   };
 
   return db[niche] || buildGenericNiche(niche);

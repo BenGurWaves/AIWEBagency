@@ -86,6 +86,20 @@ function runQA(html, bizName) {
     { pattern: /(?:Your|Our) (?:dedicated|passionate) team/i, msg: 'AI slop: "dedicated/passionate team"', points: 3 },
     { pattern: /look no further/i, msg: 'AI slop: "look no further"', points: 3 },
     { pattern: /second to none/i, msg: 'AI slop: "second to none"', points: 3 },
+    { pattern: /navigate the complex/i, msg: 'AI slop: "navigate the complex"', points: 5 },
+    { pattern: /holistic approach/i, msg: 'AI slop: "holistic approach"', points: 3 },
+    { pattern: /cutt?ing.?edge (?:technology|solution)/i, msg: 'AI slop: "cutting-edge technology"', points: 5 },
+    { pattern: /unparalleled/i, msg: 'AI slop: uses "unparalleled"', points: 3 },
+    { pattern: /bespoke/i, msg: 'AI slop: uses "bespoke"', points: 3 },
+    { pattern: /(?:a |the )beacon of/i, msg: 'AI slop: "beacon of"', points: 5 },
+    { pattern: /foster(?:ing|s)? (?:a )?(?:sense|culture|environment|community)/i, msg: 'AI slop: "fostering a sense"', points: 5 },
+    { pattern: /(?:isn't just|is more than) (?:a |an )?(?:\w+ ){0,2}—? ?it'?s/i, msg: 'AI slop: "isn\'t just X — it\'s Y" pattern', points: 5 },
+    { pattern: /at the heart of/i, msg: 'AI slop: "at the heart of"', points: 3 },
+    { pattern: /testament to/i, msg: 'AI slop: "testament to"', points: 3 },
+    { pattern: /landscape of/i, msg: 'AI slop: "landscape of"', points: 3 },
+    { pattern: /(?:transform|reimagin)(?:ing|e) the way/i, msg: 'AI slop: "transform the way"', points: 5 },
+    { pattern: /leverage our expertise/i, msg: 'AI slop: "leverage our expertise"', points: 5 },
+    { pattern: /robust (?:and|yet|,) (?:scalable|flexible|comprehensive)/i, msg: 'AI slop: "robust and scalable"', points: 5 },
   ];
 
   for (const { pattern, msg, points } of slopPatterns) {
@@ -200,6 +214,75 @@ function runQA(html, bizName) {
     deductions += 8;
   }
 
+  // ── 8. Content diversity ────────────────────────────────────
+  // Check that headings aren't all the same length/pattern
+  const h2Matches = html.match(/<h2[^>]*>(.*?)<\/h2>/gi) || [];
+  const h2Texts = h2Matches.map(h => h.replace(/<[^>]+>/g, '').trim()).filter(Boolean);
+  if (h2Texts.length > 2) {
+    const avgLen = h2Texts.reduce((sum, t) => sum + t.length, 0) / h2Texts.length;
+    const allSimilarLength = h2Texts.every(t => Math.abs(t.length - avgLen) < 5);
+    if (allSimilarLength) {
+      issues.push({ type: 'content', severity: 'low', message: 'All headings are suspiciously similar length — may look templated' });
+      deductions += 3;
+    }
+  }
+
+  // Check for repeated sentence starters
+  const paragraphs = (html.match(/<p[^>]*>(.*?)<\/p>/gi) || [])
+    .map(p => p.replace(/<[^>]+>/g, '').trim())
+    .filter(p => p.length > 20);
+  if (paragraphs.length > 3) {
+    const starters = paragraphs.map(p => p.split(' ').slice(0, 3).join(' ').toLowerCase());
+    const starterCounts = {};
+    for (const s of starters) starterCounts[s] = (starterCounts[s] || 0) + 1;
+    const repeated = Object.values(starterCounts).filter(c => c > 2).length;
+    if (repeated > 0) {
+      issues.push({ type: 'content', severity: 'medium', message: 'Multiple paragraphs start the same way — lacks variety' });
+      deductions += 5;
+    }
+  }
+
+  // ── 9. Design quality checks ──────────────────────────────
+  // Check for Google Fonts (good design signal)
+  if (!/fonts\.googleapis\.com/i.test(html)) {
+    issues.push({ type: 'design', severity: 'low', message: 'No custom web fonts loaded — may look generic' });
+    deductions += 2;
+  }
+
+  // Check for CSS custom properties (modern CSS)
+  const cssVarCount = (html.match(/var\(--/gi) || []).length;
+  if (cssVarCount < 3) {
+    issues.push({ type: 'design', severity: 'low', message: 'Minimal CSS custom properties — may lack design system consistency' });
+    deductions += 2;
+  }
+
+  // Check for adequate section count
+  const sectionCount = (html.match(/<section/gi) || []).length;
+  if (sectionCount < 3) {
+    issues.push({ type: 'design', severity: 'medium', message: `Only ${sectionCount} sections found — page may feel incomplete` });
+    deductions += 5;
+  }
+
+  // Check for hover/transition effects (design polish)
+  if (!/:hover/i.test(html) && !/transition/i.test(html)) {
+    issues.push({ type: 'design', severity: 'low', message: 'No hover effects or transitions — interactions may feel flat' });
+    deductions += 2;
+  }
+
+  // ── 10. Contact info validation ───────────────────────────
+  // Email link
+  if (!/<a[^>]+href=["']mailto:/i.test(html)) {
+    issues.push({ type: 'brand', severity: 'low', message: 'No clickable email link (mailto:)' });
+    deductions += 2;
+  }
+
+  // Footer present and has content
+  const footerHtml = (html.match(/<footer[^>]*>([\s\S]*?)<\/footer>/i) || [])[1] || '';
+  if (footerHtml && footerHtml.replace(/<[^>]+>/g, '').trim().length < 50) {
+    issues.push({ type: 'content', severity: 'low', message: 'Footer has very little content' });
+    deductions += 2;
+  }
+
   // ── Calculate score ─────────────────────────────────────────
   const score = Math.max(0, 100 - deductions);
   const passed = score >= 70;
@@ -217,6 +300,7 @@ function runQA(html, bizName) {
       performance: issues.filter(i => i.type === 'perf').length,
       brand: issues.filter(i => i.type === 'brand').length,
       responsive: issues.filter(i => i.type === 'responsive').length,
+      design: issues.filter(i => i.type === 'design').length,
     },
     checked_at: new Date().toISOString(),
   };

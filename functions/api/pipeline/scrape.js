@@ -101,6 +101,26 @@ async function scrapeSite(baseUrl) {
     // Reviews / ratings
     rating: null,
     review_count: null,
+
+    // Design patterns (NEW)
+    design: {
+      fonts: [],
+      google_fonts_url: '',
+      heading_font: '',
+      body_font: '',
+      layout_type: '',       // grid, flexbox, table, float
+      max_width: '',
+      section_count: 0,
+      section_types: [],     // hero, services, about, testimonials, cta, etc.
+      hero_style: '',        // fullscreen, split, centered, image-bg
+      nav_style: '',         // sticky, fixed, static, transparent
+      has_animations: false,
+      has_parallax: false,
+      has_dark_mode: false,
+      button_style: '',      // rounded, pill, square
+      spacing_density: '',   // airy, balanced, compact
+      design_era: '',        // modern, dated, minimal, bold
+    },
   };
 
   // ── Fetch homepage ──
@@ -135,6 +155,7 @@ async function scrapeSite(baseUrl) {
   detectTech(html, dna);
   extractServicesFromContent(html, dna);
   extractRatings(html, dna);
+  extractDesignPatterns(html, dna);
 
   // ── Scrape subpages (about, services, contact) ──
   const subpageUrls = findSubpageUrls(dna.nav_links, url);
@@ -502,6 +523,113 @@ function extractRatings(html, dna) {
       if (starMatch[2]) dna.review_count = parseInt(starMatch[2]);
     }
   }
+}
+
+// ── Design pattern extraction ─────────────────────────────────
+
+function extractDesignPatterns(html, dna) {
+  const d = dna.design;
+
+  // ── Fonts ──
+  // Google Fonts detection
+  const gfMatch = html.match(/fonts\.googleapis\.com\/css2?\?family=([^"'&]+)/i);
+  if (gfMatch) {
+    d.google_fonts_url = gfMatch[0];
+    const families = decodeURIComponent(gfMatch[1]).split('&family=');
+    d.fonts = families.map(f => f.split(':')[0].replace(/\+/g, ' ').trim()).filter(Boolean);
+    if (d.fonts.length >= 1) d.heading_font = d.fonts[0];
+    if (d.fonts.length >= 2) d.body_font = d.fonts[1];
+  }
+
+  // CSS font-family fallback
+  if (!d.heading_font) {
+    const hFontMatch = html.match(/h[1-3][^{]*\{[^}]*font-family\s*:\s*["']?([^;}"']+)/i);
+    if (hFontMatch) d.heading_font = hFontMatch[1].split(',')[0].trim().replace(/["']/g, '');
+  }
+  if (!d.body_font) {
+    const bFontMatch = html.match(/body[^{]*\{[^}]*font-family\s*:\s*["']?([^;}"']+)/i);
+    if (bFontMatch) d.body_font = bFontMatch[1].split(',')[0].trim().replace(/["']/g, '');
+  }
+
+  // ── Layout ──
+  if (/display\s*:\s*grid/i.test(html)) d.layout_type = 'grid';
+  else if (/display\s*:\s*flex/i.test(html)) d.layout_type = 'flexbox';
+  else if (/<table/i.test(html) && !/<table[^>]*role/i.test(html)) d.layout_type = 'table';
+  else d.layout_type = 'standard';
+
+  const maxWMatch = html.match(/max-width\s*:\s*(\d+(?:px|rem|em))/i);
+  if (maxWMatch) d.max_width = maxWMatch[1];
+
+  // ── Section detection ──
+  const sectionClasses = [];
+  const sectionMatches = html.matchAll(/<(?:section|div)[^>]*(?:class|id)=["']([^"']+)["'][^>]*>/gi);
+  for (const m of sectionMatches) {
+    const cls = m[1].toLowerCase();
+    if (/hero|banner|jumbotron|masthead|splash/i.test(cls)) sectionClasses.push('hero');
+    else if (/service|feature|offering|what-we/i.test(cls)) sectionClasses.push('services');
+    else if (/about|story|who-we|mission/i.test(cls)) sectionClasses.push('about');
+    else if (/testimonial|review|feedback|quote/i.test(cls)) sectionClasses.push('testimonials');
+    else if (/portfolio|gallery|work|project/i.test(cls)) sectionClasses.push('portfolio');
+    else if (/contact|cta|call-to-action/i.test(cls)) sectionClasses.push('cta');
+    else if (/pricing|plan|package/i.test(cls)) sectionClasses.push('pricing');
+    else if (/team|staff|people/i.test(cls)) sectionClasses.push('team');
+    else if (/faq|question/i.test(cls)) sectionClasses.push('faq');
+    else if (/stat|number|counter/i.test(cls)) sectionClasses.push('stats');
+  }
+  d.section_types = [...new Set(sectionClasses)];
+  d.section_count = d.section_types.length;
+
+  // ── Hero style ──
+  const heroHtml = (html.match(/<(?:section|div)[^>]*(?:hero|banner|jumbotron)[^>]*>([\s\S]*?)(?:<\/section|<\/div)/i) || [])[1] || '';
+  if (heroHtml) {
+    const hasVideo = /<video/i.test(heroHtml);
+    const hasBgImage = /background[-_]?image/i.test(heroHtml);
+    const isCentered = /text-(?:align|center)\s*:\s*center|text-center/i.test(heroHtml);
+    const hasSplit = /grid.*1fr.*1fr|col-.*-6|split/i.test(heroHtml);
+    if (hasVideo) d.hero_style = 'video-background';
+    else if (hasBgImage && isCentered) d.hero_style = 'fullscreen';
+    else if (hasSplit) d.hero_style = 'split';
+    else if (isCentered) d.hero_style = 'centered';
+    else d.hero_style = 'standard';
+  }
+
+  // ── Nav style ──
+  const navHtml = (html.match(/<(?:nav|header)[^>]*>([\s\S]*?)(?:<\/nav|<\/header)/i) || [])[0] || '';
+  if (/position\s*:\s*sticky/i.test(navHtml) || /position\s*:\s*sticky/i.test(html.substring(0, 5000))) d.nav_style = 'sticky';
+  else if (/position\s*:\s*fixed/i.test(navHtml)) d.nav_style = 'fixed';
+  else if (/transparent/i.test(navHtml)) d.nav_style = 'transparent';
+  else d.nav_style = 'static';
+
+  // ── Visual effects ──
+  d.has_animations = /animation|@keyframes|transition.*transform/i.test(html);
+  d.has_parallax = /parallax|data-speed|data-scroll/i.test(html);
+  d.has_dark_mode = /prefers-color-scheme\s*:\s*dark|dark-mode|theme-dark/i.test(html);
+
+  // ── Button style ──
+  const btnRadiusMatch = html.match(/(?:\.btn|button)[^{]*\{[^}]*border-radius\s*:\s*(\d+)/i);
+  if (btnRadiusMatch) {
+    const r = parseInt(btnRadiusMatch[1]);
+    d.button_style = r === 0 ? 'square' : r >= 50 ? 'pill' : r >= 12 ? 'rounded' : 'slightly-rounded';
+  }
+
+  // ── Spacing density ──
+  const sectionPaddingMatch = html.match(/section[^{]*\{[^}]*padding\s*:\s*(\d+)/i);
+  if (sectionPaddingMatch) {
+    const p = parseInt(sectionPaddingMatch[1]);
+    d.spacing_density = p >= 100 ? 'airy' : p >= 60 ? 'balanced' : 'compact';
+  }
+
+  // ── Design era ──
+  const hasModernSignals = d.has_animations || d.layout_type === 'grid' || d.fonts.length > 0;
+  const hasMinimalSignals = d.spacing_density === 'airy' && d.section_count <= 6;
+  const hasBoldSignals = /font-weight\s*:\s*[89]00|text-transform\s*:\s*uppercase/i.test(html);
+  const hasDatedSignals = d.layout_type === 'table' || /marquee|blink|Comic Sans|Papyrus/i.test(html);
+
+  if (hasDatedSignals) d.design_era = 'dated';
+  else if (hasMinimalSignals) d.design_era = 'minimal';
+  else if (hasBoldSignals) d.design_era = 'bold';
+  else if (hasModernSignals) d.design_era = 'modern';
+  else d.design_era = 'standard';
 }
 
 // ── Utilities ─────────────────────────────────────────────────

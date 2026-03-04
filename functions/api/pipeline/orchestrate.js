@@ -126,6 +126,32 @@ export async function onRequestPost(context) {
     });
 
     // ═══════════════════════════════════════════════════════════
+    // STEP 2.5: DISCOVER — Load design inspiration from curated sites
+    // ═══════════════════════════════════════════════════════════
+
+    let designIntel = null;
+    if (body.niche) {
+      await updateProgress(kv, email, {
+        step: 'discover', step_number: 2, percent: 48,
+        message: 'Researching top designs in your industry...',
+        detail: 'Analyzing high-quality websites for design inspiration',
+      });
+
+      // Check if we already have discovery data for this niche
+      try {
+        designIntel = await kv.get('discover:' + (body.niche || '').trim().toLowerCase(), { type: 'json' });
+      } catch {}
+
+      if (designIntel) {
+        await updateProgress(kv, email, {
+          step: 'discover', step_number: 2, percent: 52,
+          message: 'Design research loaded',
+          detail: `${designIntel.sites_analyzed || 0} top sites analyzed for design patterns`,
+        });
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
     // STEP 3: BUILD — Construct the website pages
     // ═══════════════════════════════════════════════════════════
 
@@ -149,6 +175,7 @@ export async function onRequestPost(context) {
       domain: siteDna?.domain || '',
       tagline: siteDna?.tagline || '',
       notes: body.notes || '',
+      designIntel: designIntel || null,
     };
 
     const previewId = generateId();
@@ -695,6 +722,21 @@ function enhanceServices(rawServices, nicheContent) {
 
 function capitalizeWords(str) { return (str || '').replace(/\b\w/g, c => c.toUpperCase()); }
 
+function hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  if (h.length < 6) return '0,0,0';
+  return `${parseInt(h.substring(0, 2), 16)},${parseInt(h.substring(2, 4), 16)},${parseInt(h.substring(4, 6), 16)}`;
+}
+
+function darkenHex(hex, percent) {
+  const h = hex.replace('#', '');
+  if (h.length < 6) return hex;
+  const r = Math.max(0, parseInt(h.substring(0, 2), 16) - Math.round(255 * percent / 100));
+  const g = Math.max(0, parseInt(h.substring(2, 4), 16) - Math.round(255 * percent / 100));
+  const b = Math.max(0, parseInt(h.substring(4, 6), 16) - Math.round(255 * percent / 100));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
 // ── Industry Archetype System ──────────────────────────────────
 //
 // Instead of one layout for all businesses, we classify into archetypes
@@ -819,6 +861,38 @@ function buildPreviewPage(biz, content) {
   const archetype = detectArchetype(biz);
   const config = getArchetypeConfig(archetype);
   const t = getTheme(biz.style, archetype);
+
+  // Apply discovery intelligence if available — override fonts/colors from real-world sites
+  if (biz.designIntel?.aggregate) {
+    const agg = biz.designIntel.aggregate;
+    // Use discovered font pairings if available
+    if (agg.popular_fonts?.length >= 2) {
+      const discoveredHead = agg.popular_fonts[0];
+      const discoveredBody = agg.popular_fonts[1];
+      // Only override if they are Google Fonts (have proper names)
+      if (discoveredHead && discoveredHead.length > 2 && !/system|inherit|sans-serif|serif|mono/i.test(discoveredHead)) {
+        t.fontHead = `'${discoveredHead}', ${t.fontHead}`;
+        t.font = `'${discoveredBody || discoveredHead}', ${t.font}`;
+        const gFontHead = discoveredHead.replace(/\s/g, '+');
+        const gFontBody = (discoveredBody || '').replace(/\s/g, '+');
+        if (gFontBody && gFontBody !== gFontHead) {
+          t.gFont = `${gFontHead}:wght@400;500;600;700&family=${gFontBody}:wght@300;400;500;600`;
+        } else {
+          t.gFont = `${gFontHead}:wght@300;400;500;600;700`;
+        }
+      }
+    }
+    // Use discovered accent color if available and different from archetype default
+    if (agg.dominant_colors?.length >= 1) {
+      const discovered = agg.dominant_colors[0];
+      if (discovered && discovered.startsWith('#') && discovered !== t.accent) {
+        t.accent = discovered;
+        t.accentHover = darkenHex(discovered, 15);
+        t.accentBg = discovered.replace('#', 'rgba(') ? `rgba(${hexToRgb(discovered)},0.06)` : t.accentBg;
+      }
+    }
+  }
+
   const name = esc(biz.name);
   const phone = esc(biz.phone || '');
   const phoneHref = (biz.phone || '').replace(/[^0-9+]/g, '');
