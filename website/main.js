@@ -104,6 +104,14 @@
     });
   }
 
+  // ── Keyboard shortcuts ────────────────────────────────
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && links && links.classList.contains('is-open')) {
+      links.classList.remove('is-open');
+      toggle.classList.remove('is-open');
+    }
+  });
+
   // ── CTA form submission ────────────────────────────────
   const form = document.getElementById('ctaForm');
   const btn = document.getElementById('ctaBtn');
@@ -125,6 +133,21 @@
 
       const params = new URLSearchParams({ email: email, website: url });
       window.location.href = '/auth.html?' + params.toString();
+    });
+  }
+
+  // ── Back to top button ────────────────────────────────
+  const backToTop = document.getElementById('backToTop');
+  if (backToTop) {
+    window.addEventListener('scroll', function () {
+      if (window.scrollY > 600) {
+        backToTop.classList.add('is-visible');
+      } else {
+        backToTop.classList.remove('is-visible');
+      }
+    }, { passive: true });
+    backToTop.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
 

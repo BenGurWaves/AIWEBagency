@@ -77,7 +77,7 @@ export async function onRequestPost(context) {
     const createData = await createResp.json();
 
     // Project might already exist — that's fine
-    if (!createData.success && !createResp.status === 409) {
+    if (!createData.success && createResp.status !== 409) {
       return err('Failed to create Pages project: ' + (createData.errors?.[0]?.message || 'Unknown error'), 500);
     }
 

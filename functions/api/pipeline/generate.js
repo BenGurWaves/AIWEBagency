@@ -64,7 +64,7 @@ export async function onRequestPost(context) {
 
   // Also update redesign record
   try {
-    const existing = await kv.get('redesign:' + email, { type: 'json' }) || {};
+    const existing = (await kv.get('redesign:' + email, { type: 'json' })) ?? {};
     Object.assign(existing, body, {
       preview_id: previewId,
       preview_url: `/preview/${previewId}`,

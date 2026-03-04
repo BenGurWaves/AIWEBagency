@@ -134,7 +134,7 @@ function buildPaymentEmail(planName, price) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#12100e;font-family:-apple-system,system-ui,sans-serif;">
 <div style="max-width:560px;margin:0 auto;padding:48px 28px;">
-  <div style="font-size:22px;color:#e8ddd3;font-family:Georgia,serif;margin-bottom:28px;">Velocity<span style="color:#c8956a;">.</span> <span style="font-size:12px;color:#6d6560;font-family:-apple-system,system-ui,sans-serif;">by <a href="https://calyvent.com" style="color:#6d6560;text-decoration:none;">Calyvent</a></span></div>
+  <div style="margin-bottom:28px;"><div style="font-size:22px;color:#e8ddd3;font-family:Georgia,serif;">Velocity<span style="color:#c8956a;">.</span></div><a href="https://calyvent.com" style="font-size:10px;color:#6d6560;font-family:-apple-system,system-ui,sans-serif;text-decoration:none;">by Calyvent</a></div>
   <div style="background:rgba(127,176,105,0.12);border:1px solid rgba(127,176,105,0.25);border-radius:10px;padding:20px;margin-bottom:24px;text-align:center;">
     <div style="font-size:24px;margin-bottom:8px;">&#10003;</div>
     <h1 style="font-size:22px;color:#7fb069;margin:0 0 4px;">Payment Confirmed!</h1>

@@ -280,9 +280,9 @@ h2 {
   letter-spacing: -0.02em;
 }
 .logo-dot { color: var(--accent); }
-.logo-sub { font-family: var(--font-body); font-size: 0.5em; color: var(--text-muted); font-weight: 400; margin-left: 0.35em; letter-spacing: 0; vertical-align: baseline; }
-.logo-sub a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
-.logo-sub a:hover { color: var(--accent); }
+.logo-wrap { display: flex; flex-direction: column; line-height: 1; }
+.logo-sub { display: block; font-family: var(--font-body); font-size: 0.5625rem; color: var(--text-muted); font-weight: 400; letter-spacing: 0.04em; text-decoration: none; margin-top: 1px; transition: color 0.2s; }
+.logo-sub:hover { color: var(--accent); }
 
 .nav-links {
   display: flex;
@@ -1616,6 +1616,20 @@ h2 {
   margin-top: 0.25rem;
 }
 
+/* Password strength meter */
+.pw-strength { margin-top: 6px; }
+.pw-strength-bar { height: 4px; border-radius: 2px; background: var(--border-subtle); overflow: hidden; }
+.pw-strength-fill { height: 100%; border-radius: 2px; width: 0; transition: width 0.3s, background 0.3s; }
+.pw-strength-text { font-size: 0.6875rem; margin-top: 3px; color: var(--text-muted); }
+.pw-strength--weak .pw-strength-fill { width: 25%; background: var(--red); }
+.pw-strength--fair .pw-strength-fill { width: 50%; background: #d4a054; }
+.pw-strength--good .pw-strength-fill { width: 75%; background: var(--accent); }
+.pw-strength--strong .pw-strength-fill { width: 100%; background: var(--green); }
+
+/* Back to top button */
+.back-to-top { position: fixed; bottom: 2rem; right: 2rem; width: 44px; height: 44px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s, border-color 0.2s; transform: translateY(10px); z-index: 99; }
+.back-to-top.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.back-to-top:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ══════════════════════════════════════════════════════════
    DASHBOARD

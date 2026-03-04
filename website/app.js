@@ -127,7 +127,7 @@
     }
     return (
       '<header class="app-header">' +
-        '<a href="/" class="app-logo">Velocity<span class="app-logo-dot">.</span> <span style="font-size:0.5em;color:#6d6560;font-family:sans-serif;margin-left:0.35em;">by <a href="https://calyvent.com" target="_blank" style="color:#6d6560;text-decoration:none;">Calyvent</a></span><span class="app-logo-badge">Dashboard</span></a>' +
+        '<div style="display:flex;flex-direction:column;line-height:1;"><a href="/" class="app-logo">Velocity<span class="app-logo-dot">.</span><span class="app-logo-badge">Dashboard</span></a><a href="https://calyvent.com" target="_blank" style="font-size:9px;color:#6d6560;font-family:sans-serif;text-decoration:none;margin-top:2px;">by Calyvent</a></div>' +
         right +
       '</header>'
     );
@@ -372,20 +372,16 @@
         errEl.className = 'auth-error';
 
         api('POST', '/api/auth/login', { email: email, password: pass }).then(function (data) {
-          if (data.success) {
-            return checkAuth().then(function () {
-              return loadProjects().then(function () {
-                navigate('dashboard');
-              });
-            });
-          } else {
-            errEl.textContent = data.error || 'Login failed';
-            errEl.className = 'auth-error visible';
-            btn.disabled = false;
-            btn.textContent = 'Log in';
+          if (!data.success) {
+            throw new Error(data.error || 'Login failed');
           }
-        }).catch(function () {
-          errEl.textContent = 'Network error. Please try again.';
+          return checkAuth();
+        }).then(function () {
+          return loadProjects();
+        }).then(function () {
+          navigate('dashboard');
+        }).catch(function (e) {
+          errEl.textContent = e.message || 'Network error. Please try again.';
           errEl.className = 'auth-error visible';
           btn.disabled = false;
           btn.textContent = 'Log in';
@@ -415,25 +411,22 @@
         btn.textContent = 'Creating account...';
         errEl.className = 'auth-error';
 
+        var _projectId;
         api('POST', '/api/auth/signup', { email: email, password: pass, website_url: url }).then(function (data) {
-          if (data.success) {
-            return checkAuth().then(function () {
-              return loadProjects().then(function () {
-                // Auto-trigger analysis if a project was created
-                if (data.project_id && state.projects.length > 0) {
-                  triggerAnalysis(data.project_id);
-                }
-                navigate('dashboard');
-              });
-            });
-          } else {
-            errEl.textContent = data.error || 'Signup failed';
-            errEl.className = 'auth-error visible';
-            btn.disabled = false;
-            btn.textContent = 'Create account';
+          if (!data.success) {
+            throw new Error(data.error || 'Signup failed');
           }
-        }).catch(function () {
-          errEl.textContent = 'Network error. Please try again.';
+          _projectId = data.project_id;
+          return checkAuth();
+        }).then(function () {
+          return loadProjects();
+        }).then(function () {
+          if (_projectId && state.projects.length > 0) {
+            triggerAnalysis(_projectId);
+          }
+          navigate('dashboard');
+        }).catch(function (e) {
+          errEl.textContent = e.message || 'Network error. Please try again.';
           errEl.className = 'auth-error visible';
           btn.disabled = false;
           btn.textContent = 'Create account';

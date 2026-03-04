@@ -16,7 +16,7 @@
   <!-- ── Nav ── -->
   <nav class="nav nav--scrolled" id="nav">
     <div class="nav-inner">
-      <a href="/" class="logo">Velocity<span class="logo-dot">.</span> <span class="logo-sub">by <a href="https://calyvent.com" target="_blank">Calyvent</a></span></a>
+      <div class="logo-wrap"><a href="/" class="logo">Velocity<span class="logo-dot">.</span></a><a href="https://calyvent.com" target="_blank" class="logo-sub">by Calyvent</a></div>
       <div class="nav-links" id="navLinks">
         <a href="/">Home</a>
         <a href="/#pricing">Pricing</a>
@@ -32,7 +32,7 @@
   <section class="auth-page">
       <div class="auth-card">
         <div class="auth-header">
-          <a href="/" class="logo">Velocity<span class="logo-dot">.</span> <span class="logo-sub">by <a href="https://calyvent.com" target="_blank">Calyvent</a></span></a>
+          <div class="logo-wrap" style="align-items:center;"><a href="/" class="logo">Velocity<span class="logo-dot">.</span></a><a href="https://calyvent.com" target="_blank" class="logo-sub">by Calyvent</a></div>
           <p class="auth-subtitle">Manage your website redesign</p>
         </div>
 
@@ -66,6 +66,10 @@
           <div class="input-wrap">
             <label for="suPassword">Password</label>
             <input type="password" id="suPassword" name="password" placeholder="Create a password" required autocomplete="new-password" minlength="8">
+            <div class="pw-strength" id="pwStrength">
+              <div class="pw-strength-bar"><div class="pw-strength-fill"></div></div>
+              <div class="pw-strength-text" id="pwStrengthText"></div>
+            </div>
           </div>
           <div class="input-wrap">
             <label for="suPasswordConfirm">Confirm password</label>
@@ -85,6 +89,34 @@
   <script>
   (function () {
     'use strict';
+
+    // ── Password strength meter ──
+    var pwInput = document.getElementById('suPassword');
+    var pwStrength = document.getElementById('pwStrength');
+    var pwStrengthText = document.getElementById('pwStrengthText');
+    if (pwInput && pwStrength) {
+      pwInput.addEventListener('input', function () {
+        var val = pwInput.value;
+        var score = 0;
+        if (val.length >= 8) score++;
+        if (val.length >= 12) score++;
+        if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+        if (/\d/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        pwStrength.className = 'pw-strength';
+        if (val.length === 0) { pwStrengthText.textContent = ''; return; }
+        var levels = [
+          { cls: 'pw-strength--weak', text: 'Weak' },
+          { cls: 'pw-strength--weak', text: 'Weak' },
+          { cls: 'pw-strength--fair', text: 'Fair' },
+          { cls: 'pw-strength--good', text: 'Good' },
+          { cls: 'pw-strength--strong', text: 'Strong' },
+        ];
+        var level = levels[Math.min(score, 4)];
+        pwStrength.classList.add(level.cls);
+        pwStrengthText.textContent = level.text;
+      });
+    }
 
     // ── Mobile nav toggle ──
     var toggle = document.getElementById('navToggle');
