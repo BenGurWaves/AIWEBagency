@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Velocity — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>V</text></svg>">
+  <style>
+    .admin-wrap { max-width: 960px; margin: 0 auto; padding: 7rem 1.5rem 4rem; }
+    .admin-header { margin-bottom: 2rem; }
+    .admin-header h1 { font-family: var(--font-serif); font-size: 2rem; font-weight: 400; margin-bottom: 0.5rem; }
+    .admin-header p { color: var(--text-muted); font-size: 0.875rem; }
+    .admin-login { max-width: 400px; margin: 8rem auto; }
+    .admin-login h2 { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 400; margin-bottom: 1.5rem; text-align: center; }
+    .admin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .admin-stat { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; }
+    .admin-stat-val { font-family: var(--font-serif); font-size: 2rem; color: var(--accent); }
+    .admin-stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .admin-table-wrap { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .admin-table th { text-align: left; padding: 0.875rem 1rem; background: var(--bg); color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border-subtle); }
+    .admin-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); }
+    .admin-table tr:last-child td { border-bottom: none; }
+    .admin-table tr:hover td { background: rgba(200,149,106,0.04); }
+    .admin-table a { color: var(--accent); text-decoration: none; }
+    .admin-table a:hover { text-decoration: underline; }
+    .admin-empty { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .admin-refresh { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; font-size: 0.8125rem; transition: all 0.2s; }
+    .admin-refresh:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 600px) {
+      .admin-stats { grid-template-columns: 1fr; }
+      .admin-table { font-size: 0.8125rem; }
+      .admin-table th, .admin-table td { padding: 0.625rem 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav nav--scrolled" id="nav">
+    <div class="nav-inner">
+      <div class="logo-wrap"><a href="/" class="logo">Velocity<span class="logo-dot">.</span></a><a href="https://calyvent.com" target="_blank" class="logo-sub">by Calyvent</a></div>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/dashboard.html">Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Login gate -->
+  <div id="loginView" class="admin-login">
+    <h2>Admin Access</h2>
+    <form id="adminLoginForm">
+      <div class="input-wrap">
+        <label for="adminKey">Admin key</label>
+        <input type="password" id="adminKey" placeholder="Enter your admin key" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="adminLoginBtn" style="margin-top:1rem;">Access Dashboard</button>
+      <div class="auth-error" id="adminError" style="display:none;margin-top:0.75rem;"></div>
+    </form>
+  </div>
+
+  <!-- Admin dashboard (hidden until authed) -->
+  <div id="adminView" class="admin-wrap" style="display:none;">
+    <div class="admin-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+        <div>
+          <h1>Signups</h1>
+          <p>All accounts created on Velocity.</p>
+        </div>
+        <button class="admin-refresh" id="refreshBtn">Refresh</button>
+      </div>
+    </div>
+
+    <div class="admin-stats">
+      <div class="admin-stat">
+        <div class="admin-stat-val" id="statTotal">—</div>
+        <div class="admin-stat-label">Total signups</div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-val" id="statToday">—</div>
+        <div class="admin-stat-label">Today</div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-val" id="statWithSite">—</div>
+        <div class="admin-stat-label">With website URL</div>
+      </div>
+    </div>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Email</th>
+            <th>Website</th>
+            <th>Signed up</th>
+          </tr>
+        </thead>
+        <tbody id="signupsBody">
+          <tr><td colspan="4" class="admin-empty">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var adminKey = '';
+    var loginView = document.getElementById('loginView');
+    var adminView = document.getElementById('adminView');
+
+    // Check if key is saved
+    var savedKey = sessionStorage.getItem('velocity_admin_key');
+    if (savedKey) {
+      adminKey = savedKey;
+      loginView.style.display = 'none';
+      adminView.style.display = 'block';
+      loadSignups();
+    }
+
+    document.getElementById('adminLoginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var key = document.getElementById('adminKey').value.trim();
+      var errorEl = document.getElementById('adminError');
+      var btn = document.getElementById('adminLoginBtn');
+      if (!key) return;
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+      errorEl.style.display = 'none';
+
+      fetch('/api/admin/signups?key=' + encodeURIComponent(key))
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+        .then(function (res) {
+          if (!res.ok) {
+            errorEl.textContent = res.data.error || 'Invalid admin key.';
+            errorEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Access Dashboard';
+            return;
+          }
+          adminKey = key;
+          sessionStorage.setItem('velocity_admin_key', key);
+          loginView.style.display = 'none';
+          adminView.style.display = 'block';
+          renderSignups(res.data.signups);
+        })
+        .catch(function () {
+          errorEl.textContent = 'Network error. Please try again.';
+          errorEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Access Dashboard';
+        });
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', loadSignups);
+
+    function loadSignups() {
+      var body = document.getElementById('signupsBody');
+      body.innerHTML = '<tr><td colspan="4" class="admin-empty">Loading...</td></tr>';
+
+      fetch('/api/admin/signups?key=' + encodeURIComponent(adminKey))
+        .then(function (r) { return r.json(); })
+        .then(function (data) { renderSignups(data.signups || []); })
+        .catch(function () {
+          body.innerHTML = '<tr><td colspan="4" class="admin-empty">Failed to load signups.</td></tr>';
+        });
+    }
+
+    function renderSignups(signups) {
+      var body = document.getElementById('signupsBody');
+
+      // Stats
+      var today = new Date().toISOString().slice(0, 10);
+      var todayCount = signups.filter(function (s) { return (s.created_at || '').slice(0, 10) === today; }).length;
+      var withSite = signups.filter(function (s) { return s.website_url; }).length;
+      document.getElementById('statTotal').textContent = signups.length;
+      document.getElementById('statToday').textContent = todayCount;
+      document.getElementById('statWithSite').textContent = withSite;
+
+      if (!signups.length) {
+        body.innerHTML = '<tr><td colspan="4" class="admin-empty">No signups yet.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = signups.map(function (s, i) {
+        var date = s.created_at ? new Date(s.created_at) : null;
+        var dateStr = date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—';
+        var websiteHtml = s.website_url ? '<a href="' + s.website_url + '" target="_blank">' + s.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '') + '</a>' : '<span style="color:var(--text-muted)">—</span>';
+        return '<tr><td>' + (i + 1) + '</td><td><a href="mailto:' + s.email + '">' + s.email + '</a></td><td>' + websiteHtml + '</td><td>' + dateStr + '</td></tr>';
+      }).join('');
+    }
+  })();
+  </script>
+</body>
+</html>

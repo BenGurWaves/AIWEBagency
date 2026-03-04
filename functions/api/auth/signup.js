@@ -42,6 +42,15 @@ export async function onRequestPost(context) {
   };
   await kv.put(`user:${email}`, JSON.stringify(user), { expirationTtl: 86400 * 365 });
 
+  // Track signup in the signups log for admin visibility
+  try {
+    const signups = (await kv.get('admin:signups', { type: 'json' })) || [];
+    signups.unshift({ email, website_url: websiteUrl || null, created_at: user.created_at });
+    // Keep last 500 signups
+    if (signups.length > 500) signups.length = 500;
+    await kv.put('admin:signups', JSON.stringify(signups), { expirationTtl: 86400 * 365 });
+  } catch (_) {}
+
   // Create session
   const sessionId = await createSession(kv, email);
 
