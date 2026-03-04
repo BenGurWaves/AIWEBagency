@@ -54,7 +54,50 @@ export async function onRequestPost(context) {
     siteType: body.site_type     || 'service-business',
     inspo:    body.inspo_urls    || '',
     notes:    body.notes         || '',
+    customAccent: body.custom_accent || null,
+    customPalette: body.custom_palette || null,
   };
+
+  // ── 3b. Scrape inspiration URLs for layout/color cues ────
+  let inspoHints = {};
+  if (biz.inspo) {
+    const urls = biz.inspo.split(/[\s,]+/).filter(u => u.startsWith('http'));
+    for (const url of urls.slice(0, 3)) {
+      try {
+        const resp = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VelocityBot/1.0)' },
+          redirect: 'follow',
+          signal: AbortSignal.timeout(5000),
+        });
+        const html = await resp.text();
+        const extracted = extractInspoHints(html);
+        if (extracted.accentColor && !inspoHints.accentColor) inspoHints.accentColor = extracted.accentColor;
+        if (extracted.isDark !== undefined && inspoHints.isDark === undefined) inspoHints.isDark = extracted.isDark;
+        if (extracted.hasHeroVideo) inspoHints.hasHeroVideo = true;
+        if (extracted.layoutHint) inspoHints.layoutHint = extracted.layoutHint;
+      } catch { /* inspo scrape failed — skip */ }
+    }
+    // Apply inspo hints to biz if no user preference overrides
+    if (inspoHints.accentColor && !biz.customAccent) biz.customAccent = inspoHints.accentColor;
+    if (inspoHints.isDark && biz.style === 'modern-clean') biz.style = 'bold-dark';
+  }
+
+  // ── 3c. Parse notes more carefully ──────────────────────
+  if (biz.notes) {
+    const notes = biz.notes.toLowerCase();
+    // Detect site type from notes
+    if (/portfolio|showcase|gallery|my work/i.test(notes) && biz.siteType === 'service-business') {
+      biz.siteType = 'portfolio';
+    }
+    if (/booking|appointment|schedule/i.test(notes) && biz.siteType === 'service-business') {
+      biz.siteType = 'booking';
+    }
+    // Detect color requests from notes
+    if (!biz.customAccent) {
+      const colorMatch = notes.match(/#[0-9a-f]{3,6}\b/i);
+      if (colorMatch) biz.customAccent = colorMatch[0];
+    }
+  }
 
   // ── 4. Generate preview HTML ──────────────────────────────
   const previewHtml = generatePreview(biz);
@@ -91,6 +134,7 @@ export async function onRequestPost(context) {
         email: biz.email || email,
         address: biz.location || '',
         domain: biz.domain || '',
+        niche: biz.niche || '',
       },
     };
     await kv.put(`project:${projectId}`, JSON.stringify(project), { expirationTtl: 86400 * 365 });
@@ -351,6 +395,65 @@ function getTheme(style) {
   return themes[style] || themes['modern-clean'];
 }
 
+function applyCustomAccent(theme, customAccent) {
+  if (!customAccent) return theme;
+  // Derive hover (slightly darker) and bg variants from custom accent
+  const t = { ...theme };
+  t.accent = customAccent;
+  t.accentHover = customAccent;
+  t.accentBg = customAccent.replace(/^#/, 'rgba(') ? `${customAccent}11` : t.accentBg;
+  // Simple hex to rgba for background
+  const hex = customAccent.replace('#', '');
+  if (hex.length === 6) {
+    const r = parseInt(hex.slice(0,2), 16);
+    const g = parseInt(hex.slice(2,4), 16);
+    const b = parseInt(hex.slice(4,6), 16);
+    t.accentBg = `rgba(${r},${g},${b},0.07)`;
+    t.accentBgSolid = `rgba(${r},${g},${b},0.1)`;
+    // Darker hover
+    t.accentHover = '#' + [r,g,b].map(c => Math.max(0, c - 20).toString(16).padStart(2,'0')).join('');
+  }
+  return t;
+}
+
+// ── Inspiration URL analysis ─────────────────────────────────
+
+function extractInspoHints(html) {
+  const hints = {};
+  // Extract dominant colors from CSS
+  const colorMatches = html.match(/(?:background-color|background|color)\s*:\s*(#[0-9a-fA-F]{3,6})/g) || [];
+  const colorCounts = {};
+  colorMatches.forEach(m => {
+    const c = (m.match(/#[0-9a-fA-F]{3,6}/) || [''])[0].toLowerCase();
+    if (c && c !== '#fff' && c !== '#ffffff' && c !== '#000' && c !== '#000000' && c.length > 4) {
+      colorCounts[c] = (colorCounts[c] || 0) + 1;
+    }
+  });
+  const sorted = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
+  if (sorted.length > 0) hints.accentColor = sorted[0][0];
+
+  // Detect dark mode
+  const bodyBg = html.match(/body\s*\{[^}]*background[^:]*:\s*(#[0-9a-fA-F]{3,6})/);
+  if (bodyBg) {
+    const hex = bodyBg[1].replace('#', '');
+    if (hex.length === 6) {
+      const brightness = (parseInt(hex.slice(0,2),16) + parseInt(hex.slice(2,4),16) + parseInt(hex.slice(4,6),16)) / 3;
+      hints.isDark = brightness < 80;
+    }
+  }
+
+  // Detect hero video
+  if (/<video[^>]*class[^>]*hero/i.test(html) || /hero[^"]*video/i.test(html)) {
+    hints.hasHeroVideo = true;
+  }
+
+  // Detect layout patterns
+  if (/grid.*template.*columns.*repeat\(3/i.test(html)) hints.layoutHint = '3-col';
+  if (/text-align\s*:\s*center[^}]*font-size\s*:\s*(?:4|5|6)\d*px/i.test(html)) hints.layoutHint = 'centered-hero';
+
+  return hints;
+}
+
 // ── Archetype detection ──────────────────────────────────────
 
 function detectArchetype(biz) {
@@ -369,8 +472,22 @@ function detectArchetype(biz) {
 // Each archetype gets a structurally different page layout
 // ═══════════════════════════════════════════════════════════════
 
+/*
+ * PREMIUM WEBSITE BLUEPRINT (embedded design intelligence)
+ *
+ * 1. Hero must pass 50ms test — instant quality impression
+ * 2. Generous whitespace around every element (silence between words)
+ * 3. Strict grid alignment — invisible lines create subconscious balance
+ * 4. 3-5 subtle micro-interactions (hover, scroll fade, button shine)
+ * 5. Color palette limited to 3 cohesive colors max
+ * 6. Typography hierarchy: massive headlines vs small body (90% of design)
+ * 7. Subtle restrained animations — never bouncing/spinning/wacky
+ * 8. CTAs feel like next logical step, not desperate buttons
+ * 9. No density/clutter — breathing room on all elements
+ * 10. Gradients + shadows for depth (not flat lifeless boxes)
+ */
 function generatePreview(biz) {
-  const t = getTheme(biz.style);
+  const t = applyCustomAccent(getTheme(biz.style), biz.customAccent);
   const nc = getNicheContent(biz.niche, biz);
   const services = enhanceServices(biz.services, nc);
   const archetype = detectArchetype(biz);
@@ -779,6 +896,9 @@ ${services.slice(0, 4).map(s => `        <li><a href="#services">${esc(s.name)}<
     <span>&copy; ${year} ${name}. All rights reserved.</span>
     <span class="footer-credit"><a href="https://velocity.delivery" class="velocity-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;opacity:.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Velocity</a></span>
   </div>
+<div class="preview-disclaimer" style="background:${isDark ? '#1a1815' : '#f5f3ef'};border-top:1px solid ${isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'};padding:20px;text-align:center;">
+  <p style="font-size:12px;color:${isDark ? '#6d6560' : '#8a8580'};line-height:1.6;max-width:500px;margin:0 auto;">This is a <strong>preview only</strong>. Custom text, products, photos, and advanced features will be added after you select a plan. Many sections are placeholders that will be personalized in the final build.</p>
+</div>
 </footer>
 
 <script>
@@ -803,7 +923,7 @@ function generateCSS(t, isDark, layout) {
   let css = `*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:${t.bg};--bg-alt:${t.bgAlt};--nav:${t.nav};--accent:${t.accent};--accent-hover:${t.accentHover};--accent-bg:${t.accentBg};--accent-bg-solid:${t.accentBgSolid};--trust:${t.trust};--text:${t.text};--text-sec:${t.textSec};--muted:${t.muted};--card:${t.card};--border:${t.border};--font:${t.font};--font-head:${t.fontHead};--r:8px;--rl:14px}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
-body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.65;overflow-x:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden;font-size:15px}
 a{color:inherit;text-decoration:none}img{max-width:100%;display:block}
 .wrap{max-width:1100px;margin:0 auto;padding:0 24px}
 
@@ -844,7 +964,7 @@ a{color:inherit;text-decoration:none}img{max-width:100%;display:block}
 .footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px}
 .footer-col ul{list-style:none}.footer-col li{margin-bottom:6px}.footer-col a{font-size:13px;color:var(--text-sec);transition:color .2s}.footer-col a:hover{color:var(--accent)}
 .footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
-.footer-credit{font-size:11px;color:var(--muted)}.velocity-badge{color:var(--muted);text-decoration:none;transition:color .2s;letter-spacing:.01em}.velocity-badge:hover{color:var(--accent)}
+.footer-credit{font-size:11px;display:inline-flex;align-items:center;gap:3px;background:#12100e;color:#6d6560;padding:4px 10px;border-radius:4px}.velocity-badge{color:#6d6560;text-decoration:none;transition:color .2s;letter-spacing:.01em}.velocity-badge:hover{color:#c8956a}
 
 /* Watermark */
 .velocity-watermark{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden;opacity:.045}

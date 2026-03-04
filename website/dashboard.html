@@ -159,14 +159,8 @@
           <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:0.5rem;" id="welcomeEmail"></p>
           <p style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:2rem;" id="welcomeUrl"></p>
 
-          <!-- Previous previews list -->
-          <div id="welcomePreviews" style="margin-bottom:1.5rem;display:none;">
-            <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.75rem;">Your Previews</p>
-            <div id="welcomePreviewList" style="display:flex;flex-direction:column;gap:0.5rem;max-width:400px;margin:0 auto;"></div>
-          </div>
-
-          <!-- Action buttons -->
-          <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+          <!-- Action buttons (always visible) -->
+          <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem;">
             <button class="btn btn-primary" id="welcomeNewDesign" style="gap:0.5rem;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               New Design
@@ -175,6 +169,17 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               View Latest Preview
             </button>
+            <button class="btn btn-ghost" id="welcomeEditDetails" style="gap:0.5rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+              Edit Details
+            </button>
+          </div>
+
+          <!-- Previous previews list -->
+          <div id="welcomePreviews" style="margin-bottom:1rem;display:none;">
+            <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.75rem;">Your Previews</p>
+            <div id="welcomePreviewList" style="display:flex;flex-direction:column;gap:0.5rem;max-width:400px;margin:0 auto;"></div>
+            <button class="btn btn-ghost" id="welcomeViewMore" style="display:none;margin:0.75rem auto 0;font-size:0.8125rem;">View more</button>
           </div>
         </div>
       </div>
@@ -311,9 +316,26 @@
               </div>
             </div>
 
+            <div class="q-row">
+              <div class="input-wrap">
+                <label for="qLogo">Your logo <span class="label-hint">(optional)</span></label>
+                <input type="file" id="qLogo" accept="image/*" style="font-size:0.8125rem;padding:8px;">
+                <p class="q-hint" style="font-size:0.6875rem;color:var(--text-muted);margin-top:4px;">PNG, JPG, or SVG. We'll use it on your preview.</p>
+              </div>
+              <div class="input-wrap">
+                <label>Brand colors <span class="label-hint">(optional — pick up to 3)</span></label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input type="color" id="qColor1" value="#1a6b44" style="width:40px;height:36px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);cursor:pointer;padding:2px;">
+                  <input type="color" id="qColor2" value="#ffffff" style="width:40px;height:36px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);cursor:pointer;padding:2px;">
+                  <input type="color" id="qColor3" value="#1a2e22" style="width:40px;height:36px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);cursor:pointer;padding:2px;">
+                  <label style="font-size:0.75rem;color:var(--text-muted);margin-left:4px;"><input type="checkbox" id="qUseColors" style="margin-right:4px;">Use these colors</label>
+                </div>
+              </div>
+            </div>
+
             <div class="input-wrap">
-              <label for="qInspo">Websites you like <span class="label-hint">(optional)</span></label>
-              <textarea id="qInspo" rows="2" placeholder="Paste links to websites whose look you like."></textarea>
+              <label for="qInspo">Websites you like <span class="label-hint">(optional — we'll study their layout and style)</span></label>
+              <textarea id="qInspo" rows="2" placeholder="Paste links to websites whose look you like. We'll analyze their layout, colors, and style for inspiration."></textarea>
             </div>
 
             <div class="input-wrap">
@@ -446,16 +468,24 @@
             <div class="preview-action-card">
               <h3>Want changes?</h3>
               <p>Not 100% happy? Tell us what to tweak and we'll update your preview.</p>
+              <p id="revisionCounter" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem;"></p>
               <div id="revisionArea">
                 <button class="btn btn-outline" id="revisionsBtn" style="width:100%;">Request changes</button>
               </div>
               <div id="revisionForm" style="display:none;" class="revision-box">
-                <textarea id="revisionNotes" rows="4" placeholder="Tell us what you'd like different — colors, layout, wording, anything..."></textarea>
+                <textarea id="revisionNotes" rows="4" placeholder="Tell us what you'd like different — colors, layout, wording, anything. Be specific: 'make it magenta and dark' works great."></textarea>
                 <div class="revision-btns">
                   <button class="btn btn-primary" id="submitRevision" style="flex:1;">Submit</button>
                   <button class="btn btn-ghost" id="cancelRevision">Cancel</button>
                 </div>
               </div>
+            </div>
+
+            <!-- Edit details card -->
+            <div class="preview-action-card">
+              <h3>Edit your details?</h3>
+              <p>Go back to step 1 to update your business info, services, or preferences.</p>
+              <button class="btn btn-ghost" id="editDetailsBtn" style="width:100%;">Edit business details</button>
             </div>
 
             <!-- Start over card -->
@@ -683,37 +713,58 @@
         .catch(function() {});
     })();
 
+    var allServerProjects = [];
+    var visibleCount = 5;
+
     function renderPreviousGenerations(projects) {
+      allServerProjects = projects;
       var previewsEl = document.getElementById('welcomePreviews');
       var listEl = document.getElementById('welcomePreviewList');
       var viewBtn = document.getElementById('welcomeViewPreview');
+      var viewMoreBtn = document.getElementById('welcomeViewMore');
       if (!listEl) return;
       listEl.innerHTML = '';
 
-      var readyProjects = projects.filter(function(p) { return p.status === 'preview_ready' || p.status === 'deployed'; });
+      var readyProjects = projects.filter(function(p) { return p.status === 'preview_ready' || p.status === 'deployed' || p.preview_url; });
       if (readyProjects.length === 0 && !user.preview_url) return;
 
       if (previewsEl) previewsEl.style.display = 'block';
       if (viewBtn && (user.preview_url || readyProjects.length > 0)) viewBtn.style.display = 'inline-flex';
 
-      readyProjects.forEach(function(p) {
-        var previewCard = document.createElement('div');
-        previewCard.style.cssText = 'background:var(--bg);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color 0.2s;margin-bottom:0.5rem;';
-        var bizName = (p.business_info && p.business_info.name) ? p.business_info.name : 'Preview';
-        var dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
-        previewCard.innerHTML = '<div><strong style="font-size:0.875rem;">' + bizName + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + dateStr + '</span></div><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">' + (p.status === 'deployed' ? 'Live' : 'Ready') + '</span>';
-        previewCard.addEventListener('click', function() {
-          user.preview_url = p.preview_url || '/preview/' + p.id;
-          user.preview_id = p.id;
-          if (p.business_info && p.business_info.name) user.business_name = p.business_info.name;
-          localStorage.setItem('velocity_user', JSON.stringify(user));
-          showStep('preview');
-          renderPreview();
-        });
-        previewCard.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent)'; });
-        previewCard.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border-subtle)'; });
-        listEl.appendChild(previewCard);
+      var showing = Math.min(visibleCount, readyProjects.length);
+      for (var i = 0; i < showing; i++) {
+        listEl.appendChild(createProjectCard(readyProjects[i]));
+      }
+
+      if (viewMoreBtn) {
+        viewMoreBtn.style.display = readyProjects.length > showing ? 'block' : 'none';
+        viewMoreBtn.textContent = 'View more (' + (readyProjects.length - showing) + ' more)';
+        viewMoreBtn.onclick = function() {
+          visibleCount += 10;
+          renderPreviousGenerations(allServerProjects);
+        };
+      }
+    }
+
+    function createProjectCard(p) {
+      var previewCard = document.createElement('div');
+      previewCard.style.cssText = 'background:var(--bg);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color 0.2s;';
+      var bizName = (p.business_info && p.business_info.name) ? p.business_info.name : 'Preview';
+      var dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+      var niche = (p.business_info && p.business_info.niche) ? p.business_info.niche : '';
+      previewCard.innerHTML = '<div><strong style="font-size:0.875rem;">' + bizName + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + (niche ? niche + ' &middot; ' : '') + dateStr + '</span></div><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">' + (p.status === 'deployed' ? 'Live' : 'Ready') + '</span>';
+      previewCard.addEventListener('click', function() {
+        user.preview_url = p.preview_url || '/preview/' + p.id;
+        user.preview_id = p.id;
+        if (p.business_info && p.business_info.name) user.business_name = p.business_info.name;
+        if (p.business_info && p.business_info.niche) user.niche = p.business_info.niche;
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        showStep('preview');
+        renderPreview();
       });
+      previewCard.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent)'; });
+      previewCard.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border-subtle)'; });
+      return previewCard;
     }
 
     // Show previous preview if available (local fallback)
@@ -733,6 +784,19 @@
 
     // Welcome buttons
     document.getElementById('welcomeNewDesign').addEventListener('click', function() {
+      // Start fresh for a new business/URL
+      user.preview_url = null;
+      user.preview_id = null;
+      user.preview_ready = false;
+      user.questionnaire_filled = false;
+      user.revision_count = 0;
+      user.dashboard_step = 'questionnaire';
+      localStorage.setItem('velocity_user', JSON.stringify(user));
+      showStep('questionnaire');
+      refillForm();
+    });
+    document.getElementById('welcomeEditDetails').addEventListener('click', function() {
+      // Go back to questionnaire to edit, keep existing data
       showStep('questionnaire');
       refillForm();
     });
@@ -744,6 +808,15 @@
       });
     }
 
+    // Email in header opens dashboard (welcome screen)
+    var dashEmailEl = document.getElementById('dashEmail');
+    if (dashEmailEl) {
+      dashEmailEl.style.cursor = 'pointer';
+      dashEmailEl.addEventListener('click', function() {
+        showStep('welcome');
+      });
+    }
+
     // ── AI Form Enhancement (no API, pure code intelligence) ──
     function aiEnhance(field, value, context) {
       if (!value || typeof value !== 'string') return value;
@@ -751,6 +824,15 @@
       if (!v) return v;
 
       if (field === 'services') {
+        // Detect non-service text (e.g. "I don't have services", "portfolio", "N/A")
+        var notService = /\b(i don'?t have|no services|not applicable|n\/a|none|i want a portfolio|portfolio website|i just want|don'?t offer|not a service)\b/i;
+        if (notService.test(v)) {
+          // Extract the intent instead — don't use as a service name
+          if (/portfolio/i.test(v)) return 'Portfolio & Creative Work';
+          if (/blog/i.test(v)) return 'Blog & Content';
+          if (/shop|store|sell/i.test(v)) return 'Online Store';
+          return ''; // Return empty — let niche-based auto-fill handle it
+        }
         // Expand abbreviations and shorthand
         var expansions = {
           'ac': 'Air Conditioning', 'a/c': 'Air Conditioning', 'hvac': 'HVAC Systems',
@@ -855,6 +937,29 @@
       user.site_type = document.getElementById('qSiteType').value;
       user.inspo_urls = document.getElementById('qInspo').value.trim();
       user.notes = document.getElementById('qNotes').value.trim();
+
+      // Custom color palette
+      var useColors = document.getElementById('qUseColors');
+      if (useColors && useColors.checked) {
+        user.custom_palette = [
+          document.getElementById('qColor1').value,
+          document.getElementById('qColor2').value,
+          document.getElementById('qColor3').value,
+        ];
+        user.custom_accent = document.getElementById('qColor1').value;
+      }
+
+      // Logo upload — convert to data URL for passing to generator
+      var logoInput = document.getElementById('qLogo');
+      if (logoInput && logoInput.files && logoInput.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          user.logo_url = e.target.result;
+          localStorage.setItem('velocity_user', JSON.stringify(user));
+        };
+        reader.readAsDataURL(logoInput.files[0]);
+      }
+
       user.questionnaire_filled = true;
       // Clear any old preview since this is a new submission
       user.preview_url = null;
@@ -917,6 +1022,9 @@
           site_type: user.site_type,
           inspo_urls: user.inspo_urls,
           notes: user.notes,
+          custom_accent: user.custom_accent || null,
+          custom_palette: user.custom_palette || null,
+          logo_url: user.logo_url || null,
         };
 
         // Use orchestrator for full agent pipeline (falls back to generate)
@@ -958,11 +1066,14 @@
           });
         });
 
-        fetch('/api/request-redesign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(genPayload),
-        }).catch(function() {});
+        // Only send redesign notification on first generation, not on revisions
+        if (!user.revision_count || user.revision_count === 0) {
+          fetch('/api/request-redesign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(genPayload),
+          }).catch(function() {});
+        }
       }
 
       // Poll for real-time progress from orchestrator
@@ -1089,7 +1200,25 @@
     }
     // Hook into renderPreview
     var _origRenderPreview = renderPreview;
-    renderPreview = function () { _origRenderPreview(); addCopyButton(); };
+    renderPreview = function () {
+      _origRenderPreview();
+      addCopyButton();
+      // Restore revision area (fix stuck "Updating your preview..." issue)
+      var revisionArea = document.getElementById('revisionArea');
+      var count = user.revision_count || 0;
+      var counter = document.getElementById('revisionCounter');
+      if (counter) counter.textContent = count > 0 ? count + ' of 3 revisions used' : '';
+      if (revisionArea && count < 3) {
+        revisionArea.innerHTML = '<button class="btn btn-outline" id="revisionsBtn" style="width:100%;">Request changes</button>';
+        document.getElementById('revisionsBtn').addEventListener('click', function() {
+          document.getElementById('revisionForm').style.display = 'block';
+          this.style.display = 'none';
+        });
+      } else if (revisionArea && count >= 3) {
+        revisionArea.innerHTML = '<p style="color:var(--text-muted);font-size:0.8125rem;">All 3 free revisions used. Start a new design for a fresh approach.</p>';
+      }
+      document.getElementById('revisionForm').style.display = 'none';
+    };
 
     // ── Keyboard shortcuts ──
     document.addEventListener('keydown', function (e) {
@@ -1314,8 +1443,17 @@
     document.getElementById('submitRevision').addEventListener('click', function() {
       var notes = document.getElementById('revisionNotes').value.trim();
       if (!notes) return;
+
+      // Check revision limit (3 per project)
+      var count = user.revision_count || 0;
+      if (count >= 3) {
+        document.getElementById('revisionForm').style.display = 'none';
+        document.getElementById('revisionArea').innerHTML = '<p style="color:var(--text-muted);font-size:0.875rem;padding:0.5rem 0;">You\'ve used all 3 free revisions for this project. Start a new design to try a different approach.</p>';
+        return;
+      }
+
       user.revision_notes = notes;
-      user.revision_count = (user.revision_count || 0) + 1;
+      user.revision_count = count + 1;
       user.notes = (user.notes ? user.notes + ' | ' : '') + notes;
 
       // Apply revision changes to the style/content immediately
@@ -1323,7 +1461,7 @@
 
       localStorage.setItem('velocity_user', JSON.stringify(user));
       document.getElementById('revisionForm').style.display = 'none';
-      document.getElementById('revisionArea').innerHTML = '<p style="color:var(--green);font-weight:600;padding:0.5rem 0;">Updating your preview...</p>';
+      document.getElementById('revisionNotes').value = '';
 
       // Immediately regenerate preview with new instructions
       user.preview_url = null;
@@ -1339,23 +1477,52 @@
     function applyRevisionHints(notes) {
       var lower = notes.toLowerCase();
       var oldStyle = user.style;
-      // Explicit style hints
+
+      // Check for specific color names the user wants (override niche defaults)
+      var hexMatch = notes.match(/#[0-9a-fA-F]{3,6}\b/);
+      var namedColors = {
+        'magenta': '#e91e8c', 'pink': '#e91e8c', 'hot pink': '#ff69b4', 'fuchsia': '#ff00ff',
+        'gold': '#d4a017', 'yellow': '#e6b800', 'lime': '#32cd32', 'cyan': '#00bcd4',
+        'coral': '#ff6f61', 'salmon': '#fa8072', 'lavender': '#9b59b6', 'indigo': '#4b0082',
+        'mint': '#3eb489', 'peach': '#ffab91', 'turquoise': '#00bfa5', 'maroon': '#800000',
+        'olive': '#6b8e23', 'charcoal': '#36454f', 'slate': '#708090', 'rose': '#e8758f',
+      };
+      var customColor = null;
+      if (hexMatch) {
+        customColor = hexMatch[0];
+      } else {
+        for (var cname in namedColors) {
+          if (lower.indexOf(cname) !== -1) { customColor = namedColors[cname]; break; }
+        }
+      }
+      if (customColor) {
+        // Store custom accent color — the generator will use this directly
+        user.custom_accent = customColor;
+      }
+
+      // Style/theme hints
       if (/dark|bold|edgy|dramatic|night|black/i.test(lower)) user.style = 'bold-dark';
       else if (/warm|friendly|cozy|welcoming|orange|autumn|sunset/i.test(lower)) user.style = 'warm-friendly';
       else if (/clean|minimal|modern|simple|sleek|white/i.test(lower)) user.style = 'modern-clean';
-      else if (/professional|corporate|formal|blue|navy|trust/i.test(lower)) user.style = 'professional';
-      else if (/rustic|organic|natural|earthy|brown|wood|vintage/i.test(lower)) user.style = 'rustic';
-      else if (/purple|creative|playful|fun|vibrant|colorful|pop|bright/i.test(lower)) user.style = 'surprise';
-      else if (/ocean|teal|sea|aqua|green|forest|emerald/i.test(lower)) user.style = 'ocean';
-      else if (/red|crimson|fire|ruby|cherry|burgundy/i.test(lower)) user.style = 'ember';
+      else if (/professional|corporate|formal|navy|trust/i.test(lower)) user.style = 'professional';
+      else if (/rustic|organic|natural|earthy|wood|vintage/i.test(lower)) user.style = 'rustic';
+      else if (/creative|playful|vibrant|colorful|pop|bright/i.test(lower)) user.style = 'surprise';
+      else if (/ocean|teal|sea|aqua|forest|emerald/i.test(lower)) user.style = 'ocean';
+      else if (/crimson|fire|ruby|cherry|burgundy/i.test(lower)) user.style = 'ember';
 
       // If user asked for "different" anything but no specific style matched, rotate
-      if (user.style === oldStyle && /different|change|other|new|another|not this|switch|redo|try again|update/i.test(lower)) {
+      if (user.style === oldStyle && !customColor && /different|change|other|new|another|not this|switch|redo|try again|update/i.test(lower)) {
         var styles = ['modern-clean', 'bold-dark', 'warm-friendly', 'professional', 'rustic', 'surprise', 'ocean', 'ember'];
         var idx = styles.indexOf(user.style);
         user.style = styles[(idx + 1) % styles.length];
       }
     }
+
+    // ── Edit details (from preview step) ──
+    document.getElementById('editDetailsBtn').addEventListener('click', function() {
+      showStep('questionnaire');
+      refillForm();
+    });
 
     // ── New design ──
     document.getElementById('newDesignBtn').addEventListener('click', function() {

@@ -416,10 +416,13 @@ function generatePreview(info) {
   <p>Contact us today for a free estimate. No obligation.</p>
   <a href="tel:${esc(phone.replace(/[^0-9+]/g, ''))}" class="cta-btn">Call ${phone}</a>
 </div>
+<div style="background:#f5f3ef;border-top:1px solid rgba(0,0,0,.06);padding:20px;text-align:center;">
+  <p style="font-size:12px;color:#8a8580;line-height:1.6;max-width:500px;margin:0 auto;">This is a <strong>preview only</strong>. Custom text, products, photos, and advanced features will be added after you select a plan.</p>
+</div>
 <footer>
   <div class="foot-logo">${name}<em>.</em></div>
   <p>&copy; ${year} ${name}. All rights reserved.</p>
-  <span class="badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;opacity:.6"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><a href="https://velocity.delivery" style="color:inherit;text-decoration:none;">Velocity</a></span>
+  <span class="badge" style="background:#12100e;color:#6d6560;border:none;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#c8956a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;opacity:.7"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><a href="https://velocity.delivery" style="color:#6d6560;text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#c8956a'" onmouseout="this.style.color='#6d6560'">Velocity</a></span>
 </footer>
 </body>
 </html>`;

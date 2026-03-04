@@ -63,7 +63,7 @@ export async function onRequestPost(context) {
 
   const buildId = generateId();
   const archetype = detectArchetype(biz);
-  const theme = getTheme(biz.style, archetype);
+  const theme = getTheme(biz.style, archetype, biz);
 
   // Determine pages based on plan
   const pageList = ['index', 'services', 'about', 'contact'];
@@ -1012,7 +1012,7 @@ function buildFooter(biz, content, theme) {
 // THEME & STYLESHEET
 // ═══════════════════════════════════════════════════════════════
 
-function getTheme(style, archetype) {
+function getTheme(style, archetype, biz) {
   // Archetype-specific base themes — each archetype gets DIFFERENT fonts, colors, layout vars
   const archetypeThemes = {
     'local-service': {
@@ -1084,7 +1084,22 @@ function getTheme(style, archetype) {
 
   const base = archetypeThemes[archetype] || archetypeThemes['local-service'];
   const override = styleOverrides[style] || {};
-  return { ...base, ...override };
+  const theme = { ...base, ...override };
+
+  // Apply custom accent color if user specified one
+  if (biz && biz.custom_accent) {
+    const hex = biz.custom_accent.replace('#', '');
+    theme.accent = biz.custom_accent;
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0,2), 16);
+      const g = parseInt(hex.slice(2,4), 16);
+      const b = parseInt(hex.slice(4,6), 16);
+      theme.accentHover = '#' + [r,g,b].map(c => Math.max(0, c - 20).toString(16).padStart(2,'0')).join('');
+      theme.accentBg = `rgba(${r},${g},${b},0.07)`;
+      theme.accentBgSolid = `rgba(${r},${g},${b},0.1)`;
+    }
+  }
+  return theme;
 }
 
 // ── Archetype detection (shared with orchestrate.js) ──────────
