@@ -364,6 +364,9 @@ function generatePreview(info) {
     border-radius: 4px;
     margin-top: 8px;
   }
+  .velocity-watermark{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden;opacity:.045}
+  .velocity-watermark-inner{position:absolute;top:-50%;left:-50%;width:200%;height:200%;transform:rotate(-30deg);display:flex;flex-wrap:wrap;gap:80px 60px;align-content:flex-start;justify-content:center}
+  .velocity-watermark-inner span{font-family:sans-serif;font-size:14px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#c8956a;white-space:nowrap}
   @media (max-width: 480px) {
     .stats { grid-template-columns: 1fr; }
     .services-grid { grid-template-columns: 1fr; }
@@ -372,6 +375,7 @@ function generatePreview(info) {
 </style>
 </head>
 <body>
+<div class="velocity-watermark"><div class="velocity-watermark-inner">${Array(120).fill('<span>VELOCITY PREVIEW</span>').join('')}</div></div>
 <nav>
   <div class="logo">${name}<em>.</em></div>
   <div class="links">
@@ -415,7 +419,7 @@ function generatePreview(info) {
 <footer>
   <div class="foot-logo">${name}<em>.</em></div>
   <p>&copy; ${year} ${name}. All rights reserved.</p>
-  <span class="badge">Redesigned by <a href="https://velocity.delivery" style="color:inherit;text-decoration:underline;">Velocity</a> &middot; by <a href="https://calyvent.com" target="_blank" style="color:inherit;text-decoration:underline;">Calyvent</a></span>
+  <span class="badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;opacity:.6"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><a href="https://velocity.delivery" style="color:inherit;text-decoration:none;">Velocity</a></span>
 </footer>
 </body>
 </html>`;

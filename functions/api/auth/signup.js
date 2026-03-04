@@ -135,7 +135,7 @@ export async function onRequestOptions() {
 function buildWelcomeEmail(email, websiteUrl) {
   const websiteSection = websiteUrl ? `
     <p style="font-size:15px;color:#a89f94;line-height:1.7;margin:0 0 24px;font-family:-apple-system,system-ui,sans-serif;">
-      We&rsquo;re already working on a redesign for <strong style="color:#e8ddd3;">${esc(websiteUrl)}</strong>. Sit tight &mdash; your custom preview will be ready within 24&ndash;48 hours.
+      We&rsquo;re already working on a redesign for <strong style="color:#e8ddd3;">${esc(websiteUrl)}</strong>. Sit tight &mdash; your custom preview will be ready in 2 minutes to 48 hours depending on current demand.
     </p>` : `
     <p style="font-size:15px;color:#a89f94;line-height:1.7;margin:0 0 24px;font-family:-apple-system,system-ui,sans-serif;">
       Your account is all set. Head to your dashboard to submit your website and get a free redesign preview.

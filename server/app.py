@@ -92,7 +92,7 @@ async def request_redesign(req: RedesignRequest):
         session.add(lead)
         await session.commit()
 
-    return {"status": "success", "message": "We'll send your free redesign within 24-48 hours."}
+    return {"status": "success", "message": "Your free redesign preview will be ready in 2 minutes to 48 hours depending on demand."}
 
 
 # ═══════════════════════════════════════════════════════════

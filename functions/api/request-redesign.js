@@ -226,7 +226,7 @@ function buildConfirmationEmail(websiteUrl) {
             <div style="width:28px;height:28px;border-radius:50%;background:rgba(200,149,106,0.15);color:#c8956a;text-align:center;line-height:28px;font-size:13px;font-weight:700;">3</div>
           </td>
           <td style="padding:10px 0;">
-            <strong style="color:#e8ddd3;font-size:14px;display:block;margin-bottom:2px;">You see your preview in 24&ndash;48 hours</strong>
+            <strong style="color:#e8ddd3;font-size:14px;display:block;margin-bottom:2px;">Your preview is ready in 2 minutes to 48 hours</strong>
             <span style="color:#6d6560;font-size:13px;">Log into your dashboard to watch the progress live.</span>
           </td>
         </tr>
@@ -374,7 +374,7 @@ function buildNotificationEmail(websiteUrl, email) {
           <td style="padding:6px 0;"><span style="color:#c8956a;margin-right:8px;">&#9679;</span> Audit their site: <a href="${escapeHtml(websiteUrl)}" style="color:#c8956a;">${escapeHtml(websiteUrl)}</a></td>
         </tr>
         <tr>
-          <td style="padding:6px 0;"><span style="color:#c8956a;margin-right:8px;">&#9679;</span> Generate redesign preview within 24&ndash;48 hours</td>
+          <td style="padding:6px 0;"><span style="color:#c8956a;margin-right:8px;">&#9679;</span> Generate redesign preview (2 min to 48 hours depending on demand)</td>
         </tr>
       </table>
     </div>

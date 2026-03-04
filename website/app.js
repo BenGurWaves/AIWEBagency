@@ -325,8 +325,8 @@
         '</div>' +
         '<div class="plans-grid">' +
           planCard('Free', '$0', '', ['1 project', 'Preview generation', 'Basic analytics'], currentPlan === 'free') +
-          planCard('Starter', '$997', 'one-time', ['5-page custom website', 'Mobile-first design', 'SSL included', 'Basic SEO', '30 days support'], currentPlan === 'starter') +
-          planCard('Professional', '$1,997', 'one-time', ['Multi-page website', 'Blog with CMS', 'Advanced SEO', 'Service area pages', '60 days support'], currentPlan === 'professional') +
+          planCard('Starter', '$997', 'one-time', ['5-page custom website', 'Mobile-first design', 'SSL included', 'Basic SEO', 'Contact form', '30 days support'], currentPlan === 'starter') +
+          planCard('Professional', '$1,997', 'one-time', ['Multi-page website', 'Blog with CMS', 'Advanced SEO + Google Business', 'Service area pages', 'Photo gallery / portfolio', '60 days priority support'], currentPlan === 'professional') +
         '</div>' +
       '</div>'
     );

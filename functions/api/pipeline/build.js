@@ -69,6 +69,15 @@ export async function onRequestPost(context) {
   const pageList = ['index', 'services', 'about', 'contact'];
   if (biz.plan !== 'starter') {
     pageList.push('reviews');
+    pageList.push('blog');
+    pageList.push('gallery');
+  }
+  if (biz.plan === 'premium') {
+    pageList.push('booking');
+  }
+  // Service area pages for professional/premium
+  if (biz.plan !== 'starter' && biz.location) {
+    pageList.push('areas');
   }
 
   // Generate shared CSS
@@ -228,6 +237,10 @@ function generatePage(page, biz, content, theme, nav, footer, stylesheet, buildI
     about: () => buildAboutPage(biz, content, theme),
     contact: () => buildContactPage(biz, content, theme, buildId),
     reviews: () => buildReviewsPage(biz, content, theme),
+    blog: () => buildBlogPage(biz, content, theme),
+    gallery: () => buildGalleryPage(biz, content, theme),
+    areas: () => buildAreasPage(biz, content, theme),
+    booking: () => buildBookingPage(biz, content, theme),
   };
 
   const body = (bodyContent[page] || bodyContent.index)();
@@ -318,6 +331,10 @@ function getPageTitle(page, biz) {
     about: `About Us | ${name}`,
     contact: `Contact Us | ${name}`,
     reviews: `Reviews | ${name}`,
+    blog: `Blog & Resources | ${name}`,
+    gallery: `Our Work | ${name}`,
+    areas: `Service Areas | ${name}`,
+    booking: `Book Online | ${name}`,
   };
   return titles[page] || name;
 }
@@ -771,6 +788,167 @@ ${testimonials.map((t, i) => `      <div class="review-card fu fu${Math.min(i, 3
 </section>`;
 }
 
+// ── Blog page (Professional+) ─────────────────────────────────
+
+function buildBlogPage(biz, content, theme) {
+  const name = esc(biz.name);
+  const niche = esc(biz.niche || 'our industry');
+  const loc = esc(biz.location || 'your area');
+
+  const posts = [
+    { title: `How to Choose the Right ${capitalizeWords(niche)} Professional in ${loc}`, excerpt: `Finding a reliable ${niche} provider can feel overwhelming. Here are the key factors to look for — from licensing to reviews — so you make the right call.`, date: 'Latest', tag: 'Guide' },
+    { title: `${content.services?.[0]?.name || 'Common Issues'}: What Every Homeowner Should Know`, excerpt: `Understanding the basics helps you make informed decisions and avoid overpaying. Here's what we tell every customer.`, date: 'Recent', tag: 'Tips' },
+    { title: `Why Preventive Maintenance Saves You Thousands`, excerpt: `A small investment in regular maintenance prevents costly emergency repairs. We break down the numbers and the schedule you should follow.`, date: 'Recent', tag: 'Advice' },
+    { title: `${name}'s Guide to Seasonal Preparation`, excerpt: `Each season brings different challenges. Here's our professional checklist to keep everything running smoothly year-round.`, date: 'Archive', tag: 'Seasonal' },
+  ];
+
+  return `
+<section class="page-hero">
+  <div class="wrap">
+    <div class="sec-tag">Blog</div>
+    <h1 class="page-title">Insights & resources.</h1>
+    <p class="page-sub">Helpful guides, tips, and industry knowledge from the ${name} team.</p>
+  </div>
+</section>
+
+<section class="blog-section">
+  <div class="wrap">
+    <div class="blog-grid">
+${posts.map((p, i) => `      <article class="blog-card fu fu${Math.min(i, 3)}">
+        <div class="blog-card-img" style="background:var(--accent-bg-solid);"></div>
+        <div class="blog-card-body">
+          <div class="blog-card-meta"><span class="blog-tag">${p.tag}</span><span>${p.date}</span></div>
+          <h2>${esc(p.title)}</h2>
+          <p>${esc(p.excerpt)}</p>
+          <span class="blog-read-more">Read article &rarr;</span>
+        </div>
+      </article>`).join('\n')}
+    </div>
+    <div class="blog-cms-note" style="text-align:center;padding:48px 0 0;color:var(--muted);font-size:13px;">
+      <p>Content managed via your CMS dashboard. Add, edit, and publish posts anytime.</p>
+    </div>
+  </div>
+</section>`;
+}
+
+// ── Gallery page (Professional+) ──────────────────────────────
+
+function buildGalleryPage(biz, content, theme) {
+  const name = esc(biz.name);
+  const services = (content.services || []).slice(0, 6);
+
+  return `
+<section class="page-hero">
+  <div class="wrap">
+    <div class="sec-tag">Our Work</div>
+    <h1 class="page-title">See the quality firsthand.</h1>
+    <p class="page-sub">A selection of completed projects from ${name}. Every job gets our full attention.</p>
+  </div>
+</section>
+
+<section class="gallery-section">
+  <div class="wrap">
+    <div class="gallery-filters">
+      <button class="gallery-filter gallery-filter--active">All</button>
+${services.slice(0, 4).map(s => `      <button class="gallery-filter">${esc(s.name)}</button>`).join('\n')}
+    </div>
+    <div class="gallery-grid">
+${Array.from({length: 8}, (_, i) => `      <div class="gallery-item fu fu${i % 4}">
+        <div class="gallery-img" style="background:var(--accent-bg-solid);aspect-ratio:${i % 3 === 0 ? '4/3' : i % 3 === 1 ? '1/1' : '3/4'}"></div>
+        <div class="gallery-overlay">
+          <h3>${esc(services[i % services.length]?.name || 'Project')}</h3>
+          <p>Completed project</p>
+        </div>
+      </div>`).join('\n')}
+    </div>
+    <p style="text-align:center;padding:32px 0 0;color:var(--muted);font-size:13px;">Upload your own project photos via your dashboard.</p>
+  </div>
+</section>`;
+}
+
+// ── Service Areas page (Professional+) ────────────────────────
+
+function buildAreasPage(biz, content, theme) {
+  const name = esc(biz.name);
+  const loc = esc(biz.location || 'Your Area');
+  const baseArea = biz.location || 'your area';
+
+  // Generate surrounding area names based on the primary location
+  const areas = [loc, loc + ' Metro', 'North ' + loc, 'South ' + loc, 'East ' + loc, 'West ' + loc];
+
+  return `
+<section class="page-hero">
+  <div class="wrap">
+    <div class="sec-tag">Service Areas</div>
+    <h1 class="page-title">Proudly serving ${loc} and beyond.</h1>
+    <p class="page-sub">${name} provides reliable service across the greater ${loc} area. If you're nearby, we're on our way.</p>
+  </div>
+</section>
+
+<section class="areas-section">
+  <div class="wrap">
+    <div class="areas-grid">
+${areas.map((a, i) => `      <div class="area-card fu fu${Math.min(i, 3)}">
+        <div class="area-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <h3>${esc(a)}</h3>
+        <p>Full service coverage with fast response times.</p>
+      </div>`).join('\n')}
+    </div>
+    <div class="areas-cta" style="text-align:center;padding:48px 0 0;">
+      <p style="color:var(--text-sec);margin-bottom:16px;">Don't see your area? Give us a call — we likely serve your neighborhood too.</p>
+      <a href="contact.html" class="btn-p">Check Availability</a>
+    </div>
+  </div>
+</section>`;
+}
+
+// ── Booking page (Premium) ────────────────────────────────────
+
+function buildBookingPage(biz, content, theme) {
+  const name = esc(biz.name);
+  const phone = esc(biz.phone || '');
+  const phoneHref = (biz.phone || '').replace(/[^0-9+]/g, '');
+
+  return `
+<section class="page-hero">
+  <div class="wrap">
+    <div class="sec-tag">Book Online</div>
+    <h1 class="page-title">Schedule your appointment.</h1>
+    <p class="page-sub">Pick a time that works for you. ${name} will confirm within one business day.</p>
+  </div>
+</section>
+
+<section class="booking-section">
+  <div class="wrap">
+    <div class="booking-layout">
+      <div class="booking-form-area">
+        <div class="booking-card">
+          <h3>Request an Appointment</h3>
+          <div class="booking-field"><label>Your Name</label><input type="text" placeholder="Full name"></div>
+          <div class="booking-field"><label>Phone</label><input type="tel" placeholder="(555) 000-0000"></div>
+          <div class="booking-field"><label>Email</label><input type="email" placeholder="you@email.com"></div>
+          <div class="booking-field"><label>Service Needed</label><select><option value="">Select a service...</option>${(content.services || []).map(s => `<option>${esc(s.name)}</option>`).join('')}</select></div>
+          <div class="booking-field"><label>Preferred Date</label><input type="date"></div>
+          <div class="booking-field"><label>Preferred Time</label><select><option>Morning (8am-12pm)</option><option>Afternoon (12pm-4pm)</option><option>Evening (4pm-7pm)</option></select></div>
+          <div class="booking-field"><label>Notes</label><textarea rows="3" placeholder="Describe what you need help with..."></textarea></div>
+          <button class="btn-p btn-full">Request Appointment</button>
+          <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px;">We'll confirm your appointment via email within 24 hours.</p>
+        </div>
+      </div>
+      <div class="booking-info">
+        <div class="booking-info-card">
+          <h3>How it works</h3>
+          <div class="booking-step"><span>1</span><p>Pick your preferred date and time</p></div>
+          <div class="booking-step"><span>2</span><p>We confirm via email or phone</p></div>
+          <div class="booking-step"><span>3</span><p>We show up on time, every time</p></div>
+        </div>
+        ${phone ? `<div class="booking-info-card"><h3>Prefer to call?</h3><p>Reach us directly:</p><a href="tel:${phoneHref}" class="btn-o" style="margin-top:8px;">${phone}</a></div>` : ''}
+      </div>
+    </div>
+  </div>
+</section>`;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // SHARED COMPONENTS
 // ═══════════════════════════════════════════════════════════════
@@ -781,7 +959,7 @@ function buildNav(biz, pageList, theme) {
   const phoneHref = (biz.phone || '').replace(/[^0-9+]/g, '');
 
   const links = pageList.map(p => {
-    const label = { index: 'Home', services: 'Services', about: 'About', contact: 'Contact', reviews: 'Reviews' }[p] || capitalizeWords(p);
+    const label = { index: 'Home', services: 'Services', about: 'About', contact: 'Contact', reviews: 'Reviews', blog: 'Blog', gallery: 'Our Work', areas: 'Areas', booking: 'Book Online' }[p] || capitalizeWords(p);
     const href = p === 'index' ? 'index.html' : p + '.html';
     return `<a href="${href}" class="nav-link${p === '{{ACTIVE}}' ? ' nav-link--active' : ''}">${label}</a>`;
   });
@@ -825,7 +1003,7 @@ function buildFooter(biz, content, theme) {
   </div>
   <div class="footer-bottom">
     <span>&copy; ${year} ${name}. All rights reserved.</span>
-    <span class="footer-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Built by <a href="https://velocity.delivery" style="color:inherit;text-decoration:underline;">Velocity</a> &middot; by <a href="https://calyvent.com" target="_blank" style="color:inherit;text-decoration:underline;">Calyvent</a></span>
+    <span class="footer-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> <a href="https://velocity.delivery" style="color:inherit;text-decoration:none;">Velocity</a></span>
   </div>
 </footer>`;
 }
@@ -900,6 +1078,8 @@ function getTheme(style, archetype) {
     'warm-friendly': { accent: '#c66b2e', accentHover: '#b55e24', accentBg: 'rgba(198,107,46,0.07)', accentBgSolid: '#fdf3e8' },
     'surprise': { accent: '#7c3aed', accentHover: '#6d28d9', accentBg: 'rgba(124,58,237,0.06)', accentBgSolid: '#f0ecff' },
     'rustic': { accent: '#7a6040', accentHover: '#6a5035', accentBg: 'rgba(122,96,64,0.07)', accentBgSolid: '#f0ebe0' },
+    'ocean': { accent: '#0e7c7b', accentHover: '#0a6665', accentBg: 'rgba(14,124,123,0.06)', accentBgSolid: '#e4f3f3' },
+    'ember': { accent: '#b03a2e', accentHover: '#922f25', accentBg: 'rgba(176,58,46,0.06)', accentBgSolid: '#f8e8e5' },
   };
 
   const base = archetypeThemes[archetype] || archetypeThemes['local-service'];
@@ -1082,6 +1262,34 @@ html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}body{font-family:
 .form-group label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
 .form-group input,.form-group textarea{width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;transition:border-color .2s}
 .form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--accent)}
+/* Blog */
+.blog-section{padding:64px 24px}.blog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.blog-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:all .3s}.blog-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px ${shadow}}
+.blog-card-img{height:160px;background:var(--accent-bg-solid)}.blog-card-body{padding:24px}
+.blog-card-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-bottom:12px}.blog-tag{background:var(--accent-bg-solid);color:var(--accent);padding:2px 8px;border-radius:3px;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.blog-card h2{font-family:var(--font-head);font-size:18px;font-weight:400;margin-bottom:8px;line-height:1.3}.blog-card p{font-size:13px;color:var(--text-sec);line-height:1.65;margin-bottom:12px}
+.blog-read-more{font-size:13px;color:var(--accent);font-weight:600}
+/* Gallery */
+.gallery-section{padding:64px 24px}.gallery-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.gallery-filter{background:var(--bg-alt);border:1px solid var(--border);color:var(--text-sec);padding:8px 16px;border-radius:100px;font-size:13px;cursor:pointer;transition:all .2s;font-family:var(--font)}.gallery-filter:hover,.gallery-filter--active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.gallery-item{position:relative;border-radius:var(--rl);overflow:hidden;cursor:pointer}
+.gallery-img{width:100%;background:var(--accent-bg-solid);transition:transform .4s}.gallery-item:hover .gallery-img{transform:scale(1.05)}
+.gallery-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity .3s}.gallery-item:hover .gallery-overlay{opacity:1}
+.gallery-overlay h3{color:#fff;font-size:15px;font-weight:600}.gallery-overlay p{color:rgba(255,255,255,.7);font-size:12px}
+/* Service Areas */
+.areas-section{padding:64px 24px}.areas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.area-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:28px;transition:all .3s}.area-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.area-icon{color:var(--accent);margin-bottom:12px}.area-card h3{font-size:16px;font-weight:600;margin-bottom:6px}.area-card p{font-size:13px;color:var(--text-sec);line-height:1.6}
+/* Booking */
+.booking-section{padding:64px 24px}.booking-layout{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;max-width:900px;margin:0 auto}
+.booking-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:32px}
+.booking-card h3{font-family:var(--font-head);font-size:20px;margin-bottom:20px}
+.booking-field{margin-bottom:14px}.booking-field label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+.booking-field input,.booking-field select,.booking-field textarea{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;transition:border-color .2s}
+.booking-field input:focus,.booking-field select:focus,.booking-field textarea:focus{outline:none;border-color:var(--accent)}
+.booking-info{display:flex;flex-direction:column;gap:20px}.booking-info-card{background:var(--bg-alt);border:1px solid var(--border);border-radius:var(--rl);padding:24px}
+.booking-info-card h3{font-size:16px;font-weight:600;margin-bottom:16px}.booking-info-card p{font-size:13px;color:var(--text-sec);line-height:1.6}
+.booking-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}.booking-step span{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}.booking-step p{font-size:14px;color:var(--text-sec);padding-top:4px}
 /* Footer */
 footer{padding:48px 24px 32px;border-top:1px solid var(--border);background:var(--bg)}
 .footer-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px}
@@ -1089,9 +1297,9 @@ footer{padding:48px 24px 32px;border-top:1px solid var(--border);background:var(
 .footer-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px}
 .footer-col ul{list-style:none}.footer-col li{margin-bottom:6px}.footer-col a{font-size:13px;color:var(--text-sec);transition:color .2s}.footer-col a:hover{color:var(--accent)}
 .footer-bottom{max-width:1100px;margin:32px auto 0;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
-.footer-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);background:var(--accent-bg-solid);padding:4px 10px;border-radius:4px;font-weight:600;border:1px solid var(--accent-bg)}
-@media(max-width:900px){.hero-inner,.hero--corporate .hero-inner,.hero--trade .hero-inner{grid-template-columns:1fr!important}.hero-stats-card,.hero-form-card{display:none}.hero--statement .hero-statement-inner{flex-direction:column;gap:24px}.reviews-featured{grid-template-columns:1fr}.services-grid,.reviews-grid,.svc-grid-2,.svc-feat-grid{grid-template-columns:1fr 1fr}.services-grid--full{grid-template-columns:1fr}.about-stats-grid,.values-grid{grid-template-columns:1fr 1fr}.contact-grid{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}}
-@media(max-width:600px){.nav-links{display:none;position:fixed;top:64px;left:0;right:0;bottom:0;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:24px;font-size:18px;z-index:99}.nav-links.nav-open{display:flex!important}.nav-toggle{display:flex}.services-grid,.reviews-grid,.reviews-grid--full,.svc-grid-2,.svc-feat-grid{grid-template-columns:1fr}.trust-inner,.ts-row{flex-direction:column;gap:12px;text-align:center}.hero{padding:60px 20px 40px!important}.hero--statement h1{font-size:32px!important}.svc-list-item{grid-template-columns:1fr}.svc-row{flex-direction:column;gap:8px}.footer-inner{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:8px;text-align:center}.form-row{grid-template-columns:1fr}.about-stats-grid,.values-grid{grid-template-columns:1fr}}
+.footer-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);transition:color .2s}.footer-badge:hover{color:var(--accent)}.footer-badge a{color:inherit;text-decoration:none}
+@media(max-width:900px){.hero-inner,.hero--corporate .hero-inner,.hero--trade .hero-inner{grid-template-columns:1fr!important}.hero-stats-card,.hero-form-card{display:none}.hero--statement .hero-statement-inner{flex-direction:column;gap:24px}.reviews-featured{grid-template-columns:1fr}.services-grid,.reviews-grid,.svc-grid-2,.svc-feat-grid{grid-template-columns:1fr 1fr}.services-grid--full{grid-template-columns:1fr}.about-stats-grid,.values-grid{grid-template-columns:1fr 1fr}.contact-grid{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}.booking-layout{grid-template-columns:1fr}.areas-grid{grid-template-columns:1fr 1fr}.gallery-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.nav-links{display:none;position:fixed;top:64px;left:0;right:0;bottom:0;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:24px;font-size:18px;z-index:99}.nav-links.nav-open{display:flex!important}.nav-toggle{display:flex}.services-grid,.reviews-grid,.reviews-grid--full,.svc-grid-2,.svc-feat-grid{grid-template-columns:1fr}.trust-inner,.ts-row{flex-direction:column;gap:12px;text-align:center}.hero{padding:60px 20px 40px!important}.hero--statement h1{font-size:32px!important}.svc-list-item{grid-template-columns:1fr}.svc-row{flex-direction:column;gap:8px}.footer-inner{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:8px;text-align:center}.form-row{grid-template-columns:1fr}.about-stats-grid,.values-grid{grid-template-columns:1fr}.blog-grid{grid-template-columns:1fr}.gallery-grid{grid-template-columns:1fr}.areas-grid{grid-template-columns:1fr}.booking-layout{grid-template-columns:1fr}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}.fu{animation:fadeUp .6s ease both}.fu0{animation-delay:.1s}.fu1{animation-delay:.2s}.fu2{animation-delay:.3s}.fu3{animation-delay:.4s}`;
 }
 

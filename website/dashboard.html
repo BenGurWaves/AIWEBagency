@@ -419,21 +419,21 @@
                 <div class="plan-card" data-plan="starter" data-price="$997">
                   <div class="plan-card-info">
                     <strong>Starter</strong>
-                    <span>5-page custom website</span>
+                    <span>5-page custom website &middot; SSL &middot; Basic SEO &middot; Contact form &middot; 30 days support</span>
                   </div>
                   <div class="plan-card-price">$997</div>
                 </div>
                 <div class="plan-card plan-card--featured" data-plan="professional" data-price="$1,997">
                   <div class="plan-card-info">
                     <strong>Professional<span class="plan-card-badge">Popular</span></strong>
-                    <span>Multi-page + CMS + Blog</span>
+                    <span>Multi-page website &middot; Blog with CMS &middot; Advanced SEO + Google Business &middot; Service area pages &middot; Photo gallery &middot; 60 days priority support</span>
                   </div>
                   <div class="plan-card-price">$1,997</div>
                 </div>
                 <div class="plan-card" data-plan="premium" data-price="$3,497">
                   <div class="plan-card-info">
                     <strong>Premium</strong>
-                    <span>Full custom + booking system</span>
+                    <span>Everything in Professional &middot; Online booking system &middot; Review integration &middot; Custom animations &middot; 90 days VIP support</span>
                   </div>
                   <div class="plan-card-price">$3,497</div>
                 </div>
@@ -475,7 +475,7 @@
             <h3>Building Your Website</h3>
             <span class="dash-status" id="buildStatus">In progress</span>
           </div>
-          <p class="dash-card-desc">We're building your full website based on your approved preview. This usually takes 5-7 business days.</p>
+          <p class="dash-card-desc">We're building your full website based on your approved preview. This takes 5 minutes to 7 days depending on usage and your account status.</p>
           <div class="dash-progress-wrap">
             <div class="dash-progress-bar">
               <div class="dash-progress-fill" id="buildProgressFill" style="width:30%"></div>
@@ -658,14 +658,72 @@
       welcomeUrlEl.innerHTML = '<a href="' + website + '" target="_blank" rel="noopener" style="color:var(--accent);">' + website + '</a>';
     }
 
-    // Show previous preview if available
+    // Restore previous generations from server on load
+    (function restoreFromServer() {
+      fetch('/api/projects', { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var projects = data.projects || [];
+          if (projects.length > 0) {
+            // Restore latest preview if local state lost it
+            var latest = projects[0];
+            if (!user.preview_url && latest.preview_url) {
+              user.preview_url = latest.preview_url;
+              user.preview_id = latest.id;
+              user.preview_ready = true;
+              if (latest.business_info && latest.business_info.name) {
+                user.business_name = user.business_name || latest.business_info.name;
+              }
+              localStorage.setItem('velocity_user', JSON.stringify(user));
+            }
+            // Populate previous generations list
+            renderPreviousGenerations(projects);
+          }
+        })
+        .catch(function() {});
+    })();
+
+    function renderPreviousGenerations(projects) {
+      var previewsEl = document.getElementById('welcomePreviews');
+      var listEl = document.getElementById('welcomePreviewList');
+      var viewBtn = document.getElementById('welcomeViewPreview');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+
+      var readyProjects = projects.filter(function(p) { return p.status === 'preview_ready' || p.status === 'deployed'; });
+      if (readyProjects.length === 0 && !user.preview_url) return;
+
+      if (previewsEl) previewsEl.style.display = 'block';
+      if (viewBtn && (user.preview_url || readyProjects.length > 0)) viewBtn.style.display = 'inline-flex';
+
+      readyProjects.forEach(function(p) {
+        var previewCard = document.createElement('div');
+        previewCard.style.cssText = 'background:var(--bg);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color 0.2s;margin-bottom:0.5rem;';
+        var bizName = (p.business_info && p.business_info.name) ? p.business_info.name : 'Preview';
+        var dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
+        previewCard.innerHTML = '<div><strong style="font-size:0.875rem;">' + bizName + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + dateStr + '</span></div><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">' + (p.status === 'deployed' ? 'Live' : 'Ready') + '</span>';
+        previewCard.addEventListener('click', function() {
+          user.preview_url = p.preview_url || '/preview/' + p.id;
+          user.preview_id = p.id;
+          if (p.business_info && p.business_info.name) user.business_name = p.business_info.name;
+          localStorage.setItem('velocity_user', JSON.stringify(user));
+          showStep('preview');
+          renderPreview();
+        });
+        previewCard.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent)'; });
+        previewCard.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border-subtle)'; });
+        listEl.appendChild(previewCard);
+      });
+    }
+
+    // Show previous preview if available (local fallback)
     if (user.preview_url || user.preview_id) {
       var previewsEl = document.getElementById('welcomePreviews');
       var listEl = document.getElementById('welcomePreviewList');
       var viewBtn = document.getElementById('welcomeViewPreview');
       if (previewsEl) previewsEl.style.display = 'block';
       if (viewBtn) viewBtn.style.display = 'inline-flex';
-      if (listEl) {
+      if (listEl && !listEl.hasChildNodes()) {
         var previewCard = document.createElement('div');
         previewCard.style.cssText = 'background:var(--bg);border:1px solid var(--border-subtle);border-radius:var(--radius);padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between;';
         previewCard.innerHTML = '<div><strong style="font-size:0.875rem;">' + (user.business_name || 'Preview') + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + (user.niche ? user.niche : 'Custom design') + '</span></div><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">Ready</span>';
@@ -1280,13 +1338,23 @@
 
     function applyRevisionHints(notes) {
       var lower = notes.toLowerCase();
-      // Style hints
-      if (/dark|bold|edgy|dramatic/i.test(lower) && user.style !== 'bold-dark') user.style = 'bold-dark';
-      if (/warm|friendly|cozy|welcoming/i.test(lower) && user.style !== 'warm-friendly') user.style = 'warm-friendly';
-      if (/clean|minimal|modern|simple/i.test(lower) && user.style !== 'modern-clean') user.style = 'modern-clean';
-      if (/professional|corporate|formal/i.test(lower) && user.style !== 'professional') user.style = 'professional';
-      if (/rustic|organic|natural|earthy/i.test(lower) && user.style !== 'rustic') user.style = 'rustic';
-      if (/purple|creative|playful|fun/i.test(lower) && user.style !== 'surprise') user.style = 'surprise';
+      var oldStyle = user.style;
+      // Explicit style hints
+      if (/dark|bold|edgy|dramatic|night|black/i.test(lower)) user.style = 'bold-dark';
+      else if (/warm|friendly|cozy|welcoming|orange|autumn|sunset/i.test(lower)) user.style = 'warm-friendly';
+      else if (/clean|minimal|modern|simple|sleek|white/i.test(lower)) user.style = 'modern-clean';
+      else if (/professional|corporate|formal|blue|navy|trust/i.test(lower)) user.style = 'professional';
+      else if (/rustic|organic|natural|earthy|brown|wood|vintage/i.test(lower)) user.style = 'rustic';
+      else if (/purple|creative|playful|fun|vibrant|colorful|pop|bright/i.test(lower)) user.style = 'surprise';
+      else if (/ocean|teal|sea|aqua|green|forest|emerald/i.test(lower)) user.style = 'ocean';
+      else if (/red|crimson|fire|ruby|cherry|burgundy/i.test(lower)) user.style = 'ember';
+
+      // If user asked for "different" anything but no specific style matched, rotate
+      if (user.style === oldStyle && /different|change|other|new|another|not this|switch|redo|try again|update/i.test(lower)) {
+        var styles = ['modern-clean', 'bold-dark', 'warm-friendly', 'professional', 'rustic', 'surprise', 'ocean', 'ember'];
+        var idx = styles.indexOf(user.style);
+        user.style = styles[(idx + 1) % styles.length];
+      }
     }
 
     // ── New design ──
