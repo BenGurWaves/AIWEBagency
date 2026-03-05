@@ -437,7 +437,8 @@
               <h3>Like what you see?</h3>
               <p>Choose a plan below and we'll build your full production website. Your preview becomes the foundation.</p>
 
-              <div id="planPicker">
+              <!-- Business plans -->
+              <div id="planPicker" data-type="business">
                 <div class="plan-card" data-plan="starter" data-price="$997">
                   <div class="plan-card-info">
                     <strong>Starter</strong>
@@ -455,9 +456,33 @@
                 <div class="plan-card" data-plan="premium" data-price="$3,497">
                   <div class="plan-card-info">
                     <strong>Premium</strong>
-                    <span>Everything in Professional &middot; Online booking system &middot; Review integration &middot; Custom animations &middot; 90 days VIP support</span>
+                    <span>Everything in Professional &middot; Online booking system &middot; Review integration &middot; Custom animations &middot; Ongoing content updates &middot; 90 days VIP support</span>
                   </div>
                   <div class="plan-card-price">$3,497</div>
+                </div>
+              </div>
+              <!-- Individual / Creator plans (hidden by default) -->
+              <div id="planPickerPersonal" style="display:none;">
+                <div class="plan-card" data-plan="personal-starter" data-price="$300">
+                  <div class="plan-card-info">
+                    <strong>Starter</strong>
+                    <span>Single-page website &middot; Responsive design &middot; SSL &middot; Contact form &middot; 14 days support</span>
+                  </div>
+                  <div class="plan-card-price">$300</div>
+                </div>
+                <div class="plan-card plan-card--featured" data-plan="personal-professional" data-price="$700">
+                  <div class="plan-card-info">
+                    <strong>Professional<span class="plan-card-badge">Popular</span></strong>
+                    <span>3-page website &middot; Portfolio gallery &middot; Blog &middot; SEO setup &middot; Custom domain &middot; 30 days support</span>
+                  </div>
+                  <div class="plan-card-price">$700</div>
+                </div>
+                <div class="plan-card" data-plan="personal-premium" data-price="$1,200">
+                  <div class="plan-card-info">
+                    <strong>Premium</strong>
+                    <span>5-page website &middot; Blog with CMS &middot; Custom animations &middot; Social integrations &middot; 60 days support</span>
+                  </div>
+                  <div class="plan-card-price">$1,200</div>
                 </div>
               </div>
 
@@ -752,8 +777,10 @@
       var bizName = (p.business_info && p.business_info.name) ? p.business_info.name : 'Preview';
       var dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
       var niche = (p.business_info && p.business_info.niche) ? p.business_info.niche : '';
-      previewCard.innerHTML = '<div><strong style="font-size:0.875rem;">' + bizName + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + (niche ? niche + ' &middot; ' : '') + dateStr + '</span></div><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">' + (p.status === 'deployed' ? 'Live' : 'Ready') + '</span>';
-      previewCard.addEventListener('click', function() {
+      previewCard.innerHTML = '<div style="flex:1;min-width:0;"><strong style="font-size:0.875rem;">' + bizName + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + (niche ? niche + ' &middot; ' : '') + dateStr + '</span></div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">' + (p.status === 'deployed' ? 'Live' : 'Ready') + '</span><button class="del-project-btn" data-id="' + p.id + '" title="Delete" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;opacity:0.5;transition:opacity 0.2s;font-size:14px;">&times;</button></div>';
+      // Click on card opens preview
+      previewCard.addEventListener('click', function(e) {
+        if (e.target.classList.contains('del-project-btn')) return;
         user.preview_url = p.preview_url || '/preview/' + p.id;
         user.preview_id = p.id;
         if (p.business_info && p.business_info.name) user.business_name = p.business_info.name;
@@ -762,6 +789,28 @@
         showStep('preview');
         renderPreview();
       });
+      // Delete button
+      var delBtn = previewCard.querySelector('.del-project-btn');
+      if (delBtn) {
+        delBtn.addEventListener('mouseenter', function() { this.style.opacity = '1'; this.style.color = 'var(--red, #dc3545)'; });
+        delBtn.addEventListener('mouseleave', function() { this.style.opacity = '0.5'; this.style.color = 'var(--text-muted)'; });
+        delBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (!confirm('Delete this preview? This cannot be undone.')) return;
+          var projectId = this.getAttribute('data-id');
+          fetch('/api/projects/' + projectId, { method: 'DELETE', credentials: 'same-origin' }).catch(function() {});
+          // Remove from local list
+          allServerProjects = allServerProjects.filter(function(proj) { return proj.id !== projectId; });
+          renderPreviousGenerations(allServerProjects);
+          // If deleted the current preview, clear it
+          if (user.preview_id === projectId) {
+            user.preview_url = null;
+            user.preview_id = null;
+            user.preview_ready = false;
+            localStorage.setItem('velocity_user', JSON.stringify(user));
+          }
+        });
+      }
       previewCard.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent)'; });
       previewCard.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border-subtle)'; });
       return previewCard;
@@ -813,6 +862,14 @@
     if (dashEmailEl) {
       dashEmailEl.style.cursor = 'pointer';
       dashEmailEl.addEventListener('click', function() {
+        showStep('welcome');
+      });
+    }
+    // navUser (email in nav) also opens dashboard
+    var navUserEl = document.getElementById('navUser');
+    if (navUserEl) {
+      navUserEl.addEventListener('click', function(e) {
+        e.preventDefault();
         showStep('welcome');
       });
     }
@@ -1563,7 +1620,13 @@
       submitBtn.disabled = false;
     }
 
-    // ── Plan selection ──
+    // ── Plan selection (show correct plan picker based on account type) ──
+    var bizPicker = document.getElementById('planPicker');
+    var perPicker = document.getElementById('planPickerPersonal');
+    if (user.account_type === 'personal' && perPicker && bizPicker) {
+      bizPicker.style.display = 'none';
+      perPicker.style.display = 'block';
+    }
     document.querySelectorAll('.plan-card').forEach(function(opt) {
       opt.addEventListener('click', function() {
         document.querySelectorAll('.plan-card').forEach(function(o) {
@@ -1574,7 +1637,8 @@
         user.plan_price = this.getAttribute('data-price');
         localStorage.setItem('velocity_user', JSON.stringify(user));
         var btn = document.getElementById('approveBtn');
-        btn.textContent = 'Continue with ' + user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' \u2014 ' + user.plan_price;
+        var planLabel = user.plan.replace('personal-', '');
+        btn.textContent = 'Continue with ' + planLabel.charAt(0).toUpperCase() + planLabel.slice(1) + ' \u2014 ' + user.plan_price;
       });
     });
 

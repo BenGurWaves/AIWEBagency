@@ -62,7 +62,7 @@ export async function onRequestPost(context) {
   let inspoHints = {};
   if (biz.inspo) {
     const urls = biz.inspo.split(/[\s,]+/).filter(u => u.startsWith('http'));
-    for (const url of urls.slice(0, 3)) {
+    for (const url of urls.slice(0, 75)) {
       try {
         const resp = await fetch(url, {
           headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VelocityBot/1.0)' },
@@ -82,7 +82,7 @@ export async function onRequestPost(context) {
     if (inspoHints.isDark && biz.style === 'modern-clean') biz.style = 'bold-dark';
   }
 
-  // ── 3c. Parse notes more carefully ──────────────────────
+  // ── 3c. Parse notes more carefully (USER INSTRUCTIONS = TOP PRIORITY) ──
   if (biz.notes) {
     const notes = biz.notes.toLowerCase();
     // Detect site type from notes
@@ -92,10 +92,28 @@ export async function onRequestPost(context) {
     if (/booking|appointment|schedule/i.test(notes) && biz.siteType === 'service-business') {
       biz.siteType = 'booking';
     }
+    // Dark mode from notes
+    if (/dark\s*mode|dark\s*theme|dark\s*background|black\s*background/i.test(notes)) {
+      biz.style = 'bold-dark';
+    }
     // Detect color requests from notes
     if (!biz.customAccent) {
       const colorMatch = notes.match(/#[0-9a-f]{3,6}\b/i);
       if (colorMatch) biz.customAccent = colorMatch[0];
+    }
+    // Named color requests from notes
+    if (!biz.customAccent) {
+      const namedColors = {
+        'magenta': '#e91e8c', 'pink': '#e91e8c', 'hot pink': '#ff69b4', 'fuchsia': '#ff00ff',
+        'gold': '#d4a017', 'yellow': '#e6b800', 'lime': '#32cd32', 'cyan': '#00bcd4',
+        'coral': '#ff6f61', 'salmon': '#fa8072', 'lavender': '#9b59b6', 'indigo': '#4b0082',
+        'mint': '#3eb489', 'peach': '#ffab91', 'turquoise': '#00bfa5', 'maroon': '#800000',
+        'red': '#dc3545', 'blue': '#2563eb', 'green': '#16a34a', 'purple': '#7c3aed',
+        'orange': '#ea580c', 'teal': '#0d9488', 'navy': '#1e3a5f',
+      };
+      for (const [name, hex] of Object.entries(namedColors)) {
+        if (notes.includes(name)) { biz.customAccent = hex; break; }
+      }
     }
   }
 
@@ -416,6 +434,61 @@ function applyCustomAccent(theme, customAccent) {
   return t;
 }
 
+function applyCustomPalette(theme, palette) {
+  if (!palette || !Array.isArray(palette) || palette.length < 2) return theme;
+  const t = { ...theme };
+  t.accent = palette[0];
+  const hex = palette[0].replace('#', '');
+  if (hex.length === 6) {
+    const r = parseInt(hex.slice(0,2), 16), g = parseInt(hex.slice(2,4), 16), b = parseInt(hex.slice(4,6), 16);
+    t.accentBg = `rgba(${r},${g},${b},0.07)`;
+    t.accentBgSolid = `rgba(${r},${g},${b},0.1)`;
+    t.accentHover = '#' + [r,g,b].map(c => Math.max(0, c - 20).toString(16).padStart(2,'0')).join('');
+  }
+  if (palette[1]) {
+    const h2 = palette[1].replace('#','');
+    if (h2.length === 6) {
+      const r2 = parseInt(h2.slice(0,2),16), g2 = parseInt(h2.slice(2,4),16), b2 = parseInt(h2.slice(4,6),16);
+      const brightness = (r2 * 299 + g2 * 587 + b2 * 114) / 1000;
+      if (brightness > 200) { t.bg = palette[1]; t.bgAlt = palette[1]; t.nav = palette[1]; t.card = '#ffffff'; }
+    }
+  }
+  if (palette[2]) {
+    const h3 = palette[2].replace('#','');
+    if (h3.length === 6) {
+      const r3 = parseInt(h3.slice(0,2),16), g3 = parseInt(h3.slice(2,4),16), b3 = parseInt(h3.slice(4,6),16);
+      const brightness = (r3 * 299 + g3 * 587 + b3 * 114) / 1000;
+      if (brightness < 80) { t.trust = palette[2]; t.text = palette[2]; }
+    }
+  }
+  return t;
+}
+
+function parseNotesForFont(notes) {
+  if (!notes) return null;
+  const lower = notes.toLowerCase();
+  const fontPatterns = [
+    { pattern: /\b(montserrat|poppins|inter|roboto|lato|open\s*sans|nunito|raleway|playfair|merriweather|oswald|libre\s*baskerville|space\s*grotesk|dm\s*sans|cormorant|jost|sora|work\s*sans|barlow|manrope|outfit|plus\s*jakarta|figtree|geist|archivo)\b/i, extract: true },
+    { pattern: /\bserif\b/, font: "'Georgia','Times New Roman',serif", fontHead: "'Playfair Display',Georgia,serif", gFont: 'Playfair+Display:ital,wght@0,400;0,600;0,700;1,400' },
+    { pattern: /\bmonospace|mono|code\b/, font: "'JetBrains Mono',monospace", fontHead: "'JetBrains Mono',monospace", gFont: 'JetBrains+Mono:wght@400;500;600;700' },
+    { pattern: /\belegant|luxury|classy\b/, fontHead: "'Cormorant Garamond',Georgia,serif", gFont: 'Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400' },
+    { pattern: /\bbold|strong|heavy|impactful\b/, fontHead: "'Sora',sans-serif", gFont: 'Sora:wght@400;500;600;700;800' },
+    { pattern: /\bminimal|clean|simple\b/, font: "'Inter',sans-serif", fontHead: "'Inter',sans-serif", gFont: 'Inter:wght@300;400;500;600;700' },
+  ];
+  for (const p of fontPatterns) {
+    const match = lower.match(p.pattern);
+    if (match) {
+      if (p.extract) {
+        const fontName = match[1].replace(/\b\w/g, c => c.toUpperCase()).replace(/\s+/g, ' ');
+        const gName = fontName.replace(/\s/g, '+');
+        return { font: `'${fontName}',sans-serif`, fontHead: `'${fontName}',sans-serif`, gFont: `${gName}:wght@300;400;500;600;700` };
+      }
+      return { font: p.font, fontHead: p.fontHead, gFont: p.gFont };
+    }
+  }
+  return null;
+}
+
 // ── Inspiration URL analysis ─────────────────────────────────
 
 function extractInspoHints(html) {
@@ -487,7 +560,29 @@ function detectArchetype(biz) {
  * 10. Gradients + shadows for depth (not flat lifeless boxes)
  */
 function generatePreview(biz) {
-  const t = applyCustomAccent(getTheme(biz.style), biz.customAccent);
+  let t = getTheme(biz.style);
+  // ── USER CUSTOM INSTRUCTIONS = TOP PRIORITY ──
+  // Custom palette overrides style defaults
+  if (biz.customPalette && Array.isArray(biz.customPalette) && biz.customPalette.length >= 2) {
+    t = applyCustomPalette(t, biz.customPalette);
+  }
+  // Custom accent overrides everything
+  t = applyCustomAccent(t, biz.customAccent);
+  // Font requests from notes override defaults
+  const fontOverride = parseNotesForFont(biz.notes);
+  if (fontOverride) {
+    if (fontOverride.font) t.font = fontOverride.font;
+    if (fontOverride.fontHead) t.fontHead = fontOverride.fontHead;
+    if (fontOverride.gFont) t.gFont = fontOverride.gFont;
+  }
+  // Dark mode from notes
+  if (biz.notes && /dark\s*mode|dark\s*theme|dark\s*background|black\s*background/i.test(biz.notes)) {
+    const darkOverride = getTheme('bold-dark');
+    t.bg = darkOverride.bg; t.bgAlt = darkOverride.bgAlt; t.nav = darkOverride.nav;
+    t.text = darkOverride.text; t.textSec = darkOverride.textSec; t.muted = darkOverride.muted;
+    t.card = darkOverride.card; t.border = darkOverride.border; t.heroGrad = darkOverride.heroGrad;
+    t.trust = darkOverride.trust;
+  }
   const nc = getNicheContent(biz.niche, biz);
   const services = enhanceServices(biz.services, nc);
   const archetype = detectArchetype(biz);
@@ -901,11 +996,34 @@ ${services.slice(0, 4).map(s => `        <li><a href="#services">${esc(s.name)}<
 </div>
 </footer>
 
+<!-- Floating mobile CTA -->
+${phone ? `<a href="tel:${phoneHref}" class="float-cta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3"/></svg>Call Now</a>` : `<a href="#contact" class="float-cta">Get Quote</a>`}
+
+<!-- Social proof ticker -->
+<div class="social-proof-ticker">
+  <div class="ticker-track">
+    <span class="ticker-item"><strong>★ 4.9</strong> Average Rating</span>
+    <span class="ticker-item"><strong>${years}+</strong> Years Experience</span>
+    <span class="ticker-item"><strong>500+</strong> Happy Clients</span>
+    <span class="ticker-item">Licensed &amp; Insured</span>
+    <span class="ticker-item"><strong>100%</strong> Satisfaction Guaranteed</span>
+    <span class="ticker-item">Free Estimates Available</span>
+    <span class="ticker-item"><strong>★ 4.9</strong> Average Rating</span>
+    <span class="ticker-item"><strong>${years}+</strong> Years Experience</span>
+    <span class="ticker-item"><strong>500+</strong> Happy Clients</span>
+    <span class="ticker-item">Licensed &amp; Insured</span>
+    <span class="ticker-item"><strong>100%</strong> Satisfaction Guaranteed</span>
+    <span class="ticker-item">Free Estimates Available</span>
+  </div>
+</div>
+
 <script>
 // Scroll-triggered reveals
 (function(){var els=document.querySelectorAll('.svc-row,.svc-card-2,.svc-feat,.svc-list-item,.review-card,.review-sm,.review-big,.review-quote,.about-split,.about-minimal,.about-story-layout,.cta-inner');els.forEach(function(el,i){el.classList.add('reveal');if(i%4===1)el.classList.add('reveal-delay-1');if(i%4===2)el.classList.add('reveal-delay-2');if(i%4===3)el.classList.add('reveal-delay-3');});if('IntersectionObserver' in window){var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});els.forEach(function(el){obs.observe(el);});}else{els.forEach(function(el){el.classList.add('visible');});}})();
 // Smooth nav shadow on scroll
 (function(){var nav=document.querySelector('.nav');if(!nav)return;window.addEventListener('scroll',function(){nav.style.boxShadow=window.scrollY>20?'0 4px 30px rgba(0,0,0,.08)':'none';},{passive:true});})();
+// Page section in-view animations
+(function(){var secs=document.querySelectorAll('section');secs.forEach(function(s){s.classList.add('page-section');});if('IntersectionObserver' in window){var io=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in-view');io.unobserve(e.target);}});},{threshold:0.08});secs.forEach(function(s){io.observe(s);});}else{secs.forEach(function(s){s.classList.add('in-view');});}})();
 </script>
 </body>
 </html>`;
@@ -993,6 +1111,31 @@ h1,h2,h3{text-wrap:balance}
 
 /* Smooth scroll indicator */
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* NEW Feature 1: Floating mobile CTA */
+.float-cta{display:none;position:fixed;bottom:20px;right:20px;z-index:9990;background:var(--accent);color:#fff;padding:14px 22px;border-radius:100px;font-weight:600;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);text-decoration:none;transition:all .3s;border:none;cursor:pointer}
+.float-cta:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.float-cta svg{vertical-align:middle;margin-right:6px}
+@media(max-width:768px){.float-cta{display:inline-flex;align-items:center}}
+
+/* NEW Feature 2: Animated social proof ticker */
+.social-proof-ticker{overflow:hidden;background:var(--accent-bg-solid);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0}
+.ticker-track{display:flex;animation:ticker 25s linear infinite;white-space:nowrap;gap:48px}
+.ticker-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-sec);flex-shrink:0}
+.ticker-item strong{color:var(--accent)}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* NEW Feature 3: Animated stats counters */
+.stat-counter{display:inline-block;font-variant-numeric:tabular-nums}
+@keyframes countPulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+.stat-pulse{animation:countPulse 2s ease infinite}
+
+/* NEW Feature 4: Gradient text headings */
+.grad-text{background:linear-gradient(135deg,var(--accent),var(--text));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* NEW Feature 5: Smooth page transitions */
+.page-section{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.page-section.in-view{opacity:1;transform:translateY(0)}
 
 /* Animations */
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}

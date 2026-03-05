@@ -59,6 +59,14 @@
 
         <!-- ── SIGN UP FORM ── -->
         <form class="auth-form" id="signUpForm" style="display:none;">
+          <!-- Account type toggle -->
+          <div class="input-wrap">
+            <label>Account type</label>
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="auth-type-btn auth-type-btn--active" id="typeBusiness" style="flex:1;padding:10px;border:1px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-glow);color:var(--accent);font-weight:600;font-size:0.8125rem;cursor:pointer;transition:all .2s;">Business Owner</button>
+              <button type="button" class="auth-type-btn" id="typePersonal" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--text-muted);font-weight:500;font-size:0.8125rem;cursor:pointer;transition:all .2s;">Individual / Creator</button>
+            </div>
+          </div>
           <div class="input-wrap">
             <label for="suEmail">Email</label>
             <input type="email" id="suEmail" name="email" placeholder="you@yourbusiness.com" required autocomplete="email">
@@ -75,9 +83,17 @@
             <label for="suPasswordConfirm">Confirm password</label>
             <input type="password" id="suPasswordConfirm" name="password_confirm" placeholder="Type it again" required autocomplete="new-password" minlength="8">
           </div>
-          <div class="input-wrap">
+          <div class="input-wrap" id="suWebsiteWrap">
             <label for="suWebsite">Your website URL</label>
-            <input type="url" id="suWebsite" name="website_url" placeholder="https://yourbusiness.com" required>
+            <input type="url" id="suWebsite" name="website_url" placeholder="https://yourbusiness.com">
+            <label style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;display:flex;align-items:center;gap:4px;cursor:pointer;">
+              <input type="checkbox" id="suNoWebsite" style="margin:0;"> I don't have a website yet
+            </label>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <label style="font-size:0.75rem;color:var(--text-secondary);display:flex;align-items:flex-start;gap:6px;cursor:pointer;line-height:1.5;">
+              <input type="checkbox" id="suAgreeTerms" required style="margin-top:3px;flex-shrink:0;"> I agree to the <a href="/terms" style="color:var(--accent);text-decoration:underline;">Terms and Conditions</a> and <a href="/privacy" style="color:var(--accent);text-decoration:underline;">Privacy Policy</a> of this website.
+            </label>
           </div>
           <button type="submit" class="btn btn-primary btn-full" id="suBtn">Create account</button>
           <div class="auth-error" id="suError" style="display:none;"></div>
@@ -138,6 +154,51 @@
     var ctaLink = document.getElementById('navCtaLink');
     if (ctaLink) ctaLink.href = '/#start';
 
+    // ── Account type toggle ──
+    var accountType = 'business';
+    var typeBiz = document.getElementById('typeBusiness');
+    var typePer = document.getElementById('typePersonal');
+    var websiteWrap = document.getElementById('suWebsiteWrap');
+    if (typeBiz && typePer) {
+      typeBiz.addEventListener('click', function() {
+        accountType = 'business';
+        typeBiz.style.borderColor = 'var(--accent)';
+        typeBiz.style.background = 'var(--accent-glow)';
+        typeBiz.style.color = 'var(--accent)';
+        typePer.style.borderColor = 'var(--border)';
+        typePer.style.background = 'transparent';
+        typePer.style.color = 'var(--text-muted)';
+        if (websiteWrap) websiteWrap.style.display = '';
+      });
+      typePer.addEventListener('click', function() {
+        accountType = 'personal';
+        typePer.style.borderColor = 'var(--accent)';
+        typePer.style.background = 'var(--accent-glow)';
+        typePer.style.color = 'var(--accent)';
+        typeBiz.style.borderColor = 'var(--border)';
+        typeBiz.style.background = 'transparent';
+        typeBiz.style.color = 'var(--text-muted)';
+        if (websiteWrap) websiteWrap.style.display = 'none';
+      });
+    }
+
+    // ── "I don't have a website" checkbox ──
+    var noWebsiteBox = document.getElementById('suNoWebsite');
+    var websiteInput = document.getElementById('suWebsite');
+    if (noWebsiteBox && websiteInput) {
+      noWebsiteBox.addEventListener('change', function() {
+        if (this.checked) {
+          websiteInput.removeAttribute('required');
+          websiteInput.disabled = true;
+          websiteInput.value = '';
+          websiteInput.style.opacity = '0.5';
+        } else {
+          websiteInput.disabled = false;
+          websiteInput.style.opacity = '1';
+        }
+      });
+    }
+
     var tabSI = document.getElementById('tabSignIn');
     var tabSU = document.getElementById('tabSignUp');
     var formSI = document.getElementById('signInForm');
@@ -186,6 +247,8 @@
       var pass = document.getElementById('suPassword').value;
       var passConfirm = document.getElementById('suPasswordConfirm').value;
       var website = document.getElementById('suWebsite').value.trim();
+      var noWebsite = document.getElementById('suNoWebsite').checked;
+      var agreeTerms = document.getElementById('suAgreeTerms');
 
       if (pass !== passConfirm) {
         errorEl.textContent = 'Passwords do not match. Try again.';
@@ -194,6 +257,16 @@
       }
       if (pass.length < 8) {
         errorEl.textContent = 'Password must be at least 8 characters.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (agreeTerms && !agreeTerms.checked) {
+        errorEl.textContent = 'Please agree to the Terms and Conditions to continue.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      if (accountType === 'business' && !website && !noWebsite) {
+        errorEl.textContent = 'Please enter your website URL or check "I don\'t have a website yet".';
         errorEl.style.display = 'block';
         return;
       }
@@ -206,7 +279,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ email: email, password: pass, website_url: website }),
+        body: JSON.stringify({ email: email, password: pass, website_url: website || '', account_type: accountType, no_website: noWebsite, agreed_terms: true }),
       })
       .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
       .then(function(res) {
@@ -224,7 +297,8 @@
 
         var user = {
           email: email,
-          website_url: website,
+          website_url: website || '',
+          account_type: accountType,
           created_at: new Date().toISOString(),
           plan: null,
           status: 'preview_pending',
