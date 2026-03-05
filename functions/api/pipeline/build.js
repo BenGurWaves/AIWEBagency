@@ -74,6 +74,7 @@ export async function onRequestPost(context) {
   }
   if (biz.plan === 'premium') {
     pageList.push('booking');
+    pageList.push('reviews');
   }
   // Service area pages for professional/premium
   if (biz.plan !== 'starter' && biz.location) {
@@ -1086,7 +1087,28 @@ function getTheme(style, archetype, biz) {
   const override = styleOverrides[style] || {};
   const theme = { ...base, ...override };
 
-  // Apply custom accent color if user specified one
+  // ── USER CUSTOM INSTRUCTIONS = TOP PRIORITY ──
+  // Custom palette overrides archetype defaults
+  if (biz && biz.custom_palette && Array.isArray(biz.custom_palette) && biz.custom_palette.length >= 2) {
+    const p = biz.custom_palette;
+    theme.accent = p[0];
+    const hex = p[0].replace('#', '');
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0,2), 16), g = parseInt(hex.slice(2,4), 16), b = parseInt(hex.slice(4,6), 16);
+      theme.accentBg = `rgba(${r},${g},${b},0.07)`;
+      theme.accentBgSolid = `rgba(${r},${g},${b},0.1)`;
+      theme.accentHover = '#' + [r,g,b].map(c => Math.max(0, c - 20).toString(16).padStart(2,'0')).join('');
+    }
+    if (p[1]) {
+      const h2 = p[1].replace('#','');
+      if (h2.length === 6) {
+        const r2 = parseInt(h2.slice(0,2),16), g2 = parseInt(h2.slice(2,4),16), b2 = parseInt(h2.slice(4,6),16);
+        if ((r2*299+g2*587+b2*114)/1000 > 200) { theme.bg = p[1]; theme.bgAlt = p[1]; theme.nav = p[1]; }
+      }
+    }
+  }
+
+  // Custom accent overrides everything
   if (biz && biz.custom_accent) {
     const hex = biz.custom_accent.replace('#', '');
     theme.accent = biz.custom_accent;
@@ -1099,6 +1121,27 @@ function getTheme(style, archetype, biz) {
       theme.accentBgSolid = `rgba(${r},${g},${b},0.1)`;
     }
   }
+
+  // Font requests from notes
+  if (biz && biz.notes) {
+    const lower = biz.notes.toLowerCase();
+    const fontMatch = lower.match(/\b(montserrat|poppins|inter|roboto|lato|open\s*sans|nunito|raleway|playfair|merriweather|oswald|dm\s*sans|cormorant|jost|sora|work\s*sans|barlow|manrope|outfit)\b/i);
+    if (fontMatch) {
+      const fontName = fontMatch[1].replace(/\b\w/g, c => c.toUpperCase()).replace(/\s+/g, ' ');
+      const gName = fontName.replace(/\s/g, '+');
+      theme.font = `'${fontName}',sans-serif`;
+      theme.fontHead = `'${fontName}',sans-serif`;
+      theme.gFont = `${gName}:wght@300;400;500;600;700`;
+    }
+    // Dark mode from notes
+    if (/dark\s*mode|dark\s*theme|dark\s*background/i.test(lower)) {
+      const dk = styleOverrides['bold-dark'];
+      Object.assign(theme, dk);
+      // Keep custom accent if set
+      if (biz.custom_accent) theme.accent = biz.custom_accent;
+    }
+  }
+
   return theme;
 }
 
@@ -1133,7 +1176,7 @@ function generateStylesheet(t, biz, archetype) {
   const isDark = biz.style === 'bold-dark';
   const shadow = isDark ? 'rgba(0,0,0,.4)' : 'rgba(0,0,0,.08)';
   const shadowHover = isDark ? 'rgba(0,0,0,.25)' : 'rgba(0,0,0,.06)';
-  return `*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  const css = `*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:${t.bg};--bg-alt:${t.bgAlt};--nav:${t.nav};--accent:${t.accent};--accent-hover:${t.accentHover};--accent-bg:${t.accentBg};--accent-bg-solid:${t.accentBgSolid};--trust:${t.trust};--text:${t.text};--text-sec:${t.textSec};--muted:${t.muted};--card:${t.card};--border:${t.border};--font:${t.font};--font-head:${t.fontHead};--r:8px;--rl:14px}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.65;overflow-x:hidden}a{color:inherit;text-decoration:none}img{max-width:100%;display:block}.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
 .nav{position:sticky;top:0;z-index:100;background:var(--nav);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
@@ -1315,7 +1358,29 @@ footer{padding:48px 24px 32px;border-top:1px solid var(--border);background:var(
 .footer-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);transition:color .2s}.footer-badge:hover{color:var(--accent)}.footer-badge a{color:inherit;text-decoration:none}
 @media(max-width:900px){.hero-inner,.hero--corporate .hero-inner,.hero--trade .hero-inner{grid-template-columns:1fr!important}.hero-stats-card,.hero-form-card{display:none}.hero--statement .hero-statement-inner{flex-direction:column;gap:24px}.reviews-featured{grid-template-columns:1fr}.services-grid,.reviews-grid,.svc-grid-2,.svc-feat-grid{grid-template-columns:1fr 1fr}.services-grid--full{grid-template-columns:1fr}.about-stats-grid,.values-grid{grid-template-columns:1fr 1fr}.contact-grid{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}.booking-layout{grid-template-columns:1fr}.areas-grid{grid-template-columns:1fr 1fr}.gallery-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.nav-links{display:none;position:fixed;top:64px;left:0;right:0;bottom:0;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:24px;font-size:18px;z-index:99}.nav-links.nav-open{display:flex!important}.nav-toggle{display:flex}.services-grid,.reviews-grid,.reviews-grid--full,.svc-grid-2,.svc-feat-grid{grid-template-columns:1fr}.trust-inner,.ts-row{flex-direction:column;gap:12px;text-align:center}.hero{padding:60px 20px 40px!important}.hero--statement h1{font-size:32px!important}.svc-list-item{grid-template-columns:1fr}.svc-row{flex-direction:column;gap:8px}.footer-inner{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:8px;text-align:center}.form-row{grid-template-columns:1fr}.about-stats-grid,.values-grid{grid-template-columns:1fr}.blog-grid{grid-template-columns:1fr}.gallery-grid{grid-template-columns:1fr}.areas-grid{grid-template-columns:1fr}.booking-layout{grid-template-columns:1fr}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}.fu{animation:fadeUp .6s ease both}.fu0{animation-delay:.1s}.fu1{animation-delay:.2s}.fu2{animation-delay:.3s}.fu3{animation-delay:.4s}`;
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}.fu{animation:fadeUp .6s ease both}.fu0{animation-delay:.1s}.fu1{animation-delay:.2s}.fu2{animation-delay:.3s}.fu3{animation-delay:.4s}
+${biz.plan === 'premium' ? `
+/* Premium: scroll reveal animations */
+.sr{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}.sr.visible{opacity:1;transform:translateY(0)}
+.sr-left{opacity:0;transform:translateX(-32px);transition:opacity .7s ease,transform .7s ease}.sr-left.visible{opacity:1;transform:translateX(0)}
+.sr-right{opacity:0;transform:translateX(32px);transition:opacity .7s ease,transform .7s ease}.sr-right.visible{opacity:1;transform:translateX(0)}
+.sr-scale{opacity:0;transform:scale(.92);transition:opacity .7s ease,transform .7s ease}.sr-scale.visible{opacity:1;transform:scale(1)}
+/* Premium: animated gradient accent */
+.anim-grad{background:linear-gradient(135deg,var(--accent),var(--accent-hover),var(--accent));background-size:200% 200%;animation:gradShift 4s ease infinite}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+/* Premium: hover card lift */
+.premium-card{transition:transform .35s ease,box-shadow .35s ease}.premium-card:hover{transform:translateY(-6px);box-shadow:0 20px 48px ${isDark ? 'rgba(0,0,0,.35)' : 'rgba(0,0,0,.1)'}}
+/* Premium: smooth counter animation */
+@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.count-up{animation:countUp .8s ease both}
+/* Premium: glass morphism elements */
+.glass{background:${isDark ? 'rgba(255,255,255,.04)' : 'rgba(255,255,255,.7)'};backdrop-filter:blur(16px);border:1px solid ${isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'}}
+` : ''}`;
+
+  // Premium: add scroll reveal JS
+  if (biz.plan === 'premium') {
+    return css + `\n</style><script>(function(){var els=document.querySelectorAll('.sr,.sr-left,.sr-right,.sr-scale');var io=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}})},{threshold:0.15});els.forEach(function(el){io.observe(el)})})();<\/script><style>`;
+  }
+  return css;
 }
 
 // ── SVG Icons ─────────────────────────────────────────────────

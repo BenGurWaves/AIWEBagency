@@ -176,7 +176,68 @@ export async function onRequestPost(context) {
       tagline: siteDna?.tagline || '',
       notes: body.notes || '',
       designIntel: designIntel || null,
+      customAccent: body.custom_accent || null,
+      customPalette: body.custom_palette || null,
+      inspo: body.inspo_urls || '',
+      logoUrl: body.logo_url || null,
     };
+
+    // ── Parse user notes for style/font/color overrides (TOP PRIORITY) ──
+    if (biz.notes) {
+      const notesLower = biz.notes.toLowerCase();
+      // Dark mode request
+      if (/dark\s*mode|dark\s*theme|dark\s*background|black\s*background/i.test(notesLower)) {
+        biz.style = 'bold-dark';
+      }
+      // Color requests in notes (hex or named)
+      if (!biz.customAccent) {
+        const hexMatch = biz.notes.match(/#[0-9a-fA-F]{3,6}\b/);
+        if (hexMatch) biz.customAccent = hexMatch[0];
+      }
+      if (!biz.customAccent) {
+        const namedColors = {
+          'magenta': '#e91e8c', 'pink': '#e91e8c', 'hot pink': '#ff69b4', 'fuchsia': '#ff00ff',
+          'gold': '#d4a017', 'yellow': '#e6b800', 'lime': '#32cd32', 'cyan': '#00bcd4',
+          'coral': '#ff6f61', 'salmon': '#fa8072', 'lavender': '#9b59b6', 'indigo': '#4b0082',
+          'mint': '#3eb489', 'peach': '#ffab91', 'turquoise': '#00bfa5', 'maroon': '#800000',
+          'red': '#dc3545', 'blue': '#2563eb', 'green': '#16a34a', 'purple': '#7c3aed',
+          'orange': '#ea580c', 'teal': '#0d9488', 'navy': '#1e3a5f',
+        };
+        for (const [name, hex] of Object.entries(namedColors)) {
+          if (notesLower.includes(name)) { biz.customAccent = hex; break; }
+        }
+      }
+    }
+
+    // ── Scrape inspiration URLs (up to 75) ──
+    let inspoHints = {};
+    if (biz.inspo) {
+      const urls = biz.inspo.split(/[\s,]+/).filter(u => u.startsWith('http'));
+      for (const url of urls.slice(0, 75)) {
+        try {
+          const resp = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VelocityBot/1.0)' },
+            redirect: 'follow',
+            signal: AbortSignal.timeout(5000),
+          });
+          const html = await resp.text();
+          // Extract colors
+          const colorMatches = html.match(/(?:background-color|background|color)\s*:\s*(#[0-9a-fA-F]{6})/g) || [];
+          colorMatches.forEach(m => {
+            const c = (m.match(/#[0-9a-fA-F]{6}/) || [''])[0];
+            if (c && !inspoHints.accentColor && c !== '#ffffff' && c !== '#000000' && c !== '#fff' && c !== '#000') {
+              inspoHints.accentColor = c;
+            }
+          });
+          // Detect dark mode
+          if (html.match(/background(?:-color)?:\s*#(?:0[0-9a-f]|1[0-9a-f]|2[0-3])/i)) {
+            inspoHints.isDark = true;
+          }
+        } catch { /* inspo scrape failed */ }
+      }
+      if (inspoHints.accentColor && !biz.customAccent) biz.customAccent = inspoHints.accentColor;
+      if (inspoHints.isDark && biz.style === 'modern-clean') biz.style = 'bold-dark';
+    }
 
     const previewId = generateId();
     const previewHtml = buildPreviewPage(biz, content);
@@ -894,7 +955,24 @@ function getArchetypeConfig(archetype) {
 function buildPreviewPage(biz, content) {
   const archetype = detectArchetype(biz);
   const config = getArchetypeConfig(archetype);
-  const t = getTheme(biz.style, archetype);
+  let t = getTheme(biz.style, archetype);
+
+  // ── USER CUSTOM INSTRUCTIONS = TOP PRIORITY ──
+  // Custom palette overrides archetype defaults
+  if (biz.customPalette && Array.isArray(biz.customPalette) && biz.customPalette.length >= 2) {
+    t = applyCustomPalette(t, biz.customPalette);
+  }
+  // Custom accent overrides everything
+  if (biz.customAccent) {
+    t = applyCustomAccent(t, biz.customAccent);
+  }
+  // Font requests from notes override defaults
+  const fontOverride = parseNotesForFont(biz.notes);
+  if (fontOverride) {
+    if (fontOverride.font) t.font = fontOverride.font;
+    if (fontOverride.fontHead) t.fontHead = fontOverride.fontHead;
+    if (fontOverride.gFont) t.gFont = fontOverride.gFont;
+  }
 
   // Apply discovery intelligence if available — override fonts/colors from real-world sites
   if (biz.designIntel?.aggregate) {
@@ -1210,6 +1288,81 @@ function getTheme(style, archetype) {
   const base = archetypeThemes[archetype] || archetypeThemes['local-service'];
   const overrides = styleOverrides[style] || {};
   return { ...base, ...overrides };
+}
+
+function applyCustomAccent(theme, customAccent) {
+  if (!customAccent) return theme;
+  const t = { ...theme };
+  t.accent = customAccent;
+  const hex = customAccent.replace('#', '');
+  if (hex.length === 6) {
+    const r = parseInt(hex.slice(0,2), 16);
+    const g = parseInt(hex.slice(2,4), 16);
+    const b = parseInt(hex.slice(4,6), 16);
+    t.accentBg = `rgba(${r},${g},${b},0.07)`;
+    t.accentBgSolid = `rgba(${r},${g},${b},0.1)`;
+    t.accentHover = '#' + [r,g,b].map(c => Math.max(0, c - 20).toString(16).padStart(2,'0')).join('');
+  }
+  return t;
+}
+
+function applyCustomPalette(theme, palette) {
+  if (!palette || !Array.isArray(palette) || palette.length < 2) return theme;
+  const t = { ...theme };
+  // palette[0] = primary accent, palette[1] = background/secondary, palette[2] = dark/text
+  t.accent = palette[0];
+  const hex = palette[0].replace('#', '');
+  if (hex.length === 6) {
+    const r = parseInt(hex.slice(0,2), 16);
+    const g = parseInt(hex.slice(2,4), 16);
+    const b = parseInt(hex.slice(4,6), 16);
+    t.accentBg = `rgba(${r},${g},${b},0.07)`;
+    t.accentBgSolid = `rgba(${r},${g},${b},0.1)`;
+    t.accentHover = '#' + [r,g,b].map(c => Math.max(0, c - 20).toString(16).padStart(2,'0')).join('');
+  }
+  // If palette has a light/white color, use for bg
+  if (palette[1]) {
+    const h2 = palette[1].replace('#','');
+    if (h2.length === 6) {
+      const r2 = parseInt(h2.slice(0,2),16), g2 = parseInt(h2.slice(2,4),16), b2 = parseInt(h2.slice(4,6),16);
+      const brightness = (r2 * 299 + g2 * 587 + b2 * 114) / 1000;
+      if (brightness > 200) { t.bg = palette[1]; t.bgAlt = palette[1]; t.nav = palette[1]; t.card = '#ffffff'; }
+    }
+  }
+  if (palette[2]) {
+    const h3 = palette[2].replace('#','');
+    if (h3.length === 6) {
+      const r3 = parseInt(h3.slice(0,2),16), g3 = parseInt(h3.slice(2,4),16), b3 = parseInt(h3.slice(4,6),16);
+      const brightness = (r3 * 299 + g3 * 587 + b3 * 114) / 1000;
+      if (brightness < 80) { t.trust = palette[2]; t.text = palette[2]; }
+    }
+  }
+  return t;
+}
+
+function parseNotesForFont(notes) {
+  if (!notes) return null;
+  const lower = notes.toLowerCase();
+  const fontPatterns = [
+    { pattern: /\b(montserrat|poppins|inter|roboto|lato|open\s*sans|nunito|raleway|playfair|merriweather|oswald|libre\s*baskerville|space\s*grotesk|dm\s*sans|cormorant|jost|sora|work\s*sans|barlow|manrope|outfit|plus\s*jakarta|figtree|geist|archivo)\b/i, extract: true },
+    { pattern: /\bserif\b/, font: "'Georgia','Times New Roman',serif", fontHead: "'Playfair Display',Georgia,serif", gFont: 'Playfair+Display:ital,wght@0,400;0,600;0,700;1,400' },
+    { pattern: /\bmonospace|mono|code\b/, font: "'JetBrains Mono',monospace", fontHead: "'JetBrains Mono',monospace", gFont: 'JetBrains+Mono:wght@400;500;600;700' },
+    { pattern: /\belegant|luxury|classy\b/, fontHead: "'Cormorant Garamond',Georgia,serif", gFont: 'Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400' },
+    { pattern: /\bbold|strong|heavy|impactful\b/, fontHead: "'Sora',sans-serif", gFont: 'Sora:wght@400;500;600;700;800' },
+    { pattern: /\bminimal|clean|simple\b/, font: "'Inter',sans-serif", fontHead: "'Inter',sans-serif", gFont: 'Inter:wght@300;400;500;600;700' },
+  ];
+  for (const p of fontPatterns) {
+    const match = lower.match(p.pattern);
+    if (match) {
+      if (p.extract) {
+        const fontName = match[1].replace(/\b\w/g, c => c.toUpperCase()).replace(/\s+/g, ' ');
+        const gName = fontName.replace(/\s/g, '+');
+        return { font: `'${fontName}',sans-serif`, fontHead: `'${fontName}',sans-serif`, gFont: `${gName}:wght@300;400;500;600;700` };
+      }
+      return { font: p.font, fontHead: p.fontHead, gFont: p.gFont };
+    }
+  }
+  return null;
 }
 
 // ── QA Engine (inline copy from qa.js for orchestrator) ───────
