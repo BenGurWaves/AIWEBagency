@@ -52,6 +52,24 @@
     .gen-msg p { font-size: 0.875rem; color: var(--text-secondary); }
     .gen-pct { text-align: center; font-family: var(--font-serif); font-size: 2rem; color: var(--accent); margin-bottom: 0.25rem; }
 
+    /* Step transitions */
+    .dash-section { animation: stepFadeIn 0.4s ease; }
+    @keyframes stepFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Skeleton loading */
+    .skeleton { background: linear-gradient(90deg, var(--bg) 25%, var(--bg-card) 50%, var(--bg) 75%); background-size: 200% 100%; animation: skeletonShimmer 1.5s ease infinite; border-radius: var(--radius); }
+    @keyframes skeletonShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* Toast notifications */
+    .velocity-toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.5rem; font-size: 0.875rem; color: var(--text); box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 9999; animation: toastSlideIn 0.3s ease; display: flex; align-items: center; gap: 0.75rem; max-width: 360px; }
+    .velocity-toast--success { border-color: var(--green); }
+    .velocity-toast--error { border-color: var(--red); }
+    @keyframes toastSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastSlideOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
+
+    /* Color harmony warning */
+    .color-warning { background: rgba(200,149,106,0.08); border: 1px solid rgba(200,149,106,0.2); border-radius: var(--radius); padding: 0.5rem 0.75rem; font-size: 0.75rem; color: var(--accent); margin-top: 6px; display: none; }
+
     /* Preview step upgrade */
     .preview-layout { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 1.5rem; }
     @media(max-width:900px) { .preview-layout { grid-template-columns: 1fr; } }
@@ -59,7 +77,8 @@
     .preview-frame-bar { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--bg-card); border-bottom: 1px solid var(--border-subtle); }
     .preview-frame-dot { width: 8px; height: 8px; border-radius: 50%; }
     .preview-frame-bar-url { flex: 1; margin-left: 8px; font-size: 0.6875rem; color: var(--text-muted); background: var(--bg); padding: 3px 8px; border-radius: 4px; }
-    .preview-iframe { width: 100%; height: 520px; border: none; display: block; transition: max-width 0.3s ease, margin 0.3s ease; margin: 0 auto; }
+    .preview-iframe { width: 100%; height: 520px; border: none; display: block; transition: max-width 0.3s ease, margin 0.3s ease, transform 0.3s ease; margin: 0 auto; }
+    .preview-iframe--desktop { max-width: none; width: 1280px; transform: scale(0.7); transform-origin: top center; height: 743px; }
     .preview-iframe--tablet { max-width: 768px; }
     .preview-iframe--mobile { max-width: 375px; }
     .preview-device-bar { display: flex; align-items: center; gap: 0.5rem; padding: 6px 14px; background: var(--bg); border-bottom: 1px solid var(--border-subtle); justify-content: center; }
@@ -328,8 +347,9 @@
                   <input type="color" id="qColor1" value="#1a6b44" style="width:40px;height:36px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);cursor:pointer;padding:2px;">
                   <input type="color" id="qColor2" value="#ffffff" style="width:40px;height:36px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);cursor:pointer;padding:2px;">
                   <input type="color" id="qColor3" value="#1a2e22" style="width:40px;height:36px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);cursor:pointer;padding:2px;">
-                  <label style="font-size:0.75rem;color:var(--text-muted);margin-left:4px;"><input type="checkbox" id="qUseColors" style="margin-right:4px;">Use these colors</label>
+                  <label style="font-size:0.75rem;color:var(--text-muted);margin-left:4px;"><input type="checkbox" id="qUseColors" class="styled-checkbox" style="margin-right:4px;">Use these colors</label>
                 </div>
+                <div class="color-warning" id="colorWarning"></div>
               </div>
             </div>
 
@@ -554,6 +574,174 @@
         </div>
       </div>
 
+      <!-- ═══ POST-PAYMENT: Detailed Questions ═══ -->
+      <div id="stepDetailedQuestions" class="dash-section" style="display:none;">
+        <div class="dash-card dash-card--wide">
+          <div class="dash-card-head">
+            <h3>Let's build your full website</h3>
+            <span class="dash-status" style="background:var(--green-soft);color:var(--green);">Paid</span>
+          </div>
+          <p class="dash-card-desc">Now that you've chosen a plan, let's get the details we need to build your complete, production-ready website.</p>
+          <div style="background:var(--green-soft);border:1px solid rgba(127,176,105,0.2);border-radius:var(--radius);padding:0.75rem 1rem;margin-bottom:1.5rem;font-size:0.8125rem;color:var(--green);">
+            <strong>TEST MODE</strong> — Payment simulated. Remove this banner when Stripe is connected.
+          </div>
+
+          <form id="detailedQuestionsForm" class="q-form">
+            <div class="input-wrap">
+              <label for="dqTarget">Who is your target audience?</label>
+              <textarea id="dqTarget" rows="2" placeholder="e.g. Homeowners aged 30-55 in the Phoenix metro area who need roof repairs or replacement"></textarea>
+            </div>
+            <div class="input-wrap">
+              <label for="dqPages">Which pages do you want?</label>
+              <textarea id="dqPages" rows="2" placeholder="e.g. Home, About, Services, Gallery, Contact, Blog, Testimonials, FAQ, Service Areas"></textarea>
+            </div>
+            <div class="input-wrap">
+              <label for="dqContent">Any specific content or features?</label>
+              <textarea id="dqContent" rows="3" placeholder="e.g. Include a before/after gallery, embed Google reviews, add a booking calendar, show financing options..."></textarea>
+            </div>
+            <div class="input-wrap">
+              <label for="dqBrandVoice">What's your brand voice?</label>
+              <select id="dqBrandVoice">
+                <option value="professional">Professional & Trustworthy</option>
+                <option value="friendly">Warm & Friendly</option>
+                <option value="bold">Bold & Confident</option>
+                <option value="luxury">Premium & Sophisticated</option>
+                <option value="casual">Casual & Approachable</option>
+                <option value="technical">Technical & Detailed</option>
+              </select>
+            </div>
+            <div class="input-wrap">
+              <label for="dqCompetitors">Any competitors or sites you want to outshine?</label>
+              <textarea id="dqCompetitors" rows="2" placeholder="Paste URLs of competitor websites you want yours to be better than..."></textarea>
+            </div>
+            <div class="q-actions">
+              <button type="submit" class="btn btn-primary" id="dqSubmitBtn">Build my full website</button>
+              <p class="q-hint">We'll use your preview as the foundation and build a complete, multi-page website.</p>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ═══ POST-PAYMENT: Full Build in Progress ═══ -->
+      <div id="stepFullBuild" class="dash-section" style="display:none;">
+        <div class="dash-card dash-card--wide gen-card">
+          <div class="gen-header">
+            <div class="gen-spinner"></div>
+            <div class="gen-header-text">
+              <h3>Building your full website</h3>
+              <p id="fullBuildName"></p>
+            </div>
+          </div>
+          <div style="background:var(--green-soft);border:1px solid rgba(127,176,105,0.2);border-radius:var(--radius);padding:0.5rem 1rem;margin-bottom:1rem;font-size:0.75rem;color:var(--green);text-align:center;">
+            <strong>Paid project</strong> — Full multi-page build with all premium features
+          </div>
+          <div class="gen-pct" id="fullBuildPct">0%</div>
+          <div class="gen-progress-outer">
+            <div class="gen-progress-inner" id="fullBuildFill" style="width:0%"></div>
+          </div>
+          <div class="gen-msg" id="fullBuildDetail">
+            <p>Setting up your pages and content structure...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ POST-PAYMENT: Unlimited Edits ═══ -->
+      <div id="stepUnlimitedEdits" class="dash-section" style="display:none;">
+        <div class="preview-layout">
+          <div>
+            <div class="preview-frame-wrap">
+              <div class="preview-frame-bar">
+                <div class="preview-frame-dot" style="background:#ff5f57;"></div>
+                <div class="preview-frame-dot" style="background:#febc2e;"></div>
+                <div class="preview-frame-dot" style="background:#28c840;"></div>
+                <div class="preview-frame-bar-url" id="fullPreviewBarUrl">velocity.delivery/preview</div>
+              </div>
+              <div class="preview-device-bar">
+                <button class="preview-device-btn preview-device-btn--active" data-device="desktop" title="Desktop"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Desktop</button>
+                <button class="preview-device-btn" data-device="tablet" title="Tablet"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg> Tablet</button>
+                <button class="preview-device-btn" data-device="mobile" title="Mobile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg> Mobile</button>
+              </div>
+              <iframe id="fullPreviewIframe" class="preview-iframe" title="Your full website preview" style="display:none;"></iframe>
+              <div id="fullPreviewFallback"></div>
+            </div>
+            <div class="preview-link" id="fullPreviewLink"></div>
+          </div>
+
+          <div class="preview-panel">
+            <div class="preview-action-card">
+              <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                <h3 style="margin:0;">Your full website</h3>
+                <span style="background:var(--green-soft);color:var(--green);font-size:0.6875rem;font-weight:700;padding:3px 8px;border-radius:4px;">PAID</span>
+              </div>
+              <p>This is your complete, multi-page website. Request as many changes as you want — unlimited edits are included with your plan.</p>
+            </div>
+
+            <div class="preview-action-card">
+              <h3>Request changes</h3>
+              <p>Tell us what to tweak. Colors, layout, copy, pages — anything goes.</p>
+              <div id="paidRevisionArea">
+                <button class="btn btn-outline" id="paidRevisionsBtn" style="width:100%;">Request changes</button>
+              </div>
+              <div id="paidRevisionForm" style="display:none;" class="revision-box">
+                <textarea id="paidRevisionNotes" rows="4" placeholder="Describe what you'd like changed. Be as specific as you want — you have unlimited edits."></textarea>
+                <div class="revision-btns">
+                  <button class="btn btn-primary" id="paidSubmitRevision" style="flex:1;">Submit changes</button>
+                  <button class="btn btn-ghost" id="paidCancelRevision">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="preview-action-card">
+              <h3>Happy with everything?</h3>
+              <p>When you're ready, proceed to set up hosting and take your site live.</p>
+              <button class="btn btn-primary" id="goToHostingBtn" style="width:100%;">Set up hosting</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ POST-PAYMENT: Hosting Setup ═══ -->
+      <div id="stepHosting" class="dash-section" style="display:none;">
+        <div class="dash-card dash-card--wide">
+          <div class="dash-card-head">
+            <h3>Choose your hosting</h3>
+            <span class="dash-status" style="background:var(--green-soft);color:var(--green);">Final step</span>
+          </div>
+          <p class="dash-card-desc">Pick how you want your website to go live. Both options include SSL, global CDN, and fast loading.</p>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem;">
+            <div class="plan-card" id="hostingFree" style="flex-direction:column;align-items:flex-start;padding:1.5rem;cursor:pointer;">
+              <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                <span style="font-size:1.25rem;">&#127760;</span>
+                <strong style="font-size:1rem;">Free hosting</strong>
+              </div>
+              <p style="font-size:0.8125rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1rem;">Your site lives at <strong>yourname.velocity.delivery</strong>. Free forever. SSL included. Perfect for getting started.</p>
+              <div class="input-wrap" style="width:100%;">
+                <label for="subdomainInput" style="font-size:0.75rem;">Choose your subdomain</label>
+                <div style="display:flex;align-items:center;gap:0;">
+                  <input type="text" id="subdomainInput" placeholder="yourname" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm);border-right:none;font-size:0.875rem;">
+                  <span style="padding:0.65rem 0.75rem;background:var(--bg);border:1px solid var(--border);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:0.8125rem;color:var(--text-muted);white-space:nowrap;">.velocity.delivery</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-card" id="hostingCustom" style="flex-direction:column;align-items:flex-start;padding:1.5rem;cursor:pointer;">
+              <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                <span style="font-size:1.25rem;">&#128279;</span>
+                <strong style="font-size:1rem;">Custom domain</strong>
+              </div>
+              <p style="font-size:0.8125rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1rem;">Use your own domain like <strong>yourbusiness.com</strong>. We'll handle DNS setup and SSL. Professional presence.</p>
+              <div class="input-wrap" style="width:100%;">
+                <label for="customDomainInput" style="font-size:0.75rem;">Your domain</label>
+                <input type="text" id="customDomainInput" placeholder="yourbusiness.com" style="font-size:0.875rem;">
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="launchSiteBtn" style="width:100%;margin-top:1.5rem;">Launch my website</button>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -569,6 +757,79 @@
   <script>
   (function () {
     'use strict';
+
+    // ── Toast notifications ──
+    function showToast(message, type) {
+      var existing = document.querySelector('.velocity-toast');
+      if (existing) existing.remove();
+      var toast = document.createElement('div');
+      toast.className = 'velocity-toast' + (type ? ' velocity-toast--' + type : '');
+      var icon = type === 'success' ? '&#10003;' : type === 'error' ? '&#10007;' : '&#8505;';
+      toast.innerHTML = '<span style="font-size:1.25rem;">' + icon + '</span><span>' + message + '</span>';
+      document.body.appendChild(toast);
+      setTimeout(function() {
+        toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+        setTimeout(function() { toast.remove(); }, 300);
+      }, 3500);
+    }
+
+    // ── Color harmony checker ──
+    function checkColorContrast(hex1, hex2) {
+      function hexToRgb(hex) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+        return { r: parseInt(hex.slice(0,2),16), g: parseInt(hex.slice(2,4),16), b: parseInt(hex.slice(4,6),16) };
+      }
+      function luminance(r, g, b) {
+        var a = [r, g, b].map(function(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+        return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+      }
+      var c1 = hexToRgb(hex1), c2 = hexToRgb(hex2);
+      var l1 = luminance(c1.r, c1.g, c1.b), l2 = luminance(c2.r, c2.g, c2.b);
+      var ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      return ratio;
+    }
+
+    // ── Niche reference websites ──
+    var nicheReferences = {
+      'roofing': ['https://www.myroofingpal.com','https://www.roofnow.com','https://www.tomlinsonbomberger.com','https://www.horizonroofing.com','https://www.eliteroofing.com'],
+      'plumbing': ['https://www.miaplumber.com','https://www.reelpipeplumbing.com','https://www.benjaminfranklinplumbing.com','https://www.rotorooter.com','https://www.mrdrainandsewer.com'],
+      'hvac': ['https://www.airtron.com','https://www.carrier.com','https://www.lennox.com','https://www.trane.com','https://www.serviceexperts.com'],
+      'electrical': ['https://www.mrelectric.com','https://www.kolbelectric.com','https://www.sescos.com','https://www.currelectric.com','https://www.mister-sparky.com'],
+      'landscaping': ['https://www.brightview.com','https://www.ruppertcompanies.com','https://www.thelawnguru.com','https://www.greenworks.com','https://www.lucaslandscape.com'],
+      'painting': ['https://www.certapro.com','https://www.freshcoatpainters.com','https://www.paintzen.com','https://www.naildpainting.com','https://www.3mpainting.com'],
+      'cleaning': ['https://www.mollymaid.com','https://www.merrymaid.com','https://www.twomaidscleaning.com','https://www.maidbrigade.com','https://www.thecleaningauthority.com'],
+      'pest-control': ['https://www.terminix.com','https://www.orkin.com','https://www.aptive.com','https://www.abchomeandcommercial.com','https://www.masseypest.com'],
+      'construction': ['https://www.turnerconstruction.com','https://www.henselphels.com','https://www.whiting-turner.com','https://www.skanska.com','https://www.dfrgroup.com'],
+      'handyman': ['https://www.handymanconnection.com','https://www.housemaster.com','https://www.mrhandyman.com','https://www.aceholesolutions.com','https://www.unitedhandyman.com'],
+      'flooring': ['https://www.empiretoday.com','https://www.llflooring.com','https://www.flooranddecor.com','https://www.theflooringfactory.com','https://www.hardwoodfloorstexas.com'],
+      'fencing': ['https://www.freedomfence.com','https://www.nationwidefenceusa.com','https://www.ergionfencing.com','https://www.superiorfence.com','https://www.lonefenceco.com'],
+      'moving': ['https://www.twomenandatruck.com','https://www.collegehunkshaulingjunk.com','https://www.bellhop.com','https://www.pods.com','https://www.movingapt.com'],
+      'pool': ['https://www.asppoolco.com','https://www.poolsofbeauty.com','https://www.riverbendpools.com','https://www.precisionpoolstx.com','https://www.pinchapenny.com'],
+      'auto-repair': ['https://www.aamco.com','https://www.firestonecompleteautocare.com','https://www.jiffylube.com','https://www.meineke.com','https://www.christianbrothersauto.com'],
+      'auto-detailing': ['https://www.detailking.com','https://www.ceramicpro.com','https://www.rightlook.com','https://www.topnotchdetailing.com','https://www.dmandetailing.com'],
+      'towing': ['https://www.aaacarrental.com','https://www.unitedtowing.com','https://www.raysservice.com','https://www.towcommandtowing.com','https://www.eastcoasttowing.com'],
+      'law': ['https://www.morganandmorgan.com','https://www.martindale.com','https://www.sternlawgroup.com','https://www.legalmatch.com','https://www.justia.com'],
+      'accounting': ['https://www.1800accountant.com','https://www.benchaccounting.com','https://www.pilotfinancial.com','https://www.ignitespot.com','https://www.merritt-bookkeeping.com'],
+      'real-estate': ['https://www.compass.com','https://www.kw.com','https://www.corcoran.com','https://www.sothebysrealty.com','https://www.remax.com'],
+      'consulting': ['https://www.mckinsey.com','https://www.bain.com','https://www.bcg.com','https://www.accenture.com','https://www.deloitte.com'],
+      'insurance': ['https://www.statefarm.com','https://www.allstate.com','https://www.progressive.com','https://www.geico.com','https://www.libertymutual.com'],
+      'dental': ['https://www.aspendentalcare.com','https://www.heartlanddentalcare.com','https://www.pacificdentalservices.com','https://www.brightsmiles.com','https://www.42northdental.com'],
+      'chiropractic': ['https://www.thejoint.com','https://www.idealspine.com','https://www.palmerbetter.com','https://www.100percentchiropractic.com','https://www.healthsource.com'],
+      'fitness': ['https://www.orangetheory.com','https://www.f45training.com','https://www.barrys.com','https://www.equinox.com','https://www.soulcycle.com'],
+      'salon': ['https://www.drybar.com','https://www.ulta.com','https://www.supercuts.com','https://www.devacurl.com','https://www.madisondallassalon.com'],
+      'spa': ['https://www.handnstone.com','https://www.massageenvy.com','https://www.amanhighlands.com','https://www.canyonranch.com','https://www.exhaustspa.com'],
+      'restaurant': ['https://www.sweetgreen.com','https://www.thekapnos.com','https://www.eleven-madison-park.com','https://www.noburestaurants.com','https://www.shakeshack.com'],
+      'catering': ['https://www.chipotle.com/catering','https://www.oliveandjune.com','https://www.fourchon.com','https://www.abigailkirsch.com','https://www.greatperformances.com'],
+      'bakery': ['https://www.magnoliabakeryny.com','https://www.sprinklescupcakes.com','https://www.portosbakery.com','https://www.dominiqueansel.com','https://www.ladyandlarder.com'],
+      'photography': ['https://www.josevilla.com','https://www.jasonbellphoto.com','https://www.greenweddingshoes.com','https://www.annieleibovitz.com','https://www.benconwayfilms.com'],
+      'musician': ['https://www.billieeilish.com','https://www.jacobcollier.com','https://www.marcrebillet.com','https://www.sylvanesso.com','https://www.tokimonsta.com'],
+      'design': ['https://www.pentagram.com','https://www.sagmeisterwalsh.com','https://www.jessicawalsh.com','https://www.aarondraplin.com','https://www.studiolin.com'],
+      'tattoo': ['https://www.bangbangnyc.com','https://www.dr-woo.com','https://www.shamrocksocialclub.com','https://www.sacredtattoo.com','https://www.eastsidetattoo.com'],
+      'dj': ['https://www.marshmellomusic.com','https://www.zfranceschini.com','https://www.djkhaled.com','https://www.djsnake.com','https://www.kygo.com'],
+      'ecommerce-biz': ['https://www.allbirds.com','https://www.warbyparker.com','https://www.everlane.com','https://www.glossier.com','https://www.casper.com'],
+      'nonprofit': ['https://www.charitywater.org','https://www.kiva.org','https://www.feedingamerica.org','https://www.pencilsofpromise.org','https://www.dosomething.org'],
+    };
 
     // ── Auth check ──
     if (localStorage.getItem('velocity_auth') !== 'true') {
@@ -623,19 +884,122 @@
       window.location.href = '/';
     });
 
-    // ── "Other" niche toggle ──
+    // ── "Other" niche toggle + smart site-type linking ──
     var nicheSelect = document.getElementById('qNiche');
     var otherNicheWrap = document.getElementById('otherNicheWrap');
+    var siteTypeSelect = document.getElementById('qSiteType');
+
+    // Niche → allowed site types mapping (prevent contradictions)
+    var nicheSiteTypes = {
+      // Trades should NOT have ecommerce/blog
+      'roofing': ['service-business','booking','not-sure'],
+      'plumbing': ['service-business','booking','not-sure'],
+      'hvac': ['service-business','booking','not-sure'],
+      'electrical': ['service-business','booking','not-sure'],
+      'landscaping': ['service-business','booking','not-sure'],
+      'painting': ['service-business','booking','not-sure'],
+      'cleaning': ['service-business','booking','not-sure'],
+      'pest-control': ['service-business','booking','not-sure'],
+      'construction': ['service-business','portfolio','not-sure'],
+      'handyman': ['service-business','booking','not-sure'],
+      'flooring': ['service-business','not-sure'],
+      'fencing': ['service-business','not-sure'],
+      'moving': ['service-business','booking','not-sure'],
+      'pool': ['service-business','booking','not-sure'],
+      // Auto — no ecommerce
+      'auto-repair': ['service-business','booking','not-sure'],
+      'auto-detailing': ['service-business','booking','not-sure'],
+      'towing': ['service-business','not-sure'],
+      // Professional — no ecommerce
+      'law': ['service-business','blog','not-sure'],
+      'accounting': ['service-business','blog','not-sure'],
+      'real-estate': ['service-business','portfolio','blog','not-sure'],
+      'consulting': ['service-business','blog','not-sure'],
+      'insurance': ['service-business','blog','not-sure'],
+      // Health — booking focus
+      'dental': ['service-business','booking','not-sure'],
+      'chiropractic': ['service-business','booking','not-sure'],
+      'fitness': ['service-business','booking','blog','not-sure'],
+      'salon': ['service-business','booking','portfolio','not-sure'],
+      'spa': ['service-business','booking','not-sure'],
+      // Food — no lead gen
+      'restaurant': ['service-business','booking','blog','not-sure'],
+      'catering': ['service-business','booking','portfolio','not-sure'],
+      'bakery': ['service-business','ecommerce','not-sure'],
+      // Creative — portfolio focus
+      'photography': ['portfolio','service-business','blog','not-sure'],
+      'musician': ['portfolio','blog','not-sure'],
+      'design': ['portfolio','service-business','ecommerce','not-sure'],
+      'tattoo': ['portfolio','booking','not-sure'],
+      'dj': ['portfolio','booking','not-sure'],
+      // E-commerce
+      'ecommerce-biz': ['ecommerce','blog','not-sure'],
+      // Nonprofit
+      'nonprofit': ['service-business','blog','not-sure'],
+    };
+
+    function updateSiteTypeForNiche(niche) {
+      if (!siteTypeSelect) return;
+      var allowed = nicheSiteTypes[niche] || null;
+      var options = siteTypeSelect.querySelectorAll('option');
+      options.forEach(function(opt) {
+        if (allowed) {
+          var isAllowed = allowed.indexOf(opt.value) !== -1;
+          opt.disabled = !isAllowed;
+          opt.style.color = isAllowed ? '' : 'var(--text-muted)';
+        } else {
+          opt.disabled = false;
+          opt.style.color = '';
+        }
+      });
+      // If current selection is now disabled, reset to first allowed
+      if (allowed && allowed.indexOf(siteTypeSelect.value) === -1) {
+        siteTypeSelect.value = allowed[0] || 'not-sure';
+      }
+    }
+
     if (nicheSelect && otherNicheWrap) {
       nicheSelect.addEventListener('change', function() {
         otherNicheWrap.style.display = this.value === 'other' ? 'block' : 'none';
+        updateSiteTypeForNiche(this.value);
       });
     }
 
+    // ── Personal / creator form adaptation ──
+    function applyPersonalFormLabels() {
+      var cardHead = document.querySelector('#stepQuestionnaire .dash-card-head h3');
+      if (cardHead) cardHead.textContent = 'Tell us about your brand';
+      var cardDesc = document.querySelector('#stepQuestionnaire .dash-card-desc');
+      if (cardDesc) cardDesc.textContent = 'Fill in your details so we can design something that represents you perfectly.';
+      var nameLabel = document.querySelector('label[for="qName"]');
+      if (nameLabel) nameLabel.textContent = 'Name or creative alias';
+      var nameInput = document.getElementById('qName');
+      if (nameInput) nameInput.placeholder = 'e.g. Jane Doe, StudioXYZ';
+      var nicheLabel = document.querySelector('label[for="qNiche"]');
+      if (nicheLabel) nicheLabel.textContent = 'Category / focus';
+      var servicesLabel = document.querySelector('label[for="qServices"]');
+      if (servicesLabel) { servicesLabel.innerHTML = 'What do you create? <span class="label-hint">(comma-separated)</span>'; }
+      var servicesInput = document.getElementById('qServices');
+      if (servicesInput) servicesInput.placeholder = 'e.g. Portraits, Events, Fine Art Prints';
+      var yearsLabel = document.querySelector('label[for="qYears"]');
+      if (yearsLabel) yearsLabel.textContent = 'Years creating';
+      var locationLabel = document.querySelector('label[for="qLocation"]');
+      if (locationLabel) locationLabel.textContent = 'Location';
+      // Adjust site type options for personal
+      if (siteTypeSelect) {
+        var personalTypes = { 'service-business': 'Personal site', 'portfolio': 'Portfolio / gallery', 'ecommerce': 'Online store (Shopify-style)', 'booking': 'Booking / appointments', 'blog': 'Blog / content site', 'not-sure': 'Not sure yet' };
+        siteTypeSelect.querySelectorAll('option').forEach(function(opt) {
+          if (personalTypes[opt.value]) opt.textContent = personalTypes[opt.value];
+        });
+      }
+    }
+    // Apply on load if personal
+    if (user.account_type === 'personal') applyPersonalFormLabels();
+
     // ── Steps ──
     var step = user.dashboard_step || 'welcome';
-    var allStepIds = ['stepWelcome', 'stepQuestionnaire', 'stepGenerating', 'stepPreview', 'stepBuilding', 'stepLive'];
-    var stepperMap = { welcome: 'Q', questionnaire: 'Q', generating: 'G', preview: 'P', building: 'C', live: 'C' };
+    var allStepIds = ['stepWelcome', 'stepQuestionnaire', 'stepGenerating', 'stepPreview', 'stepBuilding', 'stepLive', 'stepDetailedQuestions', 'stepFullBuild', 'stepUnlimitedEdits', 'stepHosting'];
+    var stepperMap = { welcome: 'Q', questionnaire: 'Q', generating: 'G', preview: 'P', building: 'C', live: 'C', detailedQuestions: 'C', fullBuild: 'C', unlimitedEdits: 'C', hosting: 'C' };
     var stepOrder = ['Q', 'G', 'P', 'C'];
 
     function showStep(s) {
@@ -667,6 +1031,33 @@
         else if (i === currentIdx) el.classList.add('dash-stepper-item--active');
       });
     }
+
+    // ── Color harmony validation ──
+    var colorInputs = [document.getElementById('qColor1'), document.getElementById('qColor2'), document.getElementById('qColor3')];
+    var colorWarning = document.getElementById('colorWarning');
+    function validateColorHarmony() {
+      if (!colorWarning) return;
+      var useColors = document.getElementById('qUseColors');
+      if (!useColors || !useColors.checked) { colorWarning.style.display = 'none'; return; }
+      var c1 = colorInputs[0].value, c2 = colorInputs[1].value, c3 = colorInputs[2].value;
+      var ratio12 = checkColorContrast(c1, c2);
+      var ratio13 = checkColorContrast(c1, c3);
+      var warnings = [];
+      if (ratio12 < 2) warnings.push('Color 1 and 2 are very similar — text may be hard to read.');
+      if (ratio13 < 2) warnings.push('Color 1 and 3 are very similar.');
+      if (ratio12 < 3 && ratio13 < 3) warnings.push('Consider using more contrasting colors for better readability.');
+      if (warnings.length > 0) {
+        colorWarning.textContent = warnings[0];
+        colorWarning.style.display = 'block';
+      } else {
+        colorWarning.style.display = 'none';
+      }
+    }
+    colorInputs.forEach(function(input) {
+      if (input) input.addEventListener('input', validateColorHarmony);
+    });
+    var useColorsCheck = document.getElementById('qUseColors');
+    if (useColorsCheck) useColorsCheck.addEventListener('change', validateColorHarmony);
 
     // ── Pre-fill ──
     if (!user.questionnaire_filled) {
@@ -777,7 +1168,7 @@
       var bizName = (p.business_info && p.business_info.name) ? p.business_info.name : 'Preview';
       var dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString() : '';
       var niche = (p.business_info && p.business_info.niche) ? p.business_info.niche : '';
-      previewCard.innerHTML = '<div style="flex:1;min-width:0;"><strong style="font-size:0.875rem;">' + bizName + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + (niche ? niche + ' &middot; ' : '') + dateStr + '</span></div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">' + (p.status === 'deployed' ? 'Live' : 'Ready') + '</span><button class="del-project-btn" data-id="' + p.id + '" title="Delete" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;opacity:0.5;transition:opacity 0.2s;font-size:14px;">&times;</button></div>';
+      previewCard.innerHTML = '<div style="flex:1;min-width:0;"><strong style="font-size:0.875rem;">' + bizName + '</strong><span style="font-size:0.75rem;color:var(--text-muted);display:block;">' + (niche ? niche + ' &middot; ' : '') + dateStr + '</span></div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:0.6875rem;color:var(--green);font-weight:600;">' + (p.status === 'deployed' ? 'Live' : 'Ready') + '</span><button class="del-project-btn" data-id="' + p.id + '" title="Delete" style="background:var(--bg-card);border:1px solid var(--border-subtle);color:var(--text-muted);cursor:pointer;padding:4px 8px;border-radius:var(--radius-sm);font-size:0.75rem;transition:all 0.2s;font-family:var(--font-body);">&times;</button></div>';
       // Click on card opens preview
       previewCard.addEventListener('click', function(e) {
         if (e.target.classList.contains('del-project-btn')) return;
@@ -792,11 +1183,13 @@
       // Delete button
       var delBtn = previewCard.querySelector('.del-project-btn');
       if (delBtn) {
-        delBtn.addEventListener('mouseenter', function() { this.style.opacity = '1'; this.style.color = 'var(--red, #dc3545)'; });
-        delBtn.addEventListener('mouseleave', function() { this.style.opacity = '0.5'; this.style.color = 'var(--text-muted)'; });
+        delBtn.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--red)'; this.style.color = 'var(--red)'; this.style.background = 'var(--red-soft)'; });
+        delBtn.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border-subtle)'; this.style.color = 'var(--text-muted)'; this.style.background = 'var(--bg-card)'; });
         delBtn.addEventListener('click', function(e) {
           e.stopPropagation();
-          if (!confirm('Delete this preview? This cannot be undone.')) return;
+          var isPaidProj = user.paid === true && user.preview_id === this.getAttribute('data-id');
+          var msg = isPaidProj ? 'This is a PAID project. Deleting it cannot be undone and you may lose your purchase. Are you absolutely sure?' : 'Delete this preview? This cannot be undone.';
+          if (!confirm(msg)) return;
           var projectId = this.getAttribute('data-id');
           fetch('/api/projects/' + projectId, { method: 'DELETE', credentials: 'same-origin' }).catch(function() {});
           // Remove from local list
@@ -992,7 +1385,15 @@
       user.years = aiEnhance('years', document.getElementById('qYears').value.trim(), nicheCtx);
       user.style = document.getElementById('qStyle').value;
       user.site_type = document.getElementById('qSiteType').value;
-      user.inspo_urls = document.getElementById('qInspo').value.trim();
+      // Inject niche reference websites alongside user inspo URLs
+      var userInspo = document.getElementById('qInspo').value.trim();
+      var nicheRefs = nicheReferences[user.niche] || [];
+      var allInspo = userInspo;
+      if (nicheRefs.length > 0) {
+        var refUrls = nicheRefs.join(' ');
+        allInspo = userInspo ? userInspo + ' ' + refUrls : refUrls;
+      }
+      user.inspo_urls = allInspo;
       user.notes = document.getElementById('qNotes').value.trim();
 
       // Custom color palette
@@ -1229,6 +1630,7 @@
         if (!iframe) return;
         iframe.className = 'preview-iframe';
         var device = btn.getAttribute('data-device');
+        if (device === 'desktop') iframe.classList.add('preview-iframe--desktop');
         if (device === 'tablet') iframe.classList.add('preview-iframe--tablet');
         if (device === 'mobile') iframe.classList.add('preview-iframe--mobile');
       });
@@ -1265,14 +1667,15 @@
       var count = user.revision_count || 0;
       var counter = document.getElementById('revisionCounter');
       if (counter) counter.textContent = count > 0 ? count + ' of 3 revisions used' : '';
-      if (revisionArea && count < 3) {
+      var isPaid = user.paid === true;
+      if (revisionArea && (count < 3 || isPaid)) {
         revisionArea.innerHTML = '<button class="btn btn-outline" id="revisionsBtn" style="width:100%;">Request changes</button>';
         document.getElementById('revisionsBtn').addEventListener('click', function() {
           document.getElementById('revisionForm').style.display = 'block';
           this.style.display = 'none';
         });
-      } else if (revisionArea && count >= 3) {
-        revisionArea.innerHTML = '<p style="color:var(--text-muted);font-size:0.8125rem;">All 3 free revisions used. Start a new design for a fresh approach.</p>';
+      } else if (revisionArea && count >= 3 && !isPaid) {
+        revisionArea.innerHTML = '<div style="text-align:center;padding:1rem 0;"><p style="color:var(--text-secondary);font-size:0.9375rem;font-weight:600;margin-bottom:0.5rem;">Your 3 free revisions are up.</p><p style="color:var(--text-muted);font-size:0.8125rem;margin-bottom:1rem;">Pick a plan to unlock unlimited edits and get your full website built.</p><button class="btn btn-primary" onclick="document.querySelector(\'.plan-card--featured\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" style="width:100%;">View plans</button></div>';
       }
       document.getElementById('revisionForm').style.display = 'none';
     };
@@ -1431,7 +1834,6 @@
     // ── Approve: select plan + checkout ──
     document.getElementById('approveBtn').addEventListener('click', function() {
       if (!user.plan) {
-        // Highlight plan picker
         var firstPlan = document.querySelector('.plan-card--featured') || document.querySelector('.plan-card');
         if (firstPlan) {
           firstPlan.style.animation = 'none';
@@ -1443,47 +1845,18 @@
       }
 
       var approveBtn = document.getElementById('approveBtn');
-      approveBtn.textContent = 'Redirecting to checkout...';
+      approveBtn.textContent = 'Processing...';
       approveBtn.disabled = true;
 
-      fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ plan: user.plan, email: email }),
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          var errMsg = data.error || 'Payment system unavailable. Please try again later.';
-          approveBtn.textContent = errMsg;
-          approveBtn.style.background = 'var(--red-soft)';
-          approveBtn.style.color = 'var(--red)';
-          approveBtn.style.border = '1px solid var(--red)';
-          setTimeout(function() {
-            approveBtn.textContent = 'Continue with ' + user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' \u2014 ' + user.plan_price;
-            approveBtn.disabled = false;
-            approveBtn.style.background = '';
-            approveBtn.style.color = '';
-            approveBtn.style.border = '';
-          }, 4000);
-        }
-      })
-      .catch(function() {
-        approveBtn.textContent = 'Connection error. Please try again.';
-        approveBtn.style.background = 'var(--red-soft)';
-        approveBtn.style.color = 'var(--red)';
-        approveBtn.style.border = '1px solid var(--red)';
-        setTimeout(function() {
-          approveBtn.textContent = 'Continue with ' + user.plan.charAt(0).toUpperCase() + user.plan.slice(1) + ' \u2014 ' + user.plan_price;
-          approveBtn.disabled = false;
-          approveBtn.style.background = '';
-          approveBtn.style.color = '';
-          approveBtn.style.border = '';
-        }, 4000);
-      });
+      // TEST MODE: Bypass Stripe, simulate successful payment
+      // TODO: Re-enable Stripe checkout when API key is configured
+      setTimeout(function() {
+        user.paid = true;
+        user.paid_at = new Date().toISOString();
+        user.paid_project_id = user.preview_id;
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        showStep('detailedQuestions');
+      }, 1200);
     });
 
     // ── Revisions ──
@@ -1503,14 +1876,18 @@
 
       // Check revision limit (3 per project)
       var count = user.revision_count || 0;
-      if (count >= 3) {
+      var isPaidProject = user.paid === true;
+      if (count >= 3 && !isPaidProject) {
         document.getElementById('revisionForm').style.display = 'none';
-        document.getElementById('revisionArea').innerHTML = '<p style="color:var(--text-muted);font-size:0.875rem;padding:0.5rem 0;">You\'ve used all 3 free revisions for this project. Start a new design to try a different approach.</p>';
+        document.getElementById('revisionArea').innerHTML = '<div style="text-align:center;padding:1rem 0;"><p style="color:var(--text-secondary);font-size:0.9375rem;font-weight:600;margin-bottom:0.5rem;">Your 3 free revisions are up.</p><p style="color:var(--text-muted);font-size:0.8125rem;margin-bottom:1rem;">Pick a plan to unlock unlimited edits and get your full website built.</p><button class="btn btn-primary" onclick="document.querySelector(\'.plan-card--featured\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" style="width:100%;">View plans</button></div>';
         return;
       }
 
       user.revision_notes = notes;
       user.revision_count = count + 1;
+      // Track revision history for diff display
+      if (!user.revision_history) user.revision_history = [];
+      user.revision_history.push({ notes: notes, at: new Date().toISOString(), count: count + 1 });
       user.notes = (user.notes ? user.notes + ' | ' : '') + notes;
 
       // Apply revision changes to the style/content immediately
@@ -1527,6 +1904,7 @@
       localStorage.setItem('velocity_user', JSON.stringify(user));
 
       // Re-trigger generation with updated notes
+      showToast('Revision submitted — regenerating your preview...', 'success');
       showStep('generating');
       startGenerating();
     });
@@ -1535,26 +1913,70 @@
       var lower = notes.toLowerCase();
       var oldStyle = user.style;
 
-      // Check for specific color names the user wants (override niche defaults)
-      var hexMatch = notes.match(/#[0-9a-fA-F]{3,6}\b/);
       var namedColors = {
         'magenta': '#e91e8c', 'pink': '#e91e8c', 'hot pink': '#ff69b4', 'fuchsia': '#ff00ff',
         'gold': '#d4a017', 'yellow': '#e6b800', 'lime': '#32cd32', 'cyan': '#00bcd4',
         'coral': '#ff6f61', 'salmon': '#fa8072', 'lavender': '#9b59b6', 'indigo': '#4b0082',
         'mint': '#3eb489', 'peach': '#ffab91', 'turquoise': '#00bfa5', 'maroon': '#800000',
         'olive': '#6b8e23', 'charcoal': '#36454f', 'slate': '#708090', 'rose': '#e8758f',
+        'red': '#dc3545', 'blue': '#2563eb', 'green': '#16a34a', 'purple': '#7c3aed',
+        'orange': '#ea580c', 'teal': '#0d9488', 'navy': '#1e3a5f', 'black': '#111111',
+        'white': '#ffffff', 'gray': '#6b7280', 'grey': '#6b7280', 'brown': '#8b4513',
+        'burgundy': '#800020', 'crimson': '#dc143c', 'sky blue': '#0ea5e9', 'forest green': '#228b22',
       };
-      var customColor = null;
-      if (hexMatch) {
-        customColor = hexMatch[0];
-      } else {
-        for (var cname in namedColors) {
-          if (lower.indexOf(cname) !== -1) { customColor = namedColors[cname]; break; }
+
+      // Extract ALL colors mentioned — hex codes AND named colors
+      var hexMatches = notes.match(/#[0-9a-fA-F]{3,6}\b/g) || [];
+      var foundColors = hexMatches.slice();
+      for (var cname in namedColors) {
+        if (lower.indexOf(cname) !== -1) {
+          // Check it's not in a "remove/get rid of" context
+          var removePattern = new RegExp('(?:remove|get rid of|no more|drop|delete|lose|without|not|don\'t want|ditch)\\s+(?:the\\s+)?(?:color\\s+)?' + cname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+          if (!removePattern.test(lower)) {
+            foundColors.push(namedColors[cname]);
+          }
         }
       }
-      if (customColor) {
-        // Store custom accent color — the generator will use this directly
-        user.custom_accent = customColor;
+
+      // Detect colors to REMOVE
+      var colorsToRemove = [];
+      var removePatterns = lower.match(/(?:remove|get rid of|no more|drop|delete|lose|without|ditch)\s+(?:the\s+)?(?:color\s+)?(\w[\w\s]*?)(?:\s+(?:and|,|color)|$)/gi) || [];
+      removePatterns.forEach(function(match) {
+        for (var cn in namedColors) {
+          if (match.toLowerCase().indexOf(cn) !== -1) {
+            colorsToRemove.push(namedColors[cn]);
+          }
+        }
+      });
+      var hexRemoves = lower.match(/(?:remove|get rid of|no more|drop)\s+(?:the\s+)?(#[0-9a-fA-F]{3,6})/gi) || [];
+      hexRemoves.forEach(function(m) {
+        var h = m.match(/#[0-9a-fA-F]{3,6}/);
+        if (h) colorsToRemove.push(h[0].toLowerCase());
+      });
+
+      // Build final palette: start from existing, add new, remove unwanted
+      var currentPalette = user.custom_palette ? user.custom_palette.slice() : [];
+      // Remove unwanted colors
+      if (colorsToRemove.length > 0) {
+        currentPalette = currentPalette.filter(function(c) {
+          return !colorsToRemove.some(function(r) { return c.toLowerCase() === r.toLowerCase(); });
+        });
+      }
+      // Add new colors (avoid duplicates)
+      foundColors.forEach(function(c) {
+        var cl = c.toLowerCase();
+        if (!currentPalette.some(function(p) { return p.toLowerCase() === cl; })) {
+          currentPalette.push(c);
+        }
+      });
+
+      // Apply the final palette
+      if (currentPalette.length > 0) {
+        user.custom_palette = currentPalette.slice(0, 3);
+        user.custom_accent = currentPalette[0];
+      } else if (foundColors.length > 0) {
+        user.custom_accent = foundColors[0];
+        user.custom_palette = foundColors.slice(0, 3);
       }
 
       // Style/theme hints
@@ -1605,6 +2027,8 @@
           otherNicheWrap.style.display = 'block';
           if (user.niche_other) document.getElementById('qNicheOther').value = user.niche_other;
         }
+        // Trigger niche/site-type smart linking
+        updateSiteTypeForNiche(user.niche);
       }
       if (user.services) document.getElementById('qServices').value = user.services;
       if (user.location) document.getElementById('qLocation').value = user.location;
@@ -1615,6 +2039,15 @@
       if (user.site_type) document.getElementById('qSiteType').value = user.site_type;
       if (user.inspo_urls) document.getElementById('qInspo').value = user.inspo_urls;
       if (user.notes) document.getElementById('qNotes').value = user.notes;
+      // Restore color picker values and checkbox state
+      if (user.custom_palette && user.custom_palette.length >= 1) {
+        document.getElementById('qColor1').value = user.custom_palette[0];
+        if (user.custom_palette[1]) document.getElementById('qColor2').value = user.custom_palette[1];
+        if (user.custom_palette[2]) document.getElementById('qColor3').value = user.custom_palette[2];
+        document.getElementById('qUseColors').checked = true;
+      }
+      // Apply personal form labels if individual account
+      if (user.account_type === 'personal') applyPersonalFormLabels();
       var submitBtn = document.getElementById('qSubmitBtn');
       submitBtn.textContent = 'Generate my preview';
       submitBtn.disabled = false;
@@ -1642,11 +2075,235 @@
       });
     });
 
+    // ── Post-payment: Detailed Questions form ──
+    var dqForm = document.getElementById('detailedQuestionsForm');
+    if (dqForm) {
+      dqForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        user.detailed_target = document.getElementById('dqTarget').value.trim();
+        user.detailed_pages = document.getElementById('dqPages').value.trim();
+        user.detailed_content = document.getElementById('dqContent').value.trim();
+        user.detailed_voice = document.getElementById('dqBrandVoice').value;
+        user.detailed_competitors = document.getElementById('dqCompetitors').value.trim();
+        user.dashboard_step = 'fullBuild';
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        showStep('fullBuild');
+        startFullBuild();
+      });
+    }
+
+    function startFullBuild() {
+      var nameEl = document.getElementById('fullBuildName');
+      if (nameEl) nameEl.textContent = user.business_name || '';
+      var progress = 0;
+      var buildMessages = [
+        { at: 0,  msg: 'Setting up your multi-page website structure...' },
+        { at: 15, msg: 'Creating your homepage with premium design...' },
+        { at: 30, msg: 'Building About and Services pages...' },
+        { at: 45, msg: 'Adding Gallery and Testimonials sections...' },
+        { at: 60, msg: 'Generating SEO-optimized content for each page...' },
+        { at: 75, msg: 'Applying animations and micro-interactions...' },
+        { at: 88, msg: 'Running quality checks and performance optimization...' },
+        { at: 96, msg: 'Finalizing your complete website...' },
+      ];
+      var lastMsg = -1;
+      var buildTimer = setInterval(function() {
+        progress += Math.random() * 3 + 0.5;
+        if (progress > 99) progress = 99;
+        var pctEl = document.getElementById('fullBuildPct');
+        var fillEl = document.getElementById('fullBuildFill');
+        var detailEl = document.getElementById('fullBuildDetail');
+        if (pctEl) pctEl.textContent = Math.round(progress) + '%';
+        if (fillEl) fillEl.style.width = progress + '%';
+        for (var i = buildMessages.length - 1; i >= 0; i--) {
+          if (progress >= buildMessages[i].at && i > lastMsg) {
+            lastMsg = i;
+            if (detailEl) detailEl.innerHTML = '<p>' + buildMessages[i].msg + '</p>';
+            break;
+          }
+        }
+        if (progress >= 99) {
+          clearInterval(buildTimer);
+          setTimeout(function() {
+            // Use existing preview as the "full build" result for now
+            user.dashboard_step = 'unlimitedEdits';
+            localStorage.setItem('velocity_user', JSON.stringify(user));
+            showStep('unlimitedEdits');
+            renderFullPreview();
+          }, 1500);
+        }
+      }, 200);
+
+      // Trigger actual full build API call
+      var buildPayload = {
+        email: email,
+        website_url: website,
+        business_name: user.business_name,
+        niche: user.niche === 'other' ? (user.niche_other || 'other') : user.niche,
+        services: user.services,
+        location: user.location,
+        phone: user.phone,
+        contact_email: user.contact_email,
+        years: user.years,
+        style: user.style,
+        site_type: user.site_type,
+        inspo_urls: user.inspo_urls,
+        notes: user.notes,
+        custom_accent: user.custom_accent || null,
+        custom_palette: user.custom_palette || null,
+        logo_url: user.logo_url || null,
+        plan: user.plan,
+        detailed_target: user.detailed_target || '',
+        detailed_pages: user.detailed_pages || '',
+        detailed_content: user.detailed_content || '',
+        detailed_voice: user.detailed_voice || '',
+        detailed_competitors: user.detailed_competitors || '',
+      };
+      fetch('/api/pipeline/orchestrate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(buildPayload),
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.preview_id) {
+          user.preview_id = data.preview_id;
+          user.preview_url = data.preview_url || '/preview/' + data.preview_id;
+          user.preview_ready = true;
+          localStorage.setItem('velocity_user', JSON.stringify(user));
+        }
+      })
+      .catch(function() {});
+    }
+
+    function renderFullPreview() {
+      var iframe = document.getElementById('fullPreviewIframe');
+      var link = document.getElementById('fullPreviewLink');
+      var barUrl = document.getElementById('fullPreviewBarUrl');
+      if (user.preview_url && user.preview_url.indexOf('/preview/') === 0) {
+        iframe.src = user.preview_url;
+        iframe.style.display = 'block';
+        if (barUrl) barUrl.textContent = 'velocity.delivery' + user.preview_url;
+        if (link) {
+          var a = document.createElement('a');
+          a.href = user.preview_url;
+          a.target = '_blank';
+          a.textContent = 'Open full website in new tab \u2192';
+          link.innerHTML = '';
+          link.appendChild(a);
+        }
+      }
+    }
+
+    // Unlimited edits revision handlers
+    var paidRevBtn = document.getElementById('paidRevisionsBtn');
+    if (paidRevBtn) {
+      paidRevBtn.addEventListener('click', function() {
+        document.getElementById('paidRevisionForm').style.display = 'block';
+        this.style.display = 'none';
+      });
+    }
+    var paidCancelBtn = document.getElementById('paidCancelRevision');
+    if (paidCancelBtn) {
+      paidCancelBtn.addEventListener('click', function() {
+        document.getElementById('paidRevisionForm').style.display = 'none';
+        document.getElementById('paidRevisionsBtn').style.display = '';
+      });
+    }
+    var paidSubmitBtn = document.getElementById('paidSubmitRevision');
+    if (paidSubmitBtn) {
+      paidSubmitBtn.addEventListener('click', function() {
+        var notes = document.getElementById('paidRevisionNotes').value.trim();
+        if (!notes) return;
+        user.notes = (user.notes ? user.notes + ' | ' : '') + notes;
+        applyRevisionHints(notes);
+        user.preview_url = null;
+        user.preview_id = null;
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        document.getElementById('paidRevisionForm').style.display = 'none';
+        document.getElementById('paidRevisionNotes').value = '';
+        showStep('fullBuild');
+        startFullBuild();
+      });
+    }
+
+    // Hosting setup handlers
+    var hostingFree = document.getElementById('hostingFree');
+    var hostingCustom = document.getElementById('hostingCustom');
+    if (hostingFree) {
+      hostingFree.addEventListener('click', function() {
+        hostingFree.classList.add('plan-card--selected');
+        if (hostingCustom) hostingCustom.classList.remove('plan-card--selected');
+        user.hosting_type = 'free';
+      });
+    }
+    if (hostingCustom) {
+      hostingCustom.addEventListener('click', function() {
+        hostingCustom.classList.add('plan-card--selected');
+        if (hostingFree) hostingFree.classList.remove('plan-card--selected');
+        user.hosting_type = 'custom';
+      });
+    }
+    var goHostingBtn = document.getElementById('goToHostingBtn');
+    if (goHostingBtn) {
+      goHostingBtn.addEventListener('click', function() {
+        user.dashboard_step = 'hosting';
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        showStep('hosting');
+      });
+    }
+    var launchBtn = document.getElementById('launchSiteBtn');
+    if (launchBtn) {
+      launchBtn.addEventListener('click', function() {
+        var domain = '';
+        if (user.hosting_type === 'custom') {
+          domain = document.getElementById('customDomainInput').value.trim();
+          if (!domain) { document.getElementById('customDomainInput').focus(); return; }
+        } else {
+          var sub = document.getElementById('subdomainInput').value.trim();
+          if (!sub) { document.getElementById('subdomainInput').focus(); return; }
+          domain = sub + '.velocity.delivery';
+        }
+        user.live_url = 'https://' + domain;
+        user.dashboard_step = 'live';
+        localStorage.setItem('velocity_user', JSON.stringify(user));
+        showStep('live');
+        document.getElementById('liveUrl').href = user.live_url;
+        document.getElementById('liveUrl').textContent = user.live_url;
+      });
+    }
+
+    // Device toggle for full preview iframe too
+    document.querySelectorAll('#stepUnlimitedEdits .preview-device-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('#stepUnlimitedEdits .preview-device-btn').forEach(function(b) { b.classList.remove('preview-device-btn--active'); });
+        btn.classList.add('preview-device-btn--active');
+        var iframe = document.getElementById('fullPreviewIframe');
+        if (!iframe) return;
+        iframe.className = 'preview-iframe';
+        var device = btn.getAttribute('data-device');
+        if (device === 'desktop') iframe.classList.add('preview-iframe--desktop');
+        if (device === 'tablet') iframe.classList.add('preview-iframe--tablet');
+        if (device === 'mobile') iframe.classList.add('preview-iframe--mobile');
+      });
+    });
+
     // ── Route on load ──
     if (user.dashboard_step === 'live' && user.live_url) {
       showStep('live');
       document.getElementById('liveUrl').href = user.live_url;
       document.getElementById('liveUrl').textContent = user.live_url;
+    } else if (user.dashboard_step === 'hosting') {
+      showStep('hosting');
+    } else if (user.dashboard_step === 'unlimitedEdits') {
+      showStep('unlimitedEdits');
+      renderFullPreview();
+    } else if (user.dashboard_step === 'fullBuild') {
+      showStep('fullBuild');
+      startFullBuild();
+    } else if (user.dashboard_step === 'detailedQuestions') {
+      showStep('detailedQuestions');
     } else if (user.dashboard_step === 'building') {
       showStep('building');
     } else if (user.preview_ready && user.questionnaire_filled) {

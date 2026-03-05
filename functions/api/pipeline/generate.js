@@ -72,14 +72,23 @@ export async function onRequestPost(context) {
         const html = await resp.text();
         const extracted = extractInspoHints(html);
         if (extracted.accentColor && !inspoHints.accentColor) inspoHints.accentColor = extracted.accentColor;
+        if (extracted.palette && !inspoHints.palette) inspoHints.palette = extracted.palette;
         if (extracted.isDark !== undefined && inspoHints.isDark === undefined) inspoHints.isDark = extracted.isDark;
         if (extracted.hasHeroVideo) inspoHints.hasHeroVideo = true;
         if (extracted.layoutHint) inspoHints.layoutHint = extracted.layoutHint;
+        if (extracted.fonts && !inspoHints.fonts) inspoHints.fonts = extracted.fonts;
+        if (extracted.borderRadius && !inspoHints.borderRadius) inspoHints.borderRadius = extracted.borderRadius;
+        if (extracted.spacing && !inspoHints.spacing) inspoHints.spacing = extracted.spacing;
+        if (extracted.layoutAlign && !inspoHints.layoutAlign) inspoHints.layoutAlign = extracted.layoutAlign;
       } catch { /* inspo scrape failed — skip */ }
     }
     // Apply inspo hints to biz if no user preference overrides
     if (inspoHints.accentColor && !biz.customAccent) biz.customAccent = inspoHints.accentColor;
+    if (inspoHints.palette && !biz.customPalette) biz.inspoPalette = inspoHints.palette;
     if (inspoHints.isDark && biz.style === 'modern-clean') biz.style = 'bold-dark';
+    if (inspoHints.fonts) biz.inspoFonts = inspoHints.fonts;
+    if (inspoHints.borderRadius) biz.inspoBorderRadius = inspoHints.borderRadius;
+    if (inspoHints.spacing) biz.inspoSpacing = inspoHints.spacing;
   }
 
   // ── 3c. Parse notes more carefully (USER INSTRUCTIONS = TOP PRIORITY) ──
@@ -493,22 +502,53 @@ function parseNotesForFont(notes) {
 
 function extractInspoHints(html) {
   const hints = {};
-  // Extract dominant colors from CSS
-  const colorMatches = html.match(/(?:background-color|background|color)\s*:\s*(#[0-9a-fA-F]{3,6})/g) || [];
+
+  // Extract ALL meaningful colors from CSS (not just one)
+  const colorMatches = html.match(/(?:background-color|background|color|border-color|border)\s*:\s*(#[0-9a-fA-F]{3,8})/gi) || [];
   const colorCounts = {};
+  const skipColors = new Set(['#fff','#ffffff','#000','#000000','#ccc','#cccccc','#ddd','#dddddd','#eee','#eeeeee','#f5f5f5','#333','#333333','#666','#666666','#999','#999999','#aaa','#aaaaaa','#bbb','#e5e5e5','#f0f0f0','#fafafa','#f8f8f8','#e0e0e0','#d0d0d0','#c0c0c0','#808080','#transparent']);
   colorMatches.forEach(m => {
-    const c = (m.match(/#[0-9a-fA-F]{3,6}/) || [''])[0].toLowerCase();
-    if (c && c !== '#fff' && c !== '#ffffff' && c !== '#000' && c !== '#000000' && c.length > 4) {
-      colorCounts[c] = (colorCounts[c] || 0) + 1;
+    let c = (m.match(/#[0-9a-fA-F]{3,8}/) || [''])[0].toLowerCase();
+    if (!c || c.length < 4) return;
+    // Normalize 3-char hex to 6-char
+    if (c.length === 4) c = '#' + c[1]+c[1] + c[2]+c[2] + c[3]+c[3];
+    if (c.length > 7) c = c.slice(0, 7); // strip alpha
+    if (skipColors.has(c)) return;
+    colorCounts[c] = (colorCounts[c] || 0) + 1;
+  });
+  const sortedColors = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
+  if (sortedColors.length > 0) {
+    hints.accentColor = sortedColors[0][0];
+    hints.palette = sortedColors.slice(0, 5).map(e => e[0]);
+  }
+
+  // Extract font families
+  const fontMatches = html.match(/font-family\s*:\s*([^;}]+)/gi) || [];
+  const fontCounts = {};
+  fontMatches.forEach(m => {
+    const fam = m.replace(/font-family\s*:\s*/i, '').replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+    if (fam && fam !== 'inherit' && fam !== 'initial' && fam !== 'sans-serif' && fam !== 'serif' && fam !== 'monospace' && fam.length > 2) {
+      fontCounts[fam] = (fontCounts[fam] || 0) + 1;
     }
   });
-  const sorted = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
-  if (sorted.length > 0) hints.accentColor = sorted[0][0];
+  const sortedFonts = Object.entries(fontCounts).sort((a, b) => b[1] - a[1]);
+  if (sortedFonts.length > 0) {
+    hints.fonts = sortedFonts.slice(0, 3).map(e => e[0]);
+  }
 
-  // Detect dark mode
+  // Detect border radius style
+  const radiusMatches = html.match(/border-radius\s*:\s*(\d+)/gi) || [];
+  if (radiusMatches.length > 0) {
+    const radii = radiusMatches.map(m => parseInt(m.match(/\d+/)[0]));
+    const avgRadius = radii.reduce((a, b) => a + b, 0) / radii.length;
+    hints.borderRadius = avgRadius > 16 ? 'rounded' : avgRadius > 6 ? 'medium' : 'sharp';
+  }
+
+  // Detect dark mode from body background
   const bodyBg = html.match(/body\s*\{[^}]*background[^:]*:\s*(#[0-9a-fA-F]{3,6})/);
   if (bodyBg) {
-    const hex = bodyBg[1].replace('#', '');
+    let hex = bodyBg[1].replace('#', '');
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
     if (hex.length === 6) {
       const brightness = (parseInt(hex.slice(0,2),16) + parseInt(hex.slice(2,4),16) + parseInt(hex.slice(4,6),16)) / 3;
       hints.isDark = brightness < 80;
@@ -522,7 +562,16 @@ function extractInspoHints(html) {
 
   // Detect layout patterns
   if (/grid.*template.*columns.*repeat\(3/i.test(html)) hints.layoutHint = '3-col';
-  if (/text-align\s*:\s*center[^}]*font-size\s*:\s*(?:4|5|6)\d*px/i.test(html)) hints.layoutHint = 'centered-hero';
+  else if (/grid.*template.*columns.*repeat\(4/i.test(html)) hints.layoutHint = '4-col';
+  if (/text-align\s*:\s*center[^}]*font-size\s*:\s*(?:3|4|5|6)\d*px/i.test(html)) hints.layoutAlign = 'centered';
+
+  // Detect spacing patterns
+  const paddingMatches = html.match(/padding\s*:\s*(\d+)/gi) || [];
+  if (paddingMatches.length > 3) {
+    const pads = paddingMatches.map(m => parseInt(m.match(/\d+/)[0]));
+    const avgPad = pads.reduce((a, b) => a + b, 0) / pads.length;
+    hints.spacing = avgPad > 40 ? 'airy' : avgPad > 20 ? 'balanced' : 'tight';
+  }
 
   return hints;
 }
@@ -574,6 +623,19 @@ function generatePreview(biz) {
     if (fontOverride.font) t.font = fontOverride.font;
     if (fontOverride.fontHead) t.fontHead = fontOverride.fontHead;
     if (fontOverride.gFont) t.gFont = fontOverride.gFont;
+  }
+  // Apply inspo-extracted fonts if no user font preference
+  if (!fontOverride && biz.inspoFonts && biz.inspoFonts.length > 0) {
+    const inspoFont = biz.inspoFonts[0].replace(/\b\w/g, c => c.toUpperCase());
+    const gName = inspoFont.replace(/\s/g, '+');
+    t.font = `'${inspoFont}',sans-serif`;
+    t.fontHead = `'${inspoFont}',sans-serif`;
+    t.gFont = `${gName}:wght@300;400;500;600;700`;
+  }
+  // Apply inspo border radius
+  if (biz.inspoBorderRadius) {
+    const radiusMap = { rounded: '20px', medium: '10px', sharp: '2px' };
+    t.cardRadius = radiusMap[biz.inspoBorderRadius] || t.cardRadius;
   }
   // Dark mode from notes
   if (biz.notes && /dark\s*mode|dark\s*theme|dark\s*background|black\s*background/i.test(biz.notes)) {

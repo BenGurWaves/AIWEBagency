@@ -1133,6 +1133,19 @@ function getTheme(style, archetype, biz) {
       theme.fontHead = `'${fontName}',sans-serif`;
       theme.gFont = `${gName}:wght@300;400;500;600;700`;
     }
+    // Inspo font application (if no user font in notes)
+    if (!fontMatch && biz.inspoFonts && biz.inspoFonts.length > 0) {
+      const inspoFont = biz.inspoFonts[0].replace(/\b\w/g, c => c.toUpperCase());
+      const gName = inspoFont.replace(/\s/g, '+');
+      theme.font = `'${inspoFont}',sans-serif`;
+      theme.fontHead = `'${inspoFont}',sans-serif`;
+      theme.gFont = `${gName}:wght@300;400;500;600;700`;
+    }
+    // Inspo border radius
+    if (biz.inspoBorderRadius) {
+      const radiusMap = { rounded: '20px', medium: '10px', sharp: '2px' };
+      if (radiusMap[biz.inspoBorderRadius]) theme.cardRadius = radiusMap[biz.inspoBorderRadius];
+    }
     // Dark mode from notes
     if (/dark\s*mode|dark\s*theme|dark\s*background/i.test(lower)) {
       const dk = styleOverrides['bold-dark'];

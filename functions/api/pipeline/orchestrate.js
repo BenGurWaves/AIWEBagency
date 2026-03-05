@@ -209,10 +209,12 @@ export async function onRequestPost(context) {
       }
     }
 
-    // ── Scrape inspiration URLs (up to 75) ──
+    // ── Scrape inspiration URLs (up to 75) — deep analysis ──
     let inspoHints = {};
     if (biz.inspo) {
       const urls = biz.inspo.split(/[\s,]+/).filter(u => u.startsWith('http'));
+      const allColors = {};
+      const allFonts = {};
       for (const url of urls.slice(0, 75)) {
         try {
           const resp = await fetch(url, {
@@ -221,22 +223,57 @@ export async function onRequestPost(context) {
             signal: AbortSignal.timeout(5000),
           });
           const html = await resp.text();
-          // Extract colors
-          const colorMatches = html.match(/(?:background-color|background|color)\s*:\s*(#[0-9a-fA-F]{6})/g) || [];
+          // Extract ALL meaningful colors
+          const skipColors = new Set(['#fff','#ffffff','#000','#000000','#ccc','#cccccc','#ddd','#dddddd','#eee','#eeeeee','#f5f5f5','#333','#333333','#666','#666666','#999','#999999','#aaa','#aaaaaa','#e5e5e5','#f0f0f0','#fafafa','#f8f8f8']);
+          const colorMatches = html.match(/(?:background-color|background|color|border-color)\s*:\s*(#[0-9a-fA-F]{3,8})/gi) || [];
           colorMatches.forEach(m => {
-            const c = (m.match(/#[0-9a-fA-F]{6}/) || [''])[0];
-            if (c && !inspoHints.accentColor && c !== '#ffffff' && c !== '#000000' && c !== '#fff' && c !== '#000') {
-              inspoHints.accentColor = c;
+            let c = (m.match(/#[0-9a-fA-F]{3,8}/) || [''])[0].toLowerCase();
+            if (!c || c.length < 4) return;
+            if (c.length === 4) c = '#' + c[1]+c[1] + c[2]+c[2] + c[3]+c[3];
+            if (c.length > 7) c = c.slice(0, 7);
+            if (!skipColors.has(c)) allColors[c] = (allColors[c] || 0) + 1;
+          });
+          // Extract font families
+          const fontMatches = html.match(/font-family\s*:\s*([^;}]+)/gi) || [];
+          fontMatches.forEach(m => {
+            const fam = m.replace(/font-family\s*:\s*/i, '').replace(/['"]/g, '').split(',')[0].trim().toLowerCase();
+            if (fam && fam !== 'inherit' && fam !== 'initial' && fam !== 'sans-serif' && fam !== 'serif' && fam.length > 2) {
+              allFonts[fam] = (allFonts[fam] || 0) + 1;
             }
           });
-          // Detect dark mode
-          if (html.match(/background(?:-color)?:\s*#(?:0[0-9a-f]|1[0-9a-f]|2[0-3])/i)) {
-            inspoHints.isDark = true;
+          // Detect dark mode from body
+          const bodyBg = html.match(/body\s*\{[^}]*background[^:]*:\s*(#[0-9a-fA-F]{3,6})/);
+          if (bodyBg) {
+            let hex = bodyBg[1].replace('#', '');
+            if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+            if (hex.length === 6) {
+              const brightness = (parseInt(hex.slice(0,2),16) + parseInt(hex.slice(2,4),16) + parseInt(hex.slice(4,6),16)) / 3;
+              if (brightness < 80) inspoHints.isDark = true;
+            }
+          }
+          // Detect border radius
+          const radiusMatches = html.match(/border-radius\s*:\s*(\d+)/gi) || [];
+          if (radiusMatches.length > 0) {
+            const radii = radiusMatches.map(m => parseInt(m.match(/\d+/)[0]));
+            const avg = radii.reduce((a, b) => a + b, 0) / radii.length;
+            inspoHints.borderRadius = avg > 16 ? 'rounded' : avg > 6 ? 'medium' : 'sharp';
           }
         } catch { /* inspo scrape failed */ }
       }
+      // Get top colors and fonts
+      const sortedColors = Object.entries(allColors).sort((a, b) => b[1] - a[1]);
+      if (sortedColors.length > 0) {
+        inspoHints.accentColor = sortedColors[0][0];
+        inspoHints.palette = sortedColors.slice(0, 5).map(e => e[0]);
+      }
+      const sortedFonts = Object.entries(allFonts).sort((a, b) => b[1] - a[1]);
+      if (sortedFonts.length > 0) inspoHints.fonts = sortedFonts.slice(0, 3).map(e => e[0]);
+      // Apply inspo hints
       if (inspoHints.accentColor && !biz.customAccent) biz.customAccent = inspoHints.accentColor;
+      if (inspoHints.palette && !biz.customPalette) biz.inspoPalette = inspoHints.palette;
       if (inspoHints.isDark && biz.style === 'modern-clean') biz.style = 'bold-dark';
+      if (inspoHints.fonts) biz.inspoFonts = inspoHints.fonts;
+      if (inspoHints.borderRadius) biz.inspoBorderRadius = inspoHints.borderRadius;
     }
 
     const previewId = generateId();
@@ -972,6 +1009,20 @@ function buildPreviewPage(biz, content) {
     if (fontOverride.font) t.font = fontOverride.font;
     if (fontOverride.fontHead) t.fontHead = fontOverride.fontHead;
     if (fontOverride.gFont) t.gFont = fontOverride.gFont;
+  }
+
+  // Apply inspo-extracted fonts if no explicit user font preference
+  if (!fontOverride && biz.inspoFonts && biz.inspoFonts.length > 0) {
+    const inspoFont = biz.inspoFonts[0].replace(/\b\w/g, c => c.toUpperCase());
+    const gName = inspoFont.replace(/\s/g, '+');
+    t.font = `'${inspoFont}',sans-serif`;
+    t.fontHead = `'${inspoFont}',sans-serif`;
+    t.gFont = `${gName}:wght@300;400;500;600;700`;
+  }
+  // Apply inspo border radius
+  if (biz.inspoBorderRadius) {
+    const radiusMap = { rounded: '20px', medium: '10px', sharp: '2px' };
+    if (radiusMap[biz.inspoBorderRadius]) t.cardRadius = radiusMap[biz.inspoBorderRadius];
   }
 
   // Apply discovery intelligence if available — override fonts/colors from real-world sites

@@ -565,7 +565,17 @@
       <h2>Straight-up pricing.</h2>
       <p class="pricing-subtitle">One payment. Full website. No monthly contracts. <br class="hide-mobile">Free hosting included for the first year.</p>
 
-      <div class="pricing-grid">
+
+      <!-- Pricing type toggle -->
+      <div style="display:flex;justify-content:center;margin-bottom:2.5rem;">
+        <div style="display:inline-flex;background:var(--bg-card);border:1px solid var(--border);border-radius:100px;padding:4px;">
+          <button type="button" class="pricing-toggle-btn pricing-toggle-btn--active" id="pricingToggleBiz" style="padding:10px 24px;border:none;border-radius:100px;font-size:0.875rem;font-weight:600;cursor:pointer;transition:all 0.3s;font-family:var(--font-body);background:var(--accent);color:#12100e;">For Businesses</button>
+          <button type="button" class="pricing-toggle-btn" id="pricingTogglePersonal" style="padding:10px 24px;border:none;border-radius:100px;font-size:0.875rem;font-weight:500;cursor:pointer;transition:all 0.3s;font-family:var(--font-body);background:transparent;color:var(--text-muted);">For Individuals</button>
+        </div>
+      </div>
+
+      <!-- Business pricing -->
+      <div id="pricingBusiness" class="pricing-grid">
         <div class="pricing-card" data-animate="fade-up">
           <div class="pricing-card-head">
             <h3>Starter</h3>
@@ -628,68 +638,98 @@
         </div>
       </div>
 
-      <!-- Non-business pricing -->
-      <div style="margin-top:64px;text-align:center;">
-        <span class="section-label">For Individuals &amp; Creators</span>
-        <h3 style="font-size:1.5rem;margin-bottom:8px;">Not a business owner?</h3>
-        <p class="pricing-subtitle" style="margin-bottom:32px;">Personal websites, portfolios, and creative projects — at creator-friendly prices.</p>
-        <div class="pricing-grid">
-          <div class="pricing-card" data-animate="fade-up">
-            <div class="pricing-card-head">
-              <h3>Starter</h3>
-              <p>Personal websites &amp; landing pages</p>
-            </div>
-            <div class="pricing-card-price">
-              <span class="price-amount">$300</span>
-              <span class="price-period">one-time</span>
-            </div>
-            <ul class="pricing-card-list">
-              <li>Single-page website</li>
-              <li>Responsive design</li>
-              <li>SSL certificate</li>
-              <li>Contact form</li>
-              <li>14 days support</li>
-            </ul>
-            <a href="#start" class="btn btn-outline">Get started</a>
+      <!-- Personal / Creator pricing (hidden by default) -->
+      <div id="pricingPersonal" class="pricing-grid" style="display:none;">
+        <div class="pricing-card" data-animate="fade-up">
+          <div class="pricing-card-head">
+            <h3>Starter</h3>
+            <p>Personal websites &amp; landing pages</p>
           </div>
-          <div class="pricing-card pricing-card--featured" data-animate="fade-up">
-            <span class="pricing-badge">Popular</span>
-            <div class="pricing-card-head">
-              <h3>Professional</h3>
-              <p>Portfolios &amp; creative projects</p>
-            </div>
-            <div class="pricing-card-price">
-              <span class="price-amount">$700</span>
-              <span class="price-period">one-time</span>
-            </div>
-            <ul class="pricing-card-list">
-              <li>3-page website</li>
-              <li>Portfolio gallery</li>
-              <li>Blog</li>
-              <li>SEO setup</li>
-              <li>Custom domain support</li>
-              <li>30 days support</li>
-            </ul>
-            <a href="#start" class="btn btn-primary">Get started</a>
+          <div class="pricing-card-price">
+            <span class="price-amount">$300</span>
+            <span class="price-period">one-time</span>
           </div>
-          <div class="pricing-card" data-animate="fade-up">
-            <div class="pricing-card-head">
-              <h3>Premium</h3>
-              <p>Full creative presence</p>
-            </div>
-            <div class="pricing-card-price">
-              <span class="price-amount">$1,200</span>
-              <span class="price-period">one-time</span>
-            </div>
-            <ul class="pricing-card-list">
-              <li>5-page website</li>
-              <li>Blog with CMS</li>
-              <li>Custom animations</li>
-              <li>Social integrations</li>
-              <li>60 days support</li>
-            </ul>
-            <a href="#start" class="btn btn-outline">Get started</a>
+          <ul class="pricing-card-list">
+            <li>Single-page website</li>
+            <li>Responsive design</li>
+            <li>SSL certificate</li>
+            <li>Contact form</li>
+            <li>14 days support</li>
+          </ul>
+          <a href="#start" class="btn btn-outline">Get started</a>
+        </div>
+        <div class="pricing-card pricing-card--featured" data-animate="fade-up">
+          <span class="pricing-badge">Popular</span>
+          <div class="pricing-card-head">
+            <h3>Professional</h3>
+            <p>Portfolios &amp; creative projects</p>
           </div>
+          <div class="pricing-card-price">
+            <span class="price-amount">$700</span>
+            <span class="price-period">one-time</span>
+          </div>
+          <ul class="pricing-card-list">
+            <li>3-page website</li>
+            <li>Portfolio gallery</li>
+            <li>Blog</li>
+            <li>SEO setup</li>
+            <li>Custom domain support</li>
+            <li>30 days support</li>
+          </ul>
+          <a href="#start" class="btn btn-primary">Get started</a>
+        </div>
+        <div class="pricing-card" data-animate="fade-up">
+          <div class="pricing-card-head">
+            <h3>Premium</h3>
+            <p>Full creative presence</p>
+          </div>
+          <div class="pricing-card-price">
+            <span class="price-amount">$1,200</span>
+            <span class="price-period">one-time</span>
+          </div>
+          <ul class="pricing-card-list">
+            <li>5-page website</li>
+            <li>Blog with CMS</li>
+            <li>Custom animations</li>
+            <li>Social integrations</li>
+            <li>60 days support</li>
+          </ul>
+          <a href="#start" class="btn btn-outline">Get started</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ WEBSITE CHECKER ══════════════ -->
+  <section class="website-checker" id="checker">
+    <div class="container container--narrow">
+      <span class="section-label">Free Tool</span>
+      <h2>How good is your website?</h2>
+      <p class="pricing-subtitle">Paste any URL and get an instant analysis. No signup required.</p>
+
+      <div class="checker-card" data-animate="fade-up">
+        <form id="checkerForm" class="checker-form">
+          <div class="cta-inputs" style="max-width:600px;margin:0 auto;">
+            <div class="input-wrap" style="flex:1;">
+              <label for="checkerUrl">Website URL</label>
+              <input type="url" id="checkerUrl" placeholder="https://example.com" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="checkerBtn" style="margin:1rem auto 0;display:block;">Analyze website</button>
+        </form>
+
+        <div id="checkerResults" style="display:none;margin-top:2rem;">
+          <div style="text-align:center;margin-bottom:2rem;">
+            <div id="checkerOverallScore" style="font-family:var(--font-serif);font-size:3.5rem;color:var(--accent);line-height:1;"></div>
+            <p style="font-size:0.875rem;color:var(--text-muted);margin-top:0.25rem;">Overall Score</p>
+          </div>
+          <div id="checkerBreakdown" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;"></div>
+          <div id="checkerDetails" style="margin-top:2rem;"></div>
+        </div>
+
+        <div id="checkerLoading" style="display:none;text-align:center;padding:2rem 0;">
+          <div style="width:40px;height:40px;border-radius:50%;border:3px solid var(--border-subtle);border-top-color:var(--accent);animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div>
+          <p style="font-size:0.875rem;color:var(--text-secondary);">Analyzing website...</p>
         </div>
       </div>
     </div>
@@ -845,6 +885,105 @@
         authLink.href = '/dashboard.html';
       }
     })();
+  </script>
+  <script>
+  // Pricing toggle
+  (function() {
+    var bizBtn = document.getElementById('pricingToggleBiz');
+    var perBtn = document.getElementById('pricingTogglePersonal');
+    var bizGrid = document.getElementById('pricingBusiness');
+    var perGrid = document.getElementById('pricingPersonal');
+    if (bizBtn && perBtn && bizGrid && perGrid) {
+      bizBtn.addEventListener('click', function() {
+        bizBtn.style.background = 'var(--accent)';
+        bizBtn.style.color = '#12100e';
+        bizBtn.style.fontWeight = '600';
+        perBtn.style.background = 'transparent';
+        perBtn.style.color = 'var(--text-muted)';
+        perBtn.style.fontWeight = '500';
+        bizGrid.style.display = '';
+        perGrid.style.display = 'none';
+      });
+      perBtn.addEventListener('click', function() {
+        perBtn.style.background = 'var(--accent)';
+        perBtn.style.color = '#12100e';
+        perBtn.style.fontWeight = '600';
+        bizBtn.style.background = 'transparent';
+        bizBtn.style.color = 'var(--text-muted)';
+        bizBtn.style.fontWeight = '500';
+        perGrid.style.display = '';
+        bizGrid.style.display = 'none';
+      });
+    }
+  })();
+  </script>
+  <script>
+  // Website checker
+  (function() {
+    var form = document.getElementById('checkerForm');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var url = document.getElementById('checkerUrl').value.trim();
+      if (!url) return;
+      var btn = document.getElementById('checkerBtn');
+      var results = document.getElementById('checkerResults');
+      var loading = document.getElementById('checkerLoading');
+      btn.disabled = true;
+      btn.textContent = 'Analyzing...';
+      results.style.display = 'none';
+      loading.style.display = 'block';
+      fetch('/api/checker/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url }),
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        loading.style.display = 'none';
+        btn.disabled = false;
+        btn.textContent = 'Analyze website';
+        if (data.error) {
+          results.style.display = 'block';
+          results.innerHTML = '<p style="color:var(--red);text-align:center;">' + data.error + '</p>';
+          return;
+        }
+        renderCheckerResults(data);
+      })
+      .catch(function() {
+        loading.style.display = 'none';
+        btn.disabled = false;
+        btn.textContent = 'Analyze website';
+        results.style.display = 'block';
+        results.innerHTML = '<p style="color:var(--red);text-align:center;">Could not analyze website. Please try again.</p>';
+      });
+    });
+    function renderCheckerResults(data) {
+      var results = document.getElementById('checkerResults');
+      results.style.display = 'block';
+      document.getElementById('checkerOverallScore').textContent = data.overall + '%';
+      var breakdown = document.getElementById('checkerBreakdown');
+      var categories = [
+        { key: 'performance', label: 'Performance' },
+        { key: 'seo', label: 'SEO' },
+        { key: 'mobile', label: 'Mobile' },
+        { key: 'security', label: 'Security' },
+        { key: 'accessibility', label: 'Accessibility' },
+      ];
+      breakdown.innerHTML = categories.map(function(cat) {
+        var score = data.scores[cat.key] || 0;
+        var cls = score >= 80 ? 'checker-score-val--good' : score >= 50 ? 'checker-score-val--ok' : 'checker-score-val--bad';
+        return '<div class="checker-score-item"><h4>' + cat.label + '</h4><div class="checker-score-val ' + cls + '">' + score + '%</div></div>';
+      }).join('');
+      var details = document.getElementById('checkerDetails');
+      details.innerHTML = '<h4 style="font-size:0.8125rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.75rem;">Detailed Breakdown</h4>' +
+        data.details.map(function(d) {
+          var iconCls = d.pass ? 'checker-detail-icon--pass' : 'checker-detail-icon--fail';
+          var icon = d.pass ? '&#10003;' : '&#10007;';
+          return '<div class="checker-detail-item"><div class="checker-detail-icon ' + iconCls + '">' + icon + '</div><div class="checker-detail-text"><strong>' + d.label + '</strong> &mdash; ' + d.value + '</div></div>';
+        }).join('');
+    }
+  })();
   </script>
 </body>
 </html>
