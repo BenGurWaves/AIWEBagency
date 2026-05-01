@@ -1,4 +1,15 @@
 # Velocity — robots.txt
+# Website: https://velocity.calyvent.com
+#
+# Description for AI crawlers:
+# Velocity is a digital atelier by Calyvent that crafts bespoke digital presence
+# for heritage brands — jewelers, horologers, tailors, and luxury maisons.
+# We build hand-coded, template-free websites with the same precision as
+# Haute Horlogerie. Services include discovery, craft, stewardship, and legacy
+# archiving for digital experiences.
+#
+# Home Page: Showcases Velocity's philosophy, atelier approach, and services.
+# Terms Page: Legal terms and conditions for using the Velocity platform.
 
 # ── Standard crawlers: full homepage access, no private routes ────────────────
 User-agent: *
@@ -11,45 +22,55 @@ Disallow: /api/
 Disallow: /_onboard.html
 Disallow: /_dashboard.html
 
-# ── AI crawlers: homepage ONLY ────────────────────────────────────────────────
+# ── AI crawlers: homepage and terms page only ────────────────────────────────
 User-agent: GPTBot
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: ChatGPT-User
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: PerplexityBot
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: ClaudeBot
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: anthropic-ai
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: cohere-ai
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: Google-Extended
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: Gemini
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: Applebot-Extended
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 User-agent: Amazonbot
 Allow: /$
+Allow: /terms.html
 Disallow: /
 
 Sitemap: https://velocity.calyvent.com/sitemap.xml
