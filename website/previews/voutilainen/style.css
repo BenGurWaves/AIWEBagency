@@ -1,0 +1,232 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@200;300&display=swap');
+
+:root {
+    --bg-color: #020202; 
+    --bg-highlight: #0A1418; 
+    --text-primary: #EBE5DB;
+    --text-accent: #6B7C80;
+    
+    --font-serif: 'Cormorant Garamond', serif;
+    --font-sans: 'Inter', sans-serif;
+    
+    --cursor-size: 14px;
+}
+
+* {
+    margin: 0; padding: 0; box-sizing: border-box; cursor: none !important;
+}
+
+body {
+    background-color: var(--bg-color);
+    background: radial-gradient(circle at 50% -20%, var(--bg-highlight) 0%, var(--bg-color) 80%);
+    color: var(--text-primary);
+    font-family: var(--font-sans); overflow: hidden;
+    width: 100vw; height: 100vh; -webkit-font-smoothing: antialiased;
+}
+
+/* CUSTOM CURSOR */
+#custom-cursor {
+    position: fixed; top: 0; left: 0;
+    width: var(--cursor-size); height: var(--cursor-size);
+    border: 1px solid rgba(235, 229, 219, 0.3); border-radius: 50%;
+    pointer-events: none; z-index: 9999; transform: translate(-50%, -50%);
+    transition: width 0.6s cubic-bezier(0.19, 1, 0.22, 1), height 0.6s cubic-bezier(0.19, 1, 0.22, 1), background-color 0.4s ease;
+    mix-blend-mode: difference;
+}
+
+#custom-cursor.hovering {
+    width: 90px; height: 90px;
+    background-color: var(--text-primary); border-color: transparent;
+}
+
+/* ETHEREAL LOADER */
+#loader {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--bg-color); z-index: 9000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    transition: opacity 2s cubic-bezier(0.65, 0, 0.05, 1), visibility 2s;
+}
+#loader.hidden { opacity: 0; visibility: hidden; }
+
+.loader-brand {
+    font-family: var(--font-serif); font-size: 1.5rem; font-weight: 300;
+    letter-spacing: 0.4em; color: var(--text-primary); opacity: 0;
+    animation: etherealBreath 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.loader-ring {
+    position: absolute; width: 10vw; height: 10vw;
+    border: 1px solid rgba(235, 229, 219, 0.1); border-radius: 50%;
+    animation: ringExpand 4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+@keyframes etherealBreath {
+    0% { opacity: 0; filter: blur(10px); transform: scale(0.95); }
+    40% { opacity: 1; filter: blur(0px); transform: scale(1); }
+    70% { opacity: 1; filter: blur(0px); transform: scale(1); }
+    100% { opacity: 0; filter: blur(5px); transform: scale(1.05); }
+}
+
+@keyframes ringExpand {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+/* SCROLL CANVAS */
+#smooth-wrapper {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100vh; overflow: hidden;
+}
+#smooth-content {
+    width: 100%; will-change: transform;
+}
+
+/* TYPOGRAPHIC BLOCKS */
+.block {
+    position: relative; width: 100%; min-height: 100vh;
+    display: flex; padding: 10vh 5vw;
+}
+
+.meta-label {
+    font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.4em;
+    color: var(--text-accent); font-weight: 300; display: block;
+}
+
+.title-massive {
+    font-family: var(--font-serif); font-weight: 300; line-height: 0.8;
+    color: var(--text-primary); white-space: nowrap; opacity: 0.95;
+}
+.text-body {
+    font-size: 0.85rem; font-weight: 200; line-height: 2;
+    color: rgba(235, 229, 219, 0.5); letter-spacing: 0.05em;
+}
+
+.layout-breath {
+    flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    padding: 25vh 5vw;
+}
+.layout-breath .title-massive { font-size: clamp(5rem, 16vw, 20rem); letter-spacing: -0.02em; }
+.layout-breath .text-body { max-width: 450px; margin-top: 8vh; }
+
+.layout-staggered {
+    flex-direction: column; justify-content: center; align-items: flex-start;
+    padding-top: 15vh;
+}
+.layout-staggered .stair {
+    display: block; font-family: var(--font-serif); font-size: clamp(4rem, 10vw, 12rem);
+    font-style: italic; color: var(--text-accent); margin-bottom: -2rem; line-height: 1;
+}
+.layout-staggered .stair:nth-child(2) { margin-left: 12vw; color: var(--text-primary); font-style: normal; }
+.layout-staggered .stair:nth-child(3) { margin-left: 24vw; color: rgba(235, 229, 219, 0.2); }
+.layout-staggered .text-body { margin-left: 36vw; margin-top: 8vh; max-width: 320px; }
+
+.layout-split {
+    flex-direction: row; justify-content: space-between; align-items: center;
+}
+.layout-split .title-massive { font-size: clamp(4rem, 12vw, 15rem); writing-mode: vertical-rl; transform: rotate(180deg); color: rgba(235, 229, 219, 0.1); }
+.layout-split .text-wrapper { max-width: 40vw; }
+.layout-split h2 { font-family: var(--font-serif); font-size: 4rem; margin-bottom: 2rem; font-style: italic; font-weight: 300; }
+
+/* =========================================
+   ABSTRACT FOOTER
+   ========================================= */
+.abstract-footer {
+    position: relative; width: 100%; height: 100vh;
+    overflow: hidden;
+}
+
+.abs-coord-1 { position: absolute; top: 10vh; left: 5vw; }
+.abs-coord-2 { position: absolute; bottom: 10vh; left: 5vw; }
+
+.copyright-title {
+    font-family: var(--font-serif); font-size: 1.5rem; font-style: italic; color: rgba(235, 229, 219, 0.4);
+}
+.copyright-meta {
+    font-size: 0.4rem; letter-spacing: 0.4em; color: rgba(235, 229, 219, 0.2); text-transform: uppercase;
+    display: block; margin-top: 1rem;
+}
+
+/* Abstract Central Trigger (Jewel Bearing) */
+.footer-center {
+    position: absolute; top: 50%; left: 40%; transform: translate(-50%, -50%);
+    width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 20;
+}
+.jewel-bearing {
+    position: relative; width: 16px; height: 16px;
+    border: 1px solid rgba(235, 229, 219, 0.2); border-radius: 50%;
+    transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), border-color 0.4s ease;
+}
+.footer-center:hover .jewel-bearing {
+    transform: scale(2) rotate(90deg);
+    border-color: var(--text-primary);
+}
+.crosshair {
+    position: absolute; background: var(--text-accent); transition: background 0.4s ease;
+}
+.crosshair:nth-child(1) { width: 100%; height: 1px; top: 50%; left: 0; transform: translateY(-50%); }
+.crosshair:nth-child(2) { height: 100%; width: 1px; left: 50%; top: 0; transform: translateX(-50%); }
+.footer-center:hover .crosshair { background: var(--text-primary); }
+
+/* Resonance Ripple */
+.resonance-ripple {
+    position: absolute; top: 50%; left: 40%;
+    width: 1px; height: 1px; border-radius: 50%;
+    border: 1px solid rgba(235, 229, 219, 0.08);
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0; pointer-events: none; z-index: 5;
+}
+.resonance-ripple.animate {
+    transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.5s ease-out;
+    transform: translate(-50%, -50%) scale(4000); /* Massive scale to guarantee hitting the edge */
+    opacity: 1;
+}
+.resonance-ripple.fade {
+    opacity: 0; transition: opacity 1s ease;
+}
+
+/* Fixed Vertical Email */
+.copy-email-btn {
+    position: absolute; top: 50%; right: 5vw;
+    background: transparent; border: none; outline: none;
+    font-family: var(--font-serif); 
+    font-size: 8vh; 
+    line-height: 0.8;
+    font-weight: 300; color: var(--text-primary);
+    writing-mode: vertical-rl;
+    transform: translateY(-50%) rotate(180deg);
+    opacity: 0.9; transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    white-space: nowrap; z-index: 20;
+}
+.copy-email-btn.pulsing {
+    color: #ffffff; opacity: 1; letter-spacing: 0.1em;
+    filter: drop-shadow(0 0 15px rgba(235, 229, 219, 0.4));
+}
+.copy-email-btn .domain {
+    font-style: italic; opacity: 0.4; margin-top: 2vh;
+}
+
+/* Copy Notification */
+.copy-notification {
+    position: fixed; bottom: 5vh; left: 50%; transform: translateX(-50%) translateY(20px);
+    font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--bg-color); background: var(--text-primary);
+    padding: 1rem 2rem; border-radius: 50px;
+    opacity: 0; pointer-events: none; z-index: 10000;
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.copy-notification.show {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+.hover-target { display: inline-block; }
+
+/* =========================================
+   ELEGANT GUILLOCHE TEXTURE
+   ========================================= */
+#grain-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 8000; opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke='%23EBE5DB' stroke-width='0.5'%3E%3Cpath d='M30 0l30 30-30 30L0 30z'/%3E%3Cpath d='M30 15l15 15-15 15L15 30z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-size: 60px 60px;
+}
